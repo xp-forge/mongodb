@@ -2,9 +2,8 @@
 
 use com\mongodb\{Protocol, ObjectId};
 use lang\IllegalArgumentException;
-use peer\Socket;
 use unittest\Assert;
-use util\Bytes;
+use util\{Bytes, Date};
 
 class ProtocolTest {
 
@@ -15,7 +14,7 @@ class ProtocolTest {
 
   #[@test]
   public function can_create_with_socket() {
-    new Protocol(new Socket('localhost', 27017));
+    new Protocol(new TestingSocket());
   }
 
   #[@test, @values([
@@ -53,5 +52,39 @@ class ProtocolTest {
   #])]
   public function unknown_auth_mechanism() {
     new Protocol('mongodb://localhost?authMechanism=UNKNOWN');
+  }
+
+  #[@test]
+  public function connect_handshake_populates_server_options() {
+    $s= new TestingSocket([
+      "\xef\x00\x00\x00\x92\x09\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00",
+      "\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
+      "\x01\x00\x00\x00\xcb\x00\x00\x00\x08ismaster\x00\x01\x10maxBsonO".
+      "bjectSize\x00\x00\x00\x00\x01\x10maxMessageSizeBytes\x00\x00l\xdc".
+      "\x02\x10maxWriteBatchSize\x00\xa0\x86\x01\x00\x09localTime\x00\xef".
+      "\x00\xa0\xb9s\x01\x00\x00\x10logicalSessionTimeoutMinutes\x00\x1e".
+      "\x00\x00\x00\x10minWireVersion\x00\x00\x00\x00\x00\x10maxWireVers".
+      "ion\x00\x06\x00\x00\x00\x08readOnly\x00\x00\x01ok\x00\x00\x00\x00".
+      "\x00\x00\x00\xf0?\x00"
+    ]);
+
+    $p= new Protocol($s);
+    $p->connect();
+
+    Assert::equals(
+      [
+        'ismaster' => true,
+        'maxBsonObjectSize' => 16777216,
+        'maxMessageSizeBytes' => 48000000,
+        'maxWriteBatchSize' => 100000,
+        'localTime' => new Date('2020-08-04 13:18:57+0000'),
+        'logicalSessionTimeoutMinutes' => 30,
+        'minWireVersion' => 0,
+        'maxWireVersion' => 6,
+        'readOnly' => false,
+        'ok' => 1.0,
+      ],
+      $p->options()['server'],
+    );
   }
 }

@@ -163,11 +163,11 @@ class Protocol {
     // \util\cmd\Console::writeLine('>>> ', strlen($payload), ': ', $this->hex($payload)); 
     $this->conn->write($payload);
 
-    $header= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->conn->readBinary(16));
-    // \util\cmd\Console::writeLine('<<< ', $header); 
+    $header= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $x= $this->conn->readBinary(16));
+    \util\cmd\Console::writeLine('<<< ', $this->hex($x)); 
 
     $response= $this->conn->readBinary($header['messageLength'] - 16);
-    // \util\cmd\Console::writeLine('<<< ', strlen($response), ': ', $this->hex($response)); 
+    \util\cmd\Console::writeLine('<<< ', strlen($response), ': ', $this->hex($response)); 
 
     switch ($header['opCode']) {
       case self::OP_MSG:
