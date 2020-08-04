@@ -24,6 +24,10 @@ class Database {
    * @throws com.mongodb.Error
    */
   public function collections() {
-    return $this->proto->msg(0, 0, ['listCollections' => (object)[], '$db' => $this->name]);
+    $result= $this->proto->msg(0, 0, [
+      'listCollections' => (object)[],
+      '$db'             => $this->name
+    ]);
+    return new Cursor($this->proto, $result['body']['cursor']);
   }
 }
