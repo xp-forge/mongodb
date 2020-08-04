@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.2.0 / 2020-08-04
+
 * Added `Database::collections()` method to list collections in a database
   (@thekid)
 * Added `MongoConnection::databases()` method which lists all databases
