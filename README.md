@@ -55,6 +55,7 @@ All builtin types are mapped to their BSON equivalents. In addition, the followi
 * `util.Bytes` => Binary data
 * `util.UUID` => UUID binary data
 * `com.mongodb.Int64` => 64-bit integer
+* `com.mongodb.Decimal128` => 128-bit decimal
 * `com.mongodb.ObjectId` => Object ID
 * `com.mongodb.Timestamp` => Timestamp
 * `com.mongodb.Regex` => Regular expression
