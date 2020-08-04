@@ -44,6 +44,8 @@ class BSON {
       return "\x11".$name."\x00".pack('VV', $value->increment(), $value->seconds());
     } else if ($value instanceof Int64) {
       return "\x12".$name."\x00".pack('P', $value->number());
+    } else if ($value instanceof Regex) {
+      return "\x0b".$name."\x00".$value->pattern()."\x00".$value->modifiers()."\x00";
     } else if ($value instanceof Document || $value instanceof \StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
     } else if (is_string($value)) {

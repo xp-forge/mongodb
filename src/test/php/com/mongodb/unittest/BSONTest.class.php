@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{BSON, ObjectId, Int64, Timestamp, Document};
+use com\mongodb\{BSON, ObjectId, Int64, Timestamp, Document, Regex};
 use lang\{IllegalArgumentException, FormatException};
 use unittest\Assert;
 use util\{Bytes, Date};
@@ -65,6 +65,14 @@ class BSONTest {
     Assert::equals(
       new Bytes("\x03test\x00\x0e\x00\x00\x00\x10one\x00\x01\x00\x00\x00\x00"),
       new Bytes((new BSON())->bytes('test', new Document(['one' => 1])))
+    );
+  }
+
+  #[@test]
+  public function encode_regex() {
+    Assert::equals(
+      new Bytes("\x0btest\x0099[a-z]+\x00i\x00"),
+      new Bytes((new BSON())->bytes('test', new Regex('99[a-z]+', 'i')))
     );
   }
 
