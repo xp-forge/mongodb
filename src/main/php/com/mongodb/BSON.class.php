@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use lang\{FormatException, IllegalArgumentException};
-use util\{Bytes, Date, TimeZone};
+use util\{Bytes, Date, TimeZone, UUID};
 
 /** @see http://bsonspec.org/spec.html */
 class BSON {
@@ -38,6 +38,8 @@ class BSON {
       return "\x05".$name."\x00".pack('Vx', strlen($value)).$value;
     } else if ($value instanceof Date) {
       return "\x09".$name."\x00".pack('P', $value->getTime() * 1000);
+    } else if ($value instanceof UUID) {
+      return "\x05".$name."\x00".pack('Vc', 16, 4).$value->getBytes();
     } else if ($value instanceof ObjectId) {
       return "\x07".$name."\x00".hex2bin($value->string());
     } else if ($value instanceof Timestamp) {
@@ -107,8 +109,10 @@ class BSON {
       $binary= unpack('Vlength/csubtype', substr($bytes, $offset, 5));
       $value= substr($bytes, $offset + 5, $binary['length']);
       $offset+= $binary['length'] + 5;
+
       switch ($binary['subtype']) {
         case 0: return new Bytes($value);
+        case 4: return new UUID(new Bytes($value));
         default: throw new FormatException('Cannot handle binary subtype '.$binary['subtype']);
       }
     } else if ("\x07" === $kind) {    // ObjectId

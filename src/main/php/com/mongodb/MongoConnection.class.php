@@ -60,6 +60,17 @@ class MongoConnection implements Value {
   }
 
   /**
+   * Returns a list of database information objects
+   *
+   * @return [:var][]
+   * @throws com.mongodb.Error
+   */
+  public function databases() {
+    $this->proto->connect();
+    return $this->proto->msg(0, 0, ['listDatabases' => (object)[], '$db' => 'admin'])['body']['databases'];
+  }
+
+  /**
    * Close connection
    *
    * @return void

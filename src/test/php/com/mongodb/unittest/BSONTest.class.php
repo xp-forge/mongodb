@@ -3,12 +3,13 @@
 use com\mongodb\{BSON, ObjectId, Int64, Timestamp, Document, Regex};
 use lang\{IllegalArgumentException, FormatException};
 use unittest\Assert;
-use util\{Bytes, Date};
+use util\{Bytes, Date, UUID};
 
 class BSONTest {
 
   /** @return iterable */
   private function values() {
+    static $uuid= '5f375bfe-af78-4af8-bb03-5d441a66a5fb';
 
     // Constants
     yield [false, "\x08test\x00\x00"];
@@ -46,6 +47,7 @@ class BSONTest {
     yield [new Date('2020-08-03 17:41 +0200'), "\x09test\x00\xe0\xae\xfb\xb4\x73\x01\x00\x00"];
     yield [new Date('1969-08-03 17:41 +0200'), "\x09test\x00\xe0\x3e\xbd\xf9\xfc\xff\xff\xff"];
     yield [new Timestamp(1596543032, 1), "\x11test\x00\x01\x00\x00\x00\x38\x50\x29\x5f"];
+    yield [new UUID($uuid), "\x05test\x00\x10\x00\x00\x00\x04\x5f\x37\x5b\xfe\xaf\x78\x4a\xf8\xbb\x03\x5d\x44\x1a\x66\xa5\xfb"];
     yield [new ObjectId('5f1dda9973edf2501751884b'), "\x07test\x00\x5f\x1d\xda\x99\x73\xed\xf2\x50\x17\x51\x88\x4b"];
   }
 

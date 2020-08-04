@@ -53,6 +53,7 @@ All builtin types are mapped to their BSON equivalents. In addition, the followi
 
 * `util.Date` => UTC datetime
 * `util.Bytes` => Binary data
+* `util.UUID` => UUID binary data
 * `com.mongodb.Int64` => 64-bit integer
 * `com.mongodb.ObjectId` => Object ID
 * `com.mongodb.Timestamp` => Timestamp
