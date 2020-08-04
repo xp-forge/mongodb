@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{BSON, ObjectId, Int64, Timestamp, Document, Regex};
+use com\mongodb\{BSON, ObjectId, Int64, Decimal128, Timestamp, Document, Regex};
 use lang\{IllegalArgumentException, FormatException};
 use unittest\Assert;
 use util\{Bytes, Date, UUID};
@@ -33,6 +33,9 @@ class BSONTest {
     // Long integers
     yield [new Int64(0), "\x12test\x00\x00\x00\x00\x00\x00\x00\x00\x00"];
     yield [new Int64(9223372036854775807), "\x12test\x00\xff\xff\xff\xff\xff\xff\xff\x7f"];
+
+    // Long integers
+    yield [new Decimal128(99, 3475653012423180288), "\x13test\x00\x63\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x3c\x30"];
 
     // Arrays
     yield [[], "\x04test\x00\x05\x00\x00\x00\x00"];

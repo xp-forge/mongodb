@@ -46,6 +46,8 @@ class BSON {
       return "\x11".$name."\x00".pack('VV', $value->increment(), $value->seconds());
     } else if ($value instanceof Int64) {
       return "\x12".$name."\x00".pack('P', $value->number());
+    } else if ($value instanceof Decimal128) {
+      return "\x13".$name."\x00".pack('PP', $value->lo(), $value->hi());
     } else if ($value instanceof Regex) {
       return "\x0b".$name."\x00".$value->pattern()."\x00".$value->modifiers()."\x00";
     } else if ($value instanceof Document || $value instanceof \StdClass) {
@@ -142,6 +144,10 @@ class BSON {
       $bytes= substr($bytes, $offset, 8);
       $offset+= 8;
       return new Int64(unpack('P', $bytes)[1]);
+    } else if ("\x13" === $kind) {    // 128-bit decimal
+      $value= unpack('Plo/Phi', substr($bytes, $offset, 16));
+      $offset+= 16;
+      return new Decimal128($value['lo'], $value['hi']);
     }
 
     throw new FormatException('Unknown type 0x'.dechex(ord($kind)).': '.substr($bytes, $offset));
