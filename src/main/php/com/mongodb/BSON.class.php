@@ -40,6 +40,8 @@ class BSON {
       return "\x09".$name."\x00".pack('P', $value->getTime() * 1000);
     } else if ($value instanceof ObjectId) {
       return "\x07".$name."\x00".hex2bin($value->string());
+    } else if ($value instanceof Timestamp) {
+      return "\x11".$name."\x00".pack('VV', $value->increment(), $value->seconds());
     } else if ($value instanceof Int64) {
       return "\x12".$name."\x00".pack('P', $value->number());
     } else if ($value instanceof Document || $value instanceof \StdClass) {
@@ -119,6 +121,10 @@ class BSON {
       $bytes= substr($bytes, $offset, 8);
       $offset+= 8;
       return new Date(intval(unpack('P', $bytes)[1] / 1000), self::$UTC);
+    } else if ("\x11" === $kind) {    // Timestamp
+      $binary= unpack('Vincrement/Vseconds', substr($bytes, $offset, 8));
+      $offset+= 8;
+      return new Timestamp($binary['seconds'], $binary['increment']);
     } else if ("\x0a" === $kind) {    // Null value
       return null;
     } else if ("\x10" === $kind) {    // 32-bit integer

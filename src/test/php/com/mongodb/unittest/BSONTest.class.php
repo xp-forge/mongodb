@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{BSON, ObjectId, Int64, Document};
+use com\mongodb\{BSON, ObjectId, Int64, Timestamp, Document};
 use lang\{IllegalArgumentException, FormatException};
 use unittest\Assert;
 use util\{Bytes, Date};
@@ -45,6 +45,7 @@ class BSONTest {
     yield [new Bytes('abc'), "\x05test\x00\x03\x00\x00\x00\x00abc"];
     yield [new Date('2020-08-03 17:41 +0200'), "\x09test\x00\xe0\xae\xfb\xb4\x73\x01\x00\x00"];
     yield [new Date('1969-08-03 17:41 +0200'), "\x09test\x00\xe0\x3e\xbd\xf9\xfc\xff\xff\xff"];
+    yield [new Timestamp(1596543032, 1), "\x11test\x00\x01\x00\x00\x00\x38\x50\x29\x5f"];
     yield [new ObjectId('5f1dda9973edf2501751884b'), "\x07test\x00\x5f\x1d\xda\x99\x73\xed\xf2\x50\x17\x51\x88\x4b"];
   }
 
