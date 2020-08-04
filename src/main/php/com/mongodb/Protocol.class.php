@@ -103,7 +103,7 @@ class Protocol {
       $conversation= $this->auth->conversation(
         urldecode($this->options['user']),
         urldecode($this->options['pass']),
-        $this->options['params']['authSource'] ?? (ltrim($this->options['path'], '/') ?: 'admin')
+        $this->options['params']['authSource'] ?? (isset($this->options['path']) ? ltrim($this->options['path'], '/') : 'admin')
       );
 
       do {
