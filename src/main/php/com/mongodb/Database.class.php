@@ -16,4 +16,14 @@ class Database {
   public function collection(string $name): Collection {
     return new Collection($this->proto, $this->name, $name);
   }
+
+  /**
+   * Returns a list of database information objects
+   *
+   * @return [:var][]
+   * @throws com.mongodb.Error
+   */
+  public function collections() {
+    return $this->proto->msg(0, 0, ['listCollections' => (object)[], '$db' => $this->name]);
+  }
 }
