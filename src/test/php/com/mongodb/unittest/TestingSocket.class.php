@@ -21,7 +21,7 @@ class TestingSocket extends Socket {
     $this->requests[]= $bytes;
   }
 
-  public function readBinary($length) {
+  public function readBinary($maxLen= 4096) {
     return array_shift($this->replies);
   }
 
