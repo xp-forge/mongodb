@@ -84,7 +84,7 @@ class ProtocolTest {
         'readOnly' => false,
         'ok' => 1.0,
       ],
-      $p->options()['server'],
+      $p->options()['server']
     );
   }
 }
