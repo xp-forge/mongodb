@@ -147,7 +147,7 @@ class BSON {
     } else if ("\x13" === $kind) {    // 128-bit decimal
       $value= unpack('Plo/Phi', substr($bytes, $offset, 16));
       $offset+= 16;
-      return new Decimal128($value['lo'], $value['hi']);
+      return Decimal128::create($value['lo'], $value['hi']);
     }
 
     throw new FormatException('Unknown type 0x'.dechex(ord($kind)).': '.substr($bytes, $offset));

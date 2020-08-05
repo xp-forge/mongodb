@@ -13,9 +13,49 @@ class Decimal128 implements Value {
   private $lo, $hi;
   private $string= null;
 
-  public function __construct($lo, $hi) {
-    $this->lo= $lo;
-    $this->hi= $hi;
+  public function __construct($in= null) {
+    if (null === $in) return;
+
+    $decimal= explode('.', ltrim($in, '+-')) + ['', ''];
+    if ($decimal[0] >= 0) {
+      $digits= $decimal[0].$decimal[1];
+    } else {
+      $digits= ltrim($decimal[1], '0');
+    }
+
+    $exponent= -strlen($decimal[1]);
+    while ($exponent < -6176 && '0' === $digits[strlen($digits) - 1]) {
+      $exponent++;
+      $digits= substr($digits, 0, -1);
+    }
+    while ($exponent > 6111 && strlen($digits) < 34) {
+      $exponent--;
+      $digits.= '0';
+    }
+    $exponent+= self::EXPONENT_OFFSET;
+
+    $significand= abs($digits);
+    $this->hi= $significand >> 64;
+    $this->lo= ($this->hi << 64) ^ $significand;
+
+    if (1 === $this->hi >> 49) {
+      $this->hi &= 0x7fffffffffff;
+      $this->hi |= self::THB;
+      $this->hi |= ($exponent & 0x3fff) << 47;
+    } else {
+      $this->hi |= $exponent << 49;
+    }
+
+    if ('-' === $in[0]) {
+      $this->hi |= (1 << 63);
+    }
+  }
+
+  public static function create($lo, $hi) {
+    $self= new self();
+    $self->lo= $lo;
+    $self->hi= $hi;
+    return $self;
   }
 
   /** @return int */
