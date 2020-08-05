@@ -13,6 +13,7 @@ class Decimal128 implements Value {
   private $lo, $hi;
   private $string= null;
 
+  /** @param ?string $in */
   public function __construct($in= null) {
     if (null === $in) return;
 
@@ -51,6 +52,13 @@ class Decimal128 implements Value {
     }
   }
 
+  /**
+   * Creates a new instance with LO and HI values
+   *
+   * @param  int $lo
+   * @param  int $lo
+   * @return self
+   */
   public static function create($lo, $hi) {
     $self= new self();
     $self->lo= $lo;
