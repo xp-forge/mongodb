@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.3.1 / 2020-08-06
+
+* Fixed large decimal128 number parsing from a string - @thekid
+
 ## 0.3.0 / 2020-08-05
 
 * Added `Decimal128` support as specified in http://bsonspec.org/spec.html

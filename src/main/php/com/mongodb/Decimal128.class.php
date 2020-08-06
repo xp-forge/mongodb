@@ -2,7 +2,12 @@
 
 use lang\Value;
 
-/** @see https://github.com/estolfo/bson-ruby/blob/RUBY-1098-decimal128/lib/bson/decimal128.rb */
+/**
+ * Decimal 128
+ *
+ * @ext   bcmath
+ * @see   https://github.com/estolfo/bson-ruby/blob/RUBY-1098-decimal128/lib/bson/decimal128.rb
+ */
 class Decimal128 implements Value {
   const NAN = 0x7c00000000000000;
   const INF = 0x7800000000000000;
@@ -15,6 +20,9 @@ class Decimal128 implements Value {
 
   /** @param ?string $in */
   public function __construct($in= null) {
+    static $I64= '9223372036854775807';
+    static $S64= '18446744073709551616';
+
     if (null === $in) return;
 
     $decimal= explode('.', ltrim($in, '+-')) + ['', ''];
@@ -24,6 +32,7 @@ class Decimal128 implements Value {
       $digits= ltrim($decimal[1], '0');
     }
 
+    // Round exact, then clamp
     $exponent= -strlen($decimal[1]);
     while ($exponent < -6176 && '0' === $digits[strlen($digits) - 1]) {
       $exponent++;
@@ -35,9 +44,14 @@ class Decimal128 implements Value {
     }
     $exponent+= self::EXPONENT_OFFSET;
 
-    $significand= abs($digits);
-    $this->hi= $significand >> 64;
-    $this->lo= ($this->hi << 64) ^ $significand;
+    // Hi = Digits >> 64, Lo = (Hi << 64) ^ Digits
+    $this->hi= bcdiv($digits, $S64);
+    $h= bcmul($this->hi, $S64);
+    $p= unpack('J2', pack('JJ',
+      bcdiv($h, $I64), bcmod($h, $I64)) ^ pack('JJ', bcdiv($digits, $I64), bcmod($digits, $I64))
+    );
+    $n= bcadd(bcmul($p[1], $I64), $p[2]);
+    $this->lo= bccomp($n, $I64) > 0 ? bcsub($n, $S64) : $n;
 
     if (1 === $this->hi >> 49) {
       $this->hi &= 0x7fffffffffff;
