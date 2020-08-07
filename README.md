@@ -44,12 +44,12 @@ Console::writeLine('>> ', $result);
 Updating documents:
 
 ```php
-use com\mongodb\{MongoConnection, ObjectId};
+use com\mongodb\{MongoConnection, ObjectId, Operations};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
 
-$inc= (new Operations(['$inc' => ['qty' => 1]]));
+$inc= new Operations(['$inc' => ['qty' => 1]]);
 
 // Select a single document for updating by its ID
 $result= $c->collection('test.products')->update($inc->select(new ObjectId('...')));
