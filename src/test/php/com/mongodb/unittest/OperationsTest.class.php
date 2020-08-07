@@ -41,4 +41,9 @@ class OperationsTest {
   public function filter_passed_to_select_cannot_be_empty() {
     (new Operations(self::$expressions))->select([]);
   }
+
+  #[@test, @expect(IllegalArgumentException::class)]
+  public function malformed_object_id_passed_to_select() {
+    (new Operations(self::$expressions))->select('not.an.object.id');
+  }
 }
