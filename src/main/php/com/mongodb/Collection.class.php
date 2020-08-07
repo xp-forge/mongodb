@@ -64,7 +64,7 @@ class Collection {
   public function delete($filter= [], $limit= null): int {
     $result= $this->proto->msg(0, 0, [
       'delete'    => $this->name,
-      'deletes'   => [['q' => $filter, 'limit' => (int)$limit]],
+      'deletes'   => [['q' => $filter ?: (object)[], 'limit' => (int)$limit]],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
@@ -80,7 +80,7 @@ class Collection {
   public function find($filter= []): Cursor {
     $result= $this->proto->msg(0, 0, [
       'find'   => $this->name,
-      'filter' => (object)$filter,
+      'filter' => $filter ?: (object)[],
       '$db'    => $this->database,
     ]);
     return new Cursor($this->proto, $result['body']['cursor']);

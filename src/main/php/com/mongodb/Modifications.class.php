@@ -3,24 +3,24 @@
 use lang\IllegalArgumentException;
 
 class Modifications implements \IteratorAggregate {
-  private $updates, $filters, $multiple;
+  private $updates, $filter, $multiple;
 
   /**
    * Creates a new modifications document
    *
    * @param  [:var] $updates
-   * @param  [:var] $filters
+   * @param  [:var] $filter
    * @param  bool $multiple
    */
-  public function __construct($updates, $filters, $multiple) {
+  public function __construct($updates, $filter, $multiple) {
     $this->updates= $updates;
-    $this->filters= empty($filters) ? (object)[] : $filters;
+    $this->filter= $filter ?: (object)[];
     $this->multiple= $multiple;
   }
 
   /** @return iterable */
   public function getIterator() {
-    yield 'q'     => $this->filters;
+    yield 'q'     => $this->filter;
     yield 'u'     => $this->updates;
     yield 'multi' => $this->multiple;
   }
