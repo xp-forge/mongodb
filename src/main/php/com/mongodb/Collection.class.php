@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use com\mongodb\result\{Insert, Cursor};
+use com\mongodb\result\{Insert, Update, Cursor};
 
 class Collection {
   private $proto, $database, $name;
@@ -41,6 +41,16 @@ class Collection {
       '$db'       => $this->database,
     ]);
     return new Insert($result['body']['n'], $ids);
+  }
+
+  public function update(Modifications ...$modifications): Update {
+    $result= $this->proto->msg(0, 0, [
+      'update'    => $this->name,
+      'updates'   => $modifications,
+      'ordered'   => true,
+      '$db'       => $this->database,
+    ]);
+    return new Update($result['body']);
   }
 
   /**
