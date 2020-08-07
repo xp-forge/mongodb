@@ -33,12 +33,12 @@ use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
 
-$inserted= $c->collection('test.products')->insert(new Document([
+$result= $c->collection('test.products')->insert(new Document([
   'name' => 'Test',
   'qty'  => 10,
   'tags' => ['new', 'tested'],
 ]));
-Console::writeLine('>> ', $inserted);
+Console::writeLine('>> ', $result);
 ```
 
 Authentication

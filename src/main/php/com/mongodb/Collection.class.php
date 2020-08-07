@@ -1,5 +1,7 @@
 <?php namespace com\mongodb;
 
+use com\mongodb\result\{Insert, Cursor};
+
 class Collection {
   private $proto, $database, $name;
 
@@ -21,9 +23,9 @@ class Collection {
    * passed documents
    *
    * @param  com.mongodb.Document... $documents
-   * @return com.mongodb.ObjectsId[] The inserted IDs
+   * @return com.mongodb.result.Insert The inserted result
    */
-  public function insert(Document... $documents): array {
+  public function insert(Document... $documents): Insert {
     $ids= [];
 
     // See https://docs.mongodb.com/manual/reference/method/db.collection.insert/#id-field:
@@ -32,13 +34,13 @@ class Collection {
       $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
     }
 
-    $this->proto->msg(0, 0, [
+    $result= $this->proto->msg(0, 0, [
       'insert'    => $this->name,
       'documents' => $documents,
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
-    return $ids;
+    return new Insert($result['body']['n'], $ids);
   }
 
   /**
@@ -62,7 +64,7 @@ class Collection {
    * Find documents in this collection
    *
    * @param  [:var] $filter
-   * @return com.mongodb.Cursor
+   * @return com.mongodb.result.Cursor
    */
   public function find($filter= []): Cursor {
     $result= $this->proto->msg(0, 0, [

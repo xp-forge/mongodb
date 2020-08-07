@@ -1,5 +1,6 @@
-<?php namespace com\mongodb;
+<?php namespace com\mongodb\result;
 
+use com\mongodb\Document;
 use lang\Value;
 use util\Objects;
 
