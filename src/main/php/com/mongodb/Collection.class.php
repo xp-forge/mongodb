@@ -20,10 +20,7 @@ class Collection {
 
   /**
    * Inserts documents. Creates an object ID if not present, modifying the
-   * passed documents
-   *
-   * @param  com.mongodb.Document... $documents
-   * @return com.mongodb.result.Insert The inserted result
+   * passed documents.
    */
   public function insert(Document... $documents): Insert {
     $ids= [];
@@ -43,6 +40,10 @@ class Collection {
     return new Insert($result['body']['n'], $ids);
   }
 
+  /**
+   * Updates collection with given modifications. Use the `Operations` class
+   * as an easy factory to choose whether to update one or more documents.
+   */
   public function update(Modifications ...$modifications): Update {
     $result= $this->proto->msg(0, 0, [
       'update'    => $this->name,
