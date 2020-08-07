@@ -17,19 +17,26 @@ class Collection {
   public function namespace() { return $this->database.'.'.$this->name; }
 
   /**
-   * Inserts documents
+   * Inserts documents. Creates an object ID if not present
    *
    * @param  com.mongodb.Document... $documents
-   * @return int The number of inserts
+   * @return com.mongodb.ObjectsId[] The inserted IDs
    */
-  public function insert(Document... $documents): int {
-    $result= $this->proto->msg(0, 0, [
+  public function insert(Document... $documents): array {
+
+    // See https://docs.mongodb.com/manual/reference/method/db.collection.insert/#id-field:
+    // Most drivers create an ObjectId and insert the _id field
+    foreach ($documents as &$document) {
+      $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
+    }
+
+    $this->proto->msg(0, 0, [
       'insert'    => $this->name,
       'documents' => $documents,
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
-    return $result['body']['n'];
+    return $ids;
   }
 
   /**
