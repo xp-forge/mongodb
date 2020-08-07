@@ -78,6 +78,25 @@ class BSONTest {
   }
 
   #[@test]
+  public function encode_traversable() {
+    $f= function() {
+      yield 'q'     => (object)[];
+      yield 'u'     => ['$set' => ['active' => true]];
+      yield 'multi' => false;
+    };
+    Assert::equals(
+      new Bytes(
+        "\x03test\x00\x31\x00\x00\x00".
+        "\x03q\x00\x05\x00\x00\x00\x00".
+        "\x03u\x00\x19\x00\x00\x00\x03\$set\x00\x0e\x00\x00\x00\x08active\x00\x01\x00\x00".
+        "\x08multi\x00\x00".
+        "\x00"
+      ),
+      new Bytes((new BSON())->bytes('test', $f()))
+    );
+  }
+
+  #[@test]
   public function encode_regex() {
     Assert::equals(
       new Bytes("\x0btest\x0099[a-z]+\x00i\x00"),
