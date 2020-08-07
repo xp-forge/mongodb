@@ -2,6 +2,11 @@
 
 use lang\IllegalArgumentException;
 
+/**
+ * Update operations
+ *
+ * @test  xp://com.mongodb.unittest.OperationsTest
+ */
 class Operations {
   private $expressions;
 
