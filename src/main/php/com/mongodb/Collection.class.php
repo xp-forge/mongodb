@@ -37,7 +37,7 @@ class Collection {
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
-    return new Insert($result['body']['n'], $ids);
+    return new Insert($result['body'], $ids);
   }
 
   /**

@@ -5,21 +5,21 @@ use lang\{IllegalStateException, Value};
 use util\Objects;
 
 class Insert implements Value {
-  private $count, $ids;
+  private $result, $ids;
 
   /**
    * Creates a new insert result
    *
-   * @param  int $count
+   * @param  [:var] $result
    * @param  com.mongodb.ObjectId[] $ids
    */
-  public function __construct($count, $ids) {
-    $this->count= $count;
+  public function __construct($result, $ids) {
+    $this->result= $result;
     $this->ids= $ids;
   }
 
   /** Returns number of inserted documents */
-  public function count(): int { return $this->count; }
+  public function inserted(): int { return $this->result['n']; }
 
   /**
    * If multiple documents were inserted, use this method to retrieve
@@ -37,18 +37,16 @@ class Insert implements Value {
    * @throws lang.IllegalStateException
    */
   public function id(): ObjectId {
-    if (1 === $this->count) return $this->ids[0];
+    if (1 === $this->result['n']) return $this->ids[0];
     
     throw new IllegalStateException('Inserted more than one document');
   }
 
   /** @return string */
-  public function hashCode() { return 'I'.Objects::hashOf($this->ids); }
+  public function hashCode() { return 'U'.Objects::hashOf($this->result); }
 
   /** @return string */
-  public function toString() {
-    return nameof($this).'#'.$this->count.Objects::stringOf($this->ids);
-  }
+  public function toString() { return nameof($this).'@'.Objects::stringOf($this->result); }
 
   /**
    * Compare
@@ -57,6 +55,6 @@ class Insert implements Value {
    * @return int
    */
   public function compareTo($value) {
-    return $value instanceof self ? Objects::compare($this->ids, $value->ids) : 1;
+    return $value instanceof self ? Objects::compare($this->result, $value->result) : 1;
   }
 }

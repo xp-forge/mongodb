@@ -5,7 +5,7 @@ use lang\IllegalArgumentException;
 use unittest\Assert;
 
 class ObjectIdTest {
-  const ID = '5f1dda9973edf2501751884b';
+  const ID= '5f1dda9973edf2501751884b';
 
   #[@test]
   public function can_create() {

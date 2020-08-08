@@ -22,12 +22,10 @@ class Update implements Value {
   public function modified(): int { return $this->result['nModified']; }
 
   /** @return string */
-  public function hashCode() { return 'I'.Objects::hashOf($this->result); }
+  public function hashCode() { return 'U'.Objects::hashOf($this->result); }
 
   /** @return string */
-  public function toString() {
-    return nameof($this).'@'.Objects::stringOf($this->result);
-  }
+  public function toString() { return nameof($this).'@'.Objects::stringOf($this->result); }
 
   /**
    * Compare
