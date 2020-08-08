@@ -26,8 +26,14 @@ class DocumentTest {
   }
 
   #[@test]
-  public function with_id() {
+  public function with_object_id() {
     $id= new ObjectId('5f1dda9973edf2501751884b');
+    Assert::equals($id, (new Document(['_id' => $id]))->id());
+  }
+
+  #[@test]
+  public function with_string_id() {
+    $id= 'tag';
     Assert::equals($id, (new Document(['_id' => $id]))->id());
   }
 

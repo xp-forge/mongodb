@@ -9,7 +9,7 @@ class Document implements Value, \ArrayAccess, \IteratorAggregate {
   /** @param [:var] */
   public function __construct($properties= []) { $this->properties= $properties; }
 
-  /** @return ?com.mongodb.ObjectId */
+  /** @return string|com.mongodb.ObjectId */
   public function id() { return $this->properties['_id'] ?: null; }
 
   /** @return [:var] */
@@ -66,7 +66,7 @@ class Document implements Value, \ArrayAccess, \IteratorAggregate {
 
   /** @return string */
   public function toString() {
-    $s= nameof($this).(isset($this->properties['_id']) ? '('.$this->properties['_id']->string().')' : '(-)')."@{\n";
+    $s= nameof($this).(isset($this->properties['_id']) ? '('.$this->properties['_id'].')' : '(-)')."@{\n";
     foreach ($this->properties as $key => $value) {
       '_id' === $key || $s.= '  '.$key.': '.Objects::stringOf($value, '  ')."\n";
     }

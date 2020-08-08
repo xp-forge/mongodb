@@ -30,10 +30,8 @@ class Operations {
     if (is_array($arg)) {
       if (empty($arg)) throw new IllegalArgumentException('Filter passed to select() may not be empty');
       $filter= $arg;
-    } else if ($arg instanceof ObjectId) {
-      $filter= ['_id' => $arg];
     } else {
-      $filter= ['_id' => new ObjectId($arg)];
+      $filter= ['_id' => $arg];
     }
 
     return new Modifications($this->expressions, $filter, false);

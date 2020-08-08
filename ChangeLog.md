@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed all places where `_id` was assumed to always hold `ObjectId`s.
+  (@thekid)
+
 ## 0.4.0 / 2020-08-08
 
 * Merged PR #1: Implement update operation. Currently supports update operator

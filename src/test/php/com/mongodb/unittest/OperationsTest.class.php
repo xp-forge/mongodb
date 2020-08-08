@@ -16,12 +16,22 @@ class OperationsTest {
   #[@test, @values([
   #  [self::ID],
   #  [new ObjectId(self::ID)],
+  #])]
+  public function select_with_id($id) {
+    Assert::equals(
+      new Modifications(self::$expressions, ['_id' => $id], false),
+      (new Operations(self::$expressions))->select($id)
+    );
+  }
+
+  #[@test, @values([
+  #  [['_id' => self::ID]],
   #  [['_id' => new ObjectId(self::ID)]],
   #])]
-  public function select($id) {
+  public function select_with_filter($filter) {
     Assert::equals(
-      new Modifications(self::$expressions, ['_id' => new ObjectId(self::ID)], false),
-      (new Operations(self::$expressions))->select($id)
+      new Modifications(self::$expressions, $filter, false),
+      (new Operations(self::$expressions))->select($filter)
     );
   }
 
@@ -40,10 +50,5 @@ class OperationsTest {
   #[@test, @expect(IllegalArgumentException::class)]
   public function filter_passed_to_select_cannot_be_empty() {
     (new Operations(self::$expressions))->select([]);
-  }
-
-  #[@test, @expect(IllegalArgumentException::class)]
-  public function malformed_object_id_passed_to_select() {
-    (new Operations(self::$expressions))->select('not.an.object.id');
   }
 }
