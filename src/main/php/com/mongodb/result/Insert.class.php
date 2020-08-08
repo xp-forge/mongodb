@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\result;
 
-use com\mongodb\ObjectId;
 use lang\IllegalStateException;
+use util\Objects;
 
 class Insert extends Result {
   private $ids;
@@ -10,7 +10,7 @@ class Insert extends Result {
    * Creates a new insert result
    *
    * @param  [:var] $result
-   * @param  com.mongodb.ObjectId[] $ids
+   * @param  (string|com.mongodb.ObjectId)[] $ids
    */
   public function __construct($result, $ids) {
     parent::__construct($result);
@@ -24,7 +24,7 @@ class Insert extends Result {
    * If multiple documents were inserted, use this method to retrieve
    * their object IDs in the same order as they were passed in.
    *
-   * @return com.mongodb.ObjectId[]
+   * @return (string|com.mongodb.ObjectId)[]
    */
   public function ids(): array { return $this->ids; }
 
@@ -32,10 +32,10 @@ class Insert extends Result {
    * If a single document was inserted, use this shortcut for retrieving
    * its object ID.
    *
-   * @return com.mongodb.ObjectId
+   * @return string|com.mongodb.ObjectId
    * @throws lang.IllegalStateException
    */
-  public function id(): ObjectId {
+  public function id() {
     if (1 === $this->result['n']) return $this->ids[0];
     
     throw new IllegalStateException('Inserted more than one document');
