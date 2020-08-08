@@ -1,11 +1,10 @@
 <?php namespace com\mongodb\result;
 
 use com\mongodb\ObjectId;
-use lang\{IllegalStateException, Value};
-use util\Objects;
+use lang\IllegalStateException;
 
-class Insert implements Value {
-  private $result, $ids;
+class Insert extends Result {
+  private $ids;
 
   /**
    * Creates a new insert result
@@ -14,7 +13,7 @@ class Insert implements Value {
    * @param  com.mongodb.ObjectId[] $ids
    */
   public function __construct($result, $ids) {
-    $this->result= $result;
+    parent::__construct($result);
     $this->ids= $ids;
   }
 
@@ -40,21 +39,5 @@ class Insert implements Value {
     if (1 === $this->result['n']) return $this->ids[0];
     
     throw new IllegalStateException('Inserted more than one document');
-  }
-
-  /** @return string */
-  public function hashCode() { return 'U'.Objects::hashOf($this->result); }
-
-  /** @return string */
-  public function toString() { return nameof($this).'@'.Objects::stringOf($this->result); }
-
-  /**
-   * Compare
-   *
-   * @param  var $value
-   * @return int
-   */
-  public function compareTo($value) {
-    return $value instanceof self ? Objects::compare($this->result, $value->result) : 1;
   }
 }

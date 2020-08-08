@@ -59,16 +59,15 @@ class Collection {
    *
    * @param  [:var] $filter
    * @param  int? $limit An optional limit to apply, NULL for no limit
-   * @return int The number of deletes
    */
-  public function delete($filter= [], $limit= null): int {
+  public function delete($filter= [], $limit= null): Delete {
     $result= $this->proto->msg(0, 0, [
       'delete'    => $this->name,
       'deletes'   => [['q' => $filter ?: (object)[], 'limit' => (int)$limit]],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
-    return $result['body']['n'];
+    return new Delete($result['body']);
   }
 
   /**
