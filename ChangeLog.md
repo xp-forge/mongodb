@@ -3,7 +3,7 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
-* Added new method `Collection::count()` to count documents in a collection
+* Added new methods `Collection::distinct()` and `Collection::count()`
   (@thekid)
 * Added new method `Collection::aggregate()` to perform aggregations, see
   https://docs.mongodb.com/manual/reference/command/aggregate/ and

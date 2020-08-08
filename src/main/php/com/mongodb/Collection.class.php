@@ -89,7 +89,7 @@ class Collection {
    * Count documents in this collection
    *
    * @param  [:var] $filter
-   * @return com.mongodb.result.Cursor
+   * @return int
    */
   public function count($filter= []): int {
     $result= $this->proto->msg(0, 0, [
@@ -98,6 +98,23 @@ class Collection {
       '$db'    => $this->database,
     ]);
     return $result['body']['n'];
+  }
+
+  /**
+   * Returns distinct list of keys in this collection
+   *
+   * @param  string $key
+   * @param  [:var] $filter
+   * @return var[]
+   */
+  public function distinct($key, $filter= []): array {
+    $result= $this->proto->msg(0, 0, [
+      'distinct' => $this->name,
+      'key'      => $key,
+      'query'    => $filter ?: (object)[],
+      '$db'      => $this->database,
+    ]);
+    return $result['body']['values'];
   }
 
   /**
