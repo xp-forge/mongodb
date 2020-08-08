@@ -92,12 +92,14 @@ class Collection {
    * @return int
    */
   public function count($filter= []): int {
+    $count= ['$count' => 'n'];
     $result= $this->proto->msg(0, 0, [
-      'count'  => $this->name,
-      'query'  => $filter ?: (object)[],
-      '$db'    => $this->database,
+      'aggregate' => $this->name,
+      'pipeline'  => $filter ? [['$match' => $filter], $count] : [$count],
+      'cursor'    => (object)[],
+      '$db'       => $this->database,
     ]);
-    return $result['body']['n'];
+    return $result['body']['cursor']['firstBatch'][0]['n'];
   }
 
   /**
@@ -108,13 +110,14 @@ class Collection {
    * @return var[]
    */
   public function distinct($key, $filter= []): array {
+    $distinct= ['$group' => ['_id' => 1, 'values' => ['$addToSet' => '$'.$key]]];
     $result= $this->proto->msg(0, 0, [
-      'distinct' => $this->name,
-      'key'      => $key,
-      'query'    => $filter ?: (object)[],
-      '$db'      => $this->database,
+      'aggregate' => $this->name,
+      'pipeline'  => $filter ? [['$match' => $filter], $distinct] : [$distinct],
+      'cursor'    => (object)[],
+      '$db'       => $this->database,
     ]);
-    return $result['body']['values'];
+    return $result['body']['cursor']['firstBatch'][0]['values'];
   }
 
   /**
