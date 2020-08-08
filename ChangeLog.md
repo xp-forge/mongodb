@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.5.2 / 2020-08-08
+
+* Fixed error #22 (InvalidBSON) when using `NULL` values - @thekid
+
 ## 0.5.1 / 2020-08-08
 
 * Rewrote `count()` and `distinct()` to use aggregation pipelines. See

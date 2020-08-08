@@ -33,7 +33,7 @@ class BSON {
     } else if (false === $value) {
       return "\x08".$name."\x00\x00";
     } else if (null === $value) {
-      return "\x0a".$name;
+      return "\x0a".$name."\x00";
     } else if ($value instanceof Bytes) {
       return "\x05".$name."\x00".pack('Vx', strlen($value)).$value;
     } else if ($value instanceof Date) {

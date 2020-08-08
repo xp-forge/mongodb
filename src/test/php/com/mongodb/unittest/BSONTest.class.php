@@ -14,7 +14,7 @@ class BSONTest {
     // Constants
     yield [false, "\x08test\x00\x00"];
     yield [true, "\x08test\x00\x01"];
-    yield [null, "\x0atest"];
+    yield [null, "\x0atest\x00"];
 
     // Strings
     yield ['', "\x02test\x00\x01\x00\x00\x00\x00"];
