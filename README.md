@@ -60,6 +60,8 @@ $result= $c->collection('test.products')->update($inc->where(['name' => 'Test'])
 Console::writeLine('>> ', $result);
 ```
 
+*Note: All of the above have used the `collection()` shortcut which is equivalent to first chaining `database('test')->collection('products')`.*
+
 Authentication
 --------------
 To authenticate, pass username and password via the connection string, e.g. `mongodb://user:pass@localhost`. The authentication source defaults to *admin* but can be set by supplying a path, e.g. `mongodb://user:pass@localhost/test`.
