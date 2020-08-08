@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use com\mongodb\result\{Insert, Update, Cursor};
+use com\mongodb\result\{Insert, Update, Delete, Cursor};
 
 class Collection {
   private $proto, $database, $name;
@@ -58,7 +58,7 @@ class Collection {
    * Delete documents
    *
    * @param  [:var] $filter
-   * @param  int? $limit An optional limit to apply, NULL for no limit
+   * @param  int $limit An optional limit to apply, NULL for no limit
    */
   public function delete($filter= [], $limit= null): Delete {
     $result= $this->proto->msg(0, 0, [
