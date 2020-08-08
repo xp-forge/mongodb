@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Added new method `Collection::count()` to count documents in a collection
+  (@thekid)
 * Added new method `Collection::aggregate()` to perform aggregations, see
   https://docs.mongodb.com/manual/reference/command/aggregate/ and
   https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/

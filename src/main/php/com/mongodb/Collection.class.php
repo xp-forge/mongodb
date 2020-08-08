@@ -86,6 +86,21 @@ class Collection {
   }
 
   /**
+   * Count documents in this collection
+   *
+   * @param  [:var] $filter
+   * @return com.mongodb.result.Cursor
+   */
+  public function count($filter= []): int {
+    $result= $this->proto->msg(0, 0, [
+      'count'  => $this->name,
+      'query'  => $filter ?: (object)[],
+      '$db'    => $this->database,
+    ]);
+    return $result['body']['n'];
+  }
+
+  /**
    * Perfom aggregation over documents this collection
    *
    * @param  [:var][] $pipeline
