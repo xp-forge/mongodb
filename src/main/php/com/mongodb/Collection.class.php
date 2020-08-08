@@ -84,4 +84,20 @@ class Collection {
     ]);
     return new Cursor($this->proto, $result['body']['cursor']);
   }
+
+  /**
+   * Perfom aggregation over documents this collection
+   *
+   * @param  [:var][] $pipeline
+   * @return com.mongodb.result.Cursor
+   */
+  public function aggregate(array $pipeline): Cursor {
+    $result= $this->proto->msg(0, 0, [
+      'aggregate' => $this->name,
+      'pipeline'  => $pipeline,
+      'cursor'    => (object)[],
+      '$db'       => $this->database,
+    ]);
+    return new Cursor($this->proto, $result['body']['cursor']);
+  }
 } 

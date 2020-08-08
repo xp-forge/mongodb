@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Added new method `Collection::aggregate()` to perform aggregations, see
+  https://docs.mongodb.com/manual/reference/command/aggregate/ and
+  https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/
+  (@thekid)
 * Fixed all places where `_id` was assumed to always hold `ObjectId`s.
   (@thekid)
 
