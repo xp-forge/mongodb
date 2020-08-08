@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.4.0 / 2020-08-08
+
 * Merged PR #1: Implement update operation. Currently supports update operator
   expressions, replacement documents and pipelines will be added later.
   (@thekid)
