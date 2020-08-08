@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.5.0 / 2020-08-08
+
 * Added new methods `Collection::distinct()` and `Collection::count()`
   (@thekid)
 * Added new method `Collection::aggregate()` to perform aggregations, see

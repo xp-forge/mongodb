@@ -60,12 +60,21 @@ $result= $c->collection('test.products')->update($inc->where(['name' => 'Test'])
 Console::writeLine('>> ', $result);
 ```
 
-
 Authentication
 --------------
 To authenticate, pass username and password via the connection string, e.g. `mongodb://user:pass@localhost`. The authentication source defaults to *admin* but can be set by supplying a path, e.g. `mongodb://user:pass@localhost/test`.
 
 Currently, *SCRAM-SHA-1* is the only supported authentication mechanism.
+
+Aggregation
+-----------
+The `Collection` class also features aggregation methods:
+
+* `count($filter= [])`
+* `distinct($key, $filter= [])`
+* `aggregate($pipeline)`
+
+See https://docs.mongodb.com/manual/reference/command/nav-aggregation/
 
 Type mapping
 ------------
