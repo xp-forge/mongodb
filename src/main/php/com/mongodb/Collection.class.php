@@ -91,10 +91,10 @@ class Collection {
    * @param  [:var][] $pipeline
    * @return com.mongodb.result.Cursor
    */
-  public function aggregate(array $pipeline): Cursor {
+  public function aggregate($pipeline): Cursor {
     $result= $this->proto->msg(0, 0, [
       'aggregate' => $this->name,
-      'pipeline'  => $pipeline,
+      'pipeline'  => (array)$pipeline,
       'cursor'    => (object)[],
       '$db'       => $this->database,
     ]);
