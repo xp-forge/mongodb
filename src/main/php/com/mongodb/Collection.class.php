@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use com\mongodb\result\{Insert, Cursor};
+use com\mongodb\result\{Insert, Update, Cursor};
 
 class Collection {
   private $proto, $database, $name;
@@ -20,10 +20,7 @@ class Collection {
 
   /**
    * Inserts documents. Creates an object ID if not present, modifying the
-   * passed documents
-   *
-   * @param  com.mongodb.Document... $documents
-   * @return com.mongodb.result.Insert The inserted result
+   * passed documents.
    */
   public function insert(Document... $documents): Insert {
     $ids= [];
@@ -44,6 +41,20 @@ class Collection {
   }
 
   /**
+   * Updates collection with given modifications. Use the `Operations` class
+   * as an easy factory to choose whether to update one or more documents.
+   */
+  public function update(Modifications ...$modifications): Update {
+    $result= $this->proto->msg(0, 0, [
+      'update'    => $this->name,
+      'updates'   => $modifications,
+      'ordered'   => true,
+      '$db'       => $this->database,
+    ]);
+    return new Update($result['body']);
+  }
+
+  /**
    * Delete documents
    *
    * @param  [:var] $filter
@@ -53,7 +64,7 @@ class Collection {
   public function delete($filter= [], $limit= null): int {
     $result= $this->proto->msg(0, 0, [
       'delete'    => $this->name,
-      'deletes'   => [['q' => $filter, 'limit' => (int)$limit]],
+      'deletes'   => [['q' => $filter ?: (object)[], 'limit' => (int)$limit]],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
@@ -69,7 +80,7 @@ class Collection {
   public function find($filter= []): Cursor {
     $result= $this->proto->msg(0, 0, [
       'find'   => $this->name,
-      'filter' => (object)$filter,
+      'filter' => $filter ?: (object)[],
       '$db'    => $this->database,
     ]);
     return new Cursor($this->proto, $result['body']['cursor']);

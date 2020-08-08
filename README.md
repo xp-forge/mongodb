@@ -41,6 +41,26 @@ $result= $c->collection('test.products')->insert(new Document([
 Console::writeLine('>> ', $result);
 ```
 
+Updating documents:
+
+```php
+use com\mongodb\{MongoConnection, ObjectId, Operations};
+use util\cmd\Console;
+
+$c= new MongoConnection('mongodb://localhost');
+
+$inc= new Operations(['$inc' => ['qty' => 1]]);
+
+// Select a single document for updating by its ID
+$result= $c->collection('test.products')->update($inc->select(new ObjectId('...')));
+
+// Apply to all documents matchig a given filter
+$result= $c->collection('test.products')->update($inc->where(['name' => 'Test']));
+
+Console::writeLine('>> ', $result);
+```
+
+
 Authentication
 --------------
 To authenticate, pass username and password via the connection string, e.g. `mongodb://user:pass@localhost`. The authentication source defaults to *admin* but can be set by supplying a path, e.g. `mongodb://user:pass@localhost/test`.
