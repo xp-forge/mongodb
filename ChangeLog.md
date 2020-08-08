@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.5.1 / 2020-08-08
+
+* Rewrote count() and distinct() to use aggregation pipelines. See
+  https://docs.mongodb.com/manual/core/transactions/#count-operation and
+  https://docs.mongodb.com/manual/core/transactions/#distinct-operation
+  (@thekid)
+
 ## 0.5.0 / 2020-08-08
 
 * Added new methods `Collection::distinct()` and `Collection::count()`
