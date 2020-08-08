@@ -36,7 +36,7 @@ class Insert extends Result {
    * @throws lang.IllegalStateException
    */
   public function id() {
-    if (1 === $this->result['n']) return $this->ids[0];
+    if (1 === sizeof($this->ids)) return $this->ids[0];
     
     throw new IllegalStateException('Inserted more than one document');
   }
