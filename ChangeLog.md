@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #1: Implement update operation. Currently supports update operator
+  expressions, replacement documents and pipelines will be added later.
+  (@thekid)
 * Changed `insert()` to generate and return object IDs if not supplied in
   passed documents. Consistent with how most MongoDB drivers handle this, see
   https://docs.mongodb.com/manual/reference/method/db.collection.insert/#id-field
