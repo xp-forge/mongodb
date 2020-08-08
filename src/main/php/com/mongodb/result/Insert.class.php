@@ -40,4 +40,9 @@ class Insert extends Result {
     
     throw new IllegalStateException('Inserted more than one document');
   }
+
+  /** @return string */
+  public function toString() {
+    return nameof($this).'(ids= '.implode(', ', $this->ids).')@'.Objects::stringOf($this->result);
+  }
 }
