@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\result;
 
-use com\mongodb\Document;
+use com\mongodb\{Document, Int64};
 use lang\Value;
 use util\Objects;
 
