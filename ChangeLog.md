@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.6.0 / 2020-08-29
+
 * Added `Cursor::first()` to return the first document (or NULL).
   (@thekid)
 * Made `Collection::find()` also accept IDs to find single documents
