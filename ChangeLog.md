@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Made `Collection::find()` also accept IDs to find single documents
+  (@thekid)
 * Added `Collection::command()` to run arbitrary commands - @thekid
 * Simplified usage of collection methods `update()` and `delete()`
   (@thekid)

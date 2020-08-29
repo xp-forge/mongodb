@@ -94,13 +94,13 @@ class Collection {
   /**
    * Find documents in this collection
    *
-   * @param  [:var] $filter
+   * @param  string|com.mongodb.ObjectId|[:var] $query
    * @return com.mongodb.result.Cursor
    */
-  public function find($filter= []): Cursor {
+  public function find($query= []): Cursor {
     $result= $this->proto->msg(0, 0, [
       'find'   => $this->name,
-      'filter' => $filter ?: (object)[],
+      'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
       '$db'    => $this->database,
     ]);
     return new Cursor($this->proto, $result['body']['cursor']);

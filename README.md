@@ -14,13 +14,17 @@ Examples
 Finding documents inside a collection:
 
 ```php
-use com\mongodb\MongoConnection;
+use com\mongodb\{MongoConnection, ObjectId};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
+$id= new ObjectId(...);
 
 // Find all documents
 $cursor= $c->collection('test.products')->find();
+
+// Find document with the specified ID
+$cursor= $c->collection('test.products')->find($id);
 
 // Find all documents with a name of "Test"
 $cursor= $c->collection('test.products')->find(['name' => 'Test']);
