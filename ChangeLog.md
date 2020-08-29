@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Added `Cursor::first()` to return the first document (or NULL).
+  (@thekid)
 * Made `Collection::find()` also accept IDs to find single documents
   (@thekid)
 * Added `Collection::command()` to run arbitrary commands - @thekid

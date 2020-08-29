@@ -44,6 +44,15 @@ class Cursor implements Value, \IteratorAggregate {
   }
 
   /**
+   * Returns the first document, if there is one; NULL otherwise
+   *
+   * @return ?com.mongodb.Document
+   */
+  public function first() {
+    return $this->current['firstBatch'] ? new Document($this->current['firstBatch'][0]) : null;
+  }
+
+  /**
    * Closes this cursor, killing it if necessary
    *
    * @return void
