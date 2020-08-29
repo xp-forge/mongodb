@@ -24,6 +24,17 @@ class Collection {
   public function namespace() { return $this->database.'.'.$this->name; }
 
   /**
+   * Runs a command in this database
+   *
+   * @param  string $name
+   * @param  [:var] $params
+   * @return var
+   */
+  public function command($name, array $params) {
+    return $this->proto->msg(0, 0, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
+  }
+
+  /**
    * Inserts documents. Creates an object ID if not present, modifying the
    * passed documents.
    *

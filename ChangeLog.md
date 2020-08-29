@@ -3,6 +3,7 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Added `Collection::command()` to run arbitrary commands - @thekid
 * Simplified usage of collection methods `update()` and `delete()`
   (@thekid)
 
