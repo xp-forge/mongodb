@@ -155,6 +155,20 @@ class Protocol {
     throw Error::newInstance($result['body']);
   }
 
+  /**
+   * Reads a given number of bytes.
+   *
+   * @param  int $bytes
+   * @return string
+   */
+  private function read($bytes) {
+    $b= '';
+    do {
+      $b.= $this->conn->readBinary($bytes);
+    } while (strlen($b) < $bytes && !$this->conn->eof());
+    return $b;
+  }
+
   public function send($operation, $body) {
     $this->id > 2147483647 ? $this->id= 1 : $this->id++;
 
@@ -163,10 +177,10 @@ class Protocol {
     // \util\cmd\Console::writeLine('>>> ', strlen($payload), ': ', $this->hex($payload)); 
     $this->conn->write($payload);
 
-    $header= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->conn->readBinary(16));
+    $header= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->read(16));
     // \util\cmd\Console::writeLine('<<< ', $header);
 
-    $response= $this->conn->readBinary($header['messageLength'] - 16);
+    $response= $this->read($header['messageLength'] - 16);
     // \util\cmd\Console::writeLine('<<< ', strlen($response), ': ', $this->hex($response));
 
     switch ($header['opCode']) {
