@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Simplified usage of collection methods `update()` and `delete()`
+  (@thekid)
+
 ## 0.5.3 / 2020-08-29
 
 * Fixed reading to ensure we have enough bytes when reading packets

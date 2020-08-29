@@ -2,7 +2,7 @@
 
 use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
-use util\Bytes;
+use util\{Bytes, UUID};
 
 class MongoConnection implements Value {
   private $proto;
@@ -27,6 +27,11 @@ class MongoConnection implements Value {
   public function connect(): self {
     $this->proto->connect();
     return $this;
+  }
+
+  public function session($uuid= null) {
+    $this->proto->connect();
+    return new Session($this->proto, $uuid ?? UUID::randomUUID());
   }
 
   /**

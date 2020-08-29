@@ -2,6 +2,11 @@
 
 use com\mongodb\result\{Insert, Update, Delete, Cursor};
 
+/**
+ * A collection inside a database.
+ *
+ * @test  xp://com.mongodb.unittest.CollectionTest
+ */
 class Collection {
   private $proto, $database, $name;
 
@@ -21,12 +26,15 @@ class Collection {
   /**
    * Inserts documents. Creates an object ID if not present, modifying the
    * passed documents.
+   *
+   * @param  com.mongodb.Document|com.mongodb.Document[] $arg
    */
-  public function insert(Document... $documents): Insert {
-    $ids= [];
+  public function insert($arg): Insert {
+    $documents= is_array($arg) ? $arg : [$arg];
 
     // See https://docs.mongodb.com/manual/reference/method/db.collection.insert/#id-field:
     // Most drivers create an ObjectId and insert the _id field
+    $ids= [];
     foreach ($documents as $document) {
       $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
     }
@@ -43,11 +51,14 @@ class Collection {
   /**
    * Updates collection with given modifications. Use the `Operations` class
    * as an easy factory to choose whether to update one or more documents.
+   *
+   * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  [:var] $statements Update operator expressions
    */
-  public function update(Modifications ...$modifications): Update {
+  public function update($query, $statements): Update {
     $result= $this->proto->msg(0, 0, [
       'update'    => $this->name,
-      'updates'   => $modifications,
+      'updates'   => [['q' => is_array($query) ? $query : ['_id' => $query], 'u' => $statements]],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
@@ -57,13 +68,12 @@ class Collection {
   /**
    * Delete documents
    *
-   * @param  [:var] $filter
-   * @param  int $limit An optional limit to apply, NULL for no limit
+   * @param  string|com.mongodb.ObjectId|[:var] $query
    */
-  public function delete($filter= [], $limit= null): Delete {
+  public function delete($query): Delete {
     $result= $this->proto->msg(0, 0, [
       'delete'    => $this->name,
-      'deletes'   => [['q' => $filter ?: (object)[], 'limit' => (int)$limit]],
+      'deletes'   => [is_array($query) ? ['q' => $query, 'limit' => 0] : ['q' => ['_id' => $query], 'limit' => 1]],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);

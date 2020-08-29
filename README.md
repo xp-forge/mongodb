@@ -18,8 +18,13 @@ use com\mongodb\MongoConnection;
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
- 
+
+// Find all documents
 $cursor= $c->collection('test.products')->find();
+
+// Find all documents with a name of "Test"
+$cursor= $c->collection('test.products')->find(['name' => 'Test']);
+
 foreach ($cursor as $document) {
   Console::writeLine('>> ', $document);
 }
@@ -44,18 +49,35 @@ Console::writeLine('>> ', $result);
 Updating documents:
 
 ```php
-use com\mongodb\{MongoConnection, ObjectId, Operations};
+use com\mongodb\{MongoConnection, ObjectId};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
-
-$inc= new Operations(['$inc' => ['qty' => 1]]);
+$id= new ObjectId(...);
 
 // Select a single document for updating by its ID
-$result= $c->collection('test.products')->update($inc->select(new ObjectId('...')));
+$result= $c->collection('test.products')->update($id, ['$inc' => ['qty' => 1]]);
 
 // Apply to all documents matchig a given filter
-$result= $c->collection('test.products')->update($inc->where(['name' => 'Test']));
+$result= $c->collection('test.products')->update(['name' => 'Test'], ['$inc' => ['qty' => 1]]);
+
+Console::writeLine('>> ', $result);
+```
+
+Deleting documents:
+
+```php
+use com\mongodb\{MongoConnection, ObjectId};
+use util\cmd\Console;
+
+$c= new MongoConnection('mongodb://localhost');
+$id= new ObjectId(...);
+
+// Select a single document to be removed
+$result= $c->collection('test.products')->delete($id);
+
+// Remove all documents matchig a given filter
+$result= $c->collection('test.products')->delete(['name' => 'Test']);
 
 Console::writeLine('>> ', $result);
 ```
@@ -77,6 +99,25 @@ The `Collection` class also features aggregation methods:
 * `aggregate($pipeline)`
 
 See https://docs.mongodb.com/manual/reference/command/nav-aggregation/
+
+Sessions
+--------
+Using a causally consistent session, an application can read its own writes and is guaranteed monotonic reads, even when reading from replica set secondaries.
+
+```php
+use com\mongodb\{MongoConnection, ObjectId, Operations};
+use util\cmd\Console;
+
+$c= new MongoConnection('mongodb://localhost');
+$session= $c->session();
+
+$id= new ObjectId('...');
+$collection= $c->collection('test.products');
+$collection->update((new Operations(['$set' => ['qty' => 1]]))->select($id), $session);
+
+// Will read the updated document
+$updated= $collection->with()->select($id, $session)->first();
+```
 
 Type mapping
 ------------
