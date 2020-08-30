@@ -29,6 +29,7 @@ class Collection {
    * @param  string $name
    * @param  [:var] $params
    * @return var
+   * @throws com.mongodb.Error
    */
   public function command($name, array $params= []) {
     return $this->proto->msg(0, 0, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
@@ -39,6 +40,7 @@ class Collection {
    * passed documents.
    *
    * @param  com.mongodb.Document|com.mongodb.Document[] $arg
+   * @throws com.mongodb.Error
    */
   public function insert($arg): Insert {
     $documents= is_array($arg) ? $arg : [$arg];
@@ -65,6 +67,7 @@ class Collection {
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var] $statements Update operator expressions
+   * @throws com.mongodb.Error
    */
   public function update($query, $statements): Update {
     $result= $this->proto->msg(0, 0, [
@@ -80,6 +83,7 @@ class Collection {
    * Delete documents
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @throws com.mongodb.Error
    */
   public function delete($query): Delete {
     $result= $this->proto->msg(0, 0, [
@@ -96,6 +100,7 @@ class Collection {
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @return com.mongodb.result.Cursor
+   * @throws com.mongodb.Error
    */
   public function find($query= []): Cursor {
     $result= $this->proto->msg(0, 0, [
@@ -111,6 +116,7 @@ class Collection {
    *
    * @param  [:var] $filter
    * @return int
+   * @throws com.mongodb.Error
    */
   public function count($filter= []): int {
     $count= ['$count' => 'n'];
@@ -129,6 +135,7 @@ class Collection {
    * @param  string $key
    * @param  [:var] $filter
    * @return var[]
+   * @throws com.mongodb.Error
    */
   public function distinct($key, $filter= []): array {
     $distinct= ['$group' => ['_id' => 1, 'values' => ['$addToSet' => '$'.$key]]];
@@ -146,6 +153,7 @@ class Collection {
    *
    * @param  [:var][] $pipeline
    * @return com.mongodb.result.Cursor
+   * @throws com.mongodb.Error
    */
   public function aggregate($pipeline): Cursor {
     $result= $this->proto->msg(0, 0, [
@@ -156,4 +164,4 @@ class Collection {
     ]);
     return new Cursor($this->proto, $result['body']['cursor']);
   }
-} 
+}
