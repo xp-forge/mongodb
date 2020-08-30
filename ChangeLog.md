@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Made `params` for `Collection::command()` optional - @thekid
+
 ## 0.6.0 / 2020-08-29
 
 * Added `Cursor::first()` to return the first document (or NULL).

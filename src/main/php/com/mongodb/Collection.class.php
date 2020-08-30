@@ -30,7 +30,7 @@ class Collection {
    * @param  [:var] $params
    * @return var
    */
-  public function command($name, array $params) {
+  public function command($name, array $params= []) {
     return $this->proto->msg(0, 0, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
   }
 
