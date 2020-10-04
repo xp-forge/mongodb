@@ -1,15 +1,15 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{MongoConnection, Protocol, Database, Collection};
+use com\mongodb\{Collection, Database, MongoConnection, Protocol};
 use lang\IllegalArgumentException;
-use unittest\Assert;
+use unittest\{Assert, Before, Expect, Test};
 
 class MongoConnectionTest {
   const CONNECTION_STRING = 'mongodb://test';
 
   private $protocol;
 
-  #[@before]
+  #[Before]
   public function protocol() {
     $this->protocol= newinstance(Protocol::class, [self::CONNECTION_STRING], [
       'connected' => null,
@@ -18,19 +18,19 @@ class MongoConnectionTest {
     ]);
   }
 
-  #[@test]
+  #[Test]
   public function can_create() {
     new MongoConnection(self::CONNECTION_STRING);
   }
 
-  #[@test]
+  #[Test]
   public function initially_not_connected() {
     $fixture= new MongoConnection($this->protocol);
 
     Assert::null($this->protocol->connected);
   }
 
-  #[@test]
+  #[Test]
   public function connect_returns_self() {
     $fixture= new MongoConnection($this->protocol);
     $return= $fixture->connect();
@@ -39,7 +39,7 @@ class MongoConnectionTest {
     Assert::true($this->protocol->connected);
   }
 
-  #[@test]
+  #[Test]
   public function close() {
     $fixture= new MongoConnection($this->protocol);
     $fixture->connect()->close();
@@ -47,7 +47,7 @@ class MongoConnectionTest {
     Assert::false($this->protocol->connected);
   }
 
-  #[@test]
+  #[Test]
   public function connects_when_selecting_database() {
     $fixture= new MongoConnection($this->protocol);
     $database= $fixture->database('test');
@@ -56,7 +56,7 @@ class MongoConnectionTest {
     Assert::true($this->protocol->connected);
   }
 
-  #[@test]
+  #[Test]
   public function connects_when_selecting_collection_via_namespace() {
     $fixture= new MongoConnection($this->protocol);
     $collection= $fixture->collection('test.products');
@@ -65,7 +65,7 @@ class MongoConnectionTest {
     Assert::true($this->protocol->connected);
   }
 
-  #[@test]
+  #[Test]
   public function connects_when_selecting_collection_via_args() {
     $fixture= new MongoConnection($this->protocol);
     $collection= $fixture->collection('test', 'products');
@@ -74,7 +74,7 @@ class MongoConnectionTest {
     Assert::true($this->protocol->connected);
   }
 
-  #[@test, @expect(IllegalArgumentException::class)]
+  #[Test, Expect(IllegalArgumentException::class)]
   public function throws_when_given_non_namespace_name() {
     (new MongoConnection(self::CONNECTION_STRING))->collection('not-a-namespace');
   }

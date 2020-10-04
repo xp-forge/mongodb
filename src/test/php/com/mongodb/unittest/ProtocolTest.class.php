@@ -1,28 +1,23 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Protocol, ObjectId};
+use com\mongodb\{ObjectId, Protocol};
 use lang\IllegalArgumentException;
-use unittest\Assert;
+use unittest\{Assert, Expect, Test, Values};
 use util\{Bytes, Date};
 
 class ProtocolTest {
 
-  #[@test]
+  #[Test]
   public function can_create_with_connection_string() {
     new Protocol('mongodb://localhost');
   }
 
-  #[@test]
+  #[Test]
   public function can_create_with_socket() {
     new Protocol(new TestingSocket());
   }
 
-  #[@test, @values([
-  #  ['mongodb://localhost', ['params' => []]],
-  #  ['mongodb://localhost?tls=true', ['params' => ['tls' => 'true']]],
-  #  ['mongodb://u:p@localhost', ['user' => 'u', 'pass' => 'p', 'params' => []]],
-  #  ['mongodb://u:p@localhost/admin', ['path' => '/admin', 'user' => 'u', 'pass' => 'p', 'params' => []]],
-  #])]
+  #[Test, Values([['mongodb://localhost', ['params' => []]], ['mongodb://localhost?tls=true', ['params' => ['tls' => 'true']]], ['mongodb://u:p@localhost', ['user' => 'u', 'pass' => 'p', 'params' => []]], ['mongodb://u:p@localhost/admin', ['path' => '/admin', 'user' => 'u', 'pass' => 'p', 'params' => []]],])]
   public function options_via_connection_string($uri, $expected) {
     Assert::equals(
       ['scheme' => 'mongodb', 'host' => 'localhost'] + $expected,
@@ -30,7 +25,7 @@ class ProtocolTest {
     );
   }
 
-  #[@test]
+  #[Test]
   public function options_merged_with_connection_string() {
     $fixture= new Protocol('mongodb://localhost?authSource=test', [
       'user'   => 'test',
@@ -46,15 +41,12 @@ class ProtocolTest {
     );
   }
 
-  #[@test, @expect([
-  #  'class'       => IllegalArgumentException::class,
-  #  'withMessage' => 'Unknown authentication mechanism UNKNOWN'
-  #])]
+  #[Test, Expect(['class'       => IllegalArgumentException::class, 'withMessage' => 'Unknown authentication mechanism UNKNOWN'])]
   public function unknown_auth_mechanism() {
     new Protocol('mongodb://localhost?authMechanism=UNKNOWN');
   }
 
-  #[@test]
+  #[Test]
   public function connect_handshake_populates_server_options() {
     $s= new TestingSocket([
       "\xef\x00\x00\x00\x92\x09\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00",

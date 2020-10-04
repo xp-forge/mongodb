@@ -2,7 +2,7 @@
 
 use com\mongodb\auth\ScramSHA1;
 use lang\IllegalStateException;
-use unittest\Assert;
+use unittest\{Assert, Expect, Test};
 use util\Bytes;
 
 /** @see https://github.com/xdg-go/scram/tree/master/testdata */
@@ -20,7 +20,7 @@ class ScramSHA1Test {
     ;
   }
 
-  #[@test]
+  #[Test]
   public function first_message() {
     $auth= $this->newFixture();
 
@@ -35,7 +35,7 @@ class ScramSHA1Test {
     );
   }
 
-  #[@test]
+  #[Test]
   public function next_message() {
     $auth= $this->newFixture();
     $auth->send([
@@ -54,7 +54,7 @@ class ScramSHA1Test {
     );
   }
 
-  #[@test]
+  #[Test]
   public function final_message() {
     $auth= $this->newFixture();
     $auth->send([
@@ -78,7 +78,7 @@ class ScramSHA1Test {
     );
   }
 
-  #[@test, @expect(['class' => IllegalStateException::class, 'withMessage' => '/Server requested less than 4096 iterations.+/'])]
+  #[Test, Expect(['class' => IllegalStateException::class, 'withMessage' => '/Server requested less than 4096 iterations.+/'])]
   public function iterations_must_be_4096_min() {
     $auth= $this->newFixture();
     $auth->send([
@@ -87,7 +87,7 @@ class ScramSHA1Test {
     ]);
   }
 
-  #[@test, @expect(['class' => IllegalStateException::class, 'withMessage' => '/Server did not extend client nonce.+/'])]
+  #[Test, Expect(['class' => IllegalStateException::class, 'withMessage' => '/Server did not extend client nonce.+/'])]
   public function fails_to_extend_client_nonce() {
     $auth= $this->newFixture();
     $auth->send([
@@ -96,7 +96,7 @@ class ScramSHA1Test {
     ]);
   }
 
-  #[@test, @expect(['class' => IllegalStateException::class, 'withMessage' => '/Server validation failed.+/'])]
+  #[Test, Expect(['class' => IllegalStateException::class, 'withMessage' => '/Server validation failed.+/'])]
   public function server_validation_fails() {
     $auth= $this->newFixture();
     $auth->send([

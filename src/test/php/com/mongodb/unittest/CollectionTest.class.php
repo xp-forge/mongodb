@@ -1,12 +1,12 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Protocol, Collection, Document};
-use unittest\Assert;
+use com\mongodb\{Collection, Document, Protocol};
+use unittest\{Assert, Before, Test};
 
 class CollectionTest {
   private $protocol;
 
-  #[@before]
+  #[Before]
   public function protocol() {
     $this->protocol= newinstance(Protocol::class, ['mongodb://test'], [
       'responses' => [],
@@ -27,7 +27,7 @@ class CollectionTest {
     return new Collection($this->protocol->returning($response), 'testing', 'tests');
   }
 
-  #[@test]
+  #[Test]
   public function insert_one() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1])->insert(
       new Document(['_id' => 'one', 'name' => 'Test'])
@@ -36,7 +36,7 @@ class CollectionTest {
     Assert::equals([1, 'one'], [$result->inserted(), $result->id()]);
   }
 
-  #[@test]
+  #[Test]
   public function insert_many() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 2])->insert([
       new Document(['_id' => 'one', 'name' => 'A']),
@@ -46,7 +46,7 @@ class CollectionTest {
     Assert::equals([2, ['one', 'two']], [$result->inserted(), $result->ids()]);
   }
 
-  #[@test]
+  #[Test]
   public function update_one() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1, 'nModified' => 1])->update(
       '6100',
@@ -55,7 +55,7 @@ class CollectionTest {
     Assert::equals([1, 1], [$result->matched(), $result->modified()]);
   }
 
-  #[@test]
+  #[Test]
   public function update_many() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 2, 'nModified' => 1])->update(
       ['name' => 'Test'],
@@ -65,14 +65,14 @@ class CollectionTest {
     Assert::equals([2, 1], [$result->matched(), $result->modified()]);
   }
 
-  #[@test]
+  #[Test]
   public function delete_one() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1])->delete('6100');
 
     Assert::equals(1, $result->deleted());
   }
 
-  #[@test]
+  #[Test]
   public function delete_many() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 2])->delete(['name' => 'Test']);
 

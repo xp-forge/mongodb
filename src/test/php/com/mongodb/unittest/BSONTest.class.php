@@ -1,8 +1,8 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{BSON, ObjectId, Int64, Decimal128, Timestamp, Document, Regex};
-use lang\{IllegalArgumentException, FormatException};
-use unittest\Assert;
+use com\mongodb\{BSON, Decimal128, Document, Int64, ObjectId, Regex, Timestamp};
+use lang\{FormatException, IllegalArgumentException};
+use unittest\{Assert, Expect, Test, Values};
 use util\{Bytes, Date, UUID};
 
 class BSONTest {
@@ -58,18 +58,18 @@ class BSONTest {
     yield [new ObjectId('5f1dda9973edf2501751884b'), "\x07test\x00\x5f\x1d\xda\x99\x73\xed\xf2\x50\x17\x51\x88\x4b"];
   }
 
-  #[@test, @values('values')]
+  #[Test, Values('values')]
   public function encode($value, $bytes) {
     Assert::equals(new Bytes($bytes), new Bytes((new BSON())->bytes('test', $value)));
   }
 
-  #[@test, @values('values')]
+  #[Test, Values('values')]
   public function decode($value, $bytes) {
     $offset= 0;
     Assert::equals($value, (new BSON())->value('test', $bytes, $offset));
   }
 
-  #[@test]
+  #[Test]
   public function encode_document() {
     Assert::equals(
       new Bytes("\x03test\x00\x0e\x00\x00\x00\x10one\x00\x01\x00\x00\x00\x00"),
@@ -77,7 +77,7 @@ class BSONTest {
     );
   }
 
-  #[@test]
+  #[Test]
   public function encode_traversable() {
     $f= function() {
       yield 'q'     => (object)[];
@@ -96,7 +96,7 @@ class BSONTest {
     );
   }
 
-  #[@test]
+  #[Test]
   public function encode_regex() {
     Assert::equals(
       new Bytes("\x0btest\x0099[a-z]+\x00i\x00"),
@@ -104,18 +104,12 @@ class BSONTest {
     );
   }
 
-  #[@test, @expect([
-  #  'class'       => IllegalArgumentException::class,
-  #  'withMessage' => '/Cannot encode value test of type .+BSONTest/',
-  #])]
+  #[Test, Expect(['class'       => IllegalArgumentException::class, 'withMessage' => '/Cannot encode value test of type .+BSONTest/',])]
   public function encode_unknown() {
     (new BSON())->bytes('test', $this);
   }
 
-  #[@test, @expect([
-  #  'class'       => FormatException::class,
-  #  'withMessage' => '/Unknown type 0x99: .+/',
-  #])]
+  #[Test, Expect(['class'       => FormatException::class, 'withMessage' => '/Unknown type 0x99: .+/',])]
   public function decode_unknown() {
     $offset= 0;
     (new BSON())->value('test', "\x99test\x00ABC", $offset);

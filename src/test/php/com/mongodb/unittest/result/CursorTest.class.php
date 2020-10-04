@@ -1,18 +1,18 @@
 <?php namespace com\mongodb\unittest\result;
 
 use com\mongodb\result\Cursor;
-use com\mongodb\{Protocol, Document, Int64};
-use unittest\Assert;
+use com\mongodb\{Document, Int64, Protocol};
+use unittest\{Assert, Before, Test};
 
 class CursorTest {
   private $proto;
 
-  #[@before]
+  #[Before]
   public function protocol() {
     $this->proto= new Protocol('mongodb://test');
   }
 
-  #[@test]
+  #[Test]
   public function can_create() {
     new Cursor($this->proto, [
       'firstBatch' => [],
@@ -21,7 +21,7 @@ class CursorTest {
     ]);
   }
 
-  #[@test]
+  #[Test]
   public function namespace() {
     $fixture= new Cursor($this->proto, [
       'firstBatch' => [],
@@ -31,7 +31,7 @@ class CursorTest {
     Assert::equals('test.collection', $fixture->namespace());
   }
 
-  #[@test]
+  #[Test]
   public function documents() {
     $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
     $fixture= new Cursor($this->proto, [
@@ -46,7 +46,7 @@ class CursorTest {
     );
   }
 
-  #[@test]
+  #[Test]
   public function first_document() {
     $documents= [['_id' => 'one', 'qty'  => 1000]];
     $fixture= new Cursor($this->proto, [
@@ -58,7 +58,7 @@ class CursorTest {
     Assert::equals(new Document($documents[0]), $fixture->first());
   }
 
-  #[@test]
+  #[Test]
   public function first_when_not_found() {
     $documents= [];
     $fixture= new Cursor($this->proto, [

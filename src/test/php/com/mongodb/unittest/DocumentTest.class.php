@@ -2,76 +2,69 @@
 
 use com\mongodb\{Document, ObjectId};
 use lang\IndexOutOfBoundsException;
-use unittest\Assert;
+use unittest\{Assert, Expect, Test, Values};
 
 class DocumentTest {
 
-  #[@test]
+  #[Test]
   public function can_create() {
     new Document();
   }
 
-  #[@test]
+  #[Test]
   public function properties_empty_by_default() {
     Assert::equals([], (new Document())->properties());
   }
 
-  #[@test, @values([
-  #  [[]],
-  #  [['key' => 'value']],
-  #  [['a' => 'b'], ['c' => 'd']],
-  #])]
+  #[Test, Values([[[]], [['key' => 'value']], [['a' => 'b'], ['c' => 'd']],])]
   public function properties($properties) {
     Assert::equals($properties, (new Document($properties))->properties());
   }
 
-  #[@test]
+  #[Test]
   public function with_object_id() {
     $id= new ObjectId('5f1dda9973edf2501751884b');
     Assert::equals($id, (new Document(['_id' => $id]))->id());
   }
 
-  #[@test]
+  #[Test]
   public function with_string_id() {
     $id= 'tag';
     Assert::equals($id, (new Document(['_id' => $id]))->id());
   }
 
-  #[@test]
+  #[Test]
   public function read_offset() {
     $fixture= new Document(['exists' => 'value']);
     Assert::equals('value', $fixture['exists']);
   }
 
-  #[@test, @expect(IndexOutOfBoundsException::class)]
+  #[Test, Expect(IndexOutOfBoundsException::class)]
   public function read_non_exstant_offset() {
     $fixture= new Document(['exists' => 'value']);
     $r= $fixture['absent'];
   }
 
-  #[@test]
+  #[Test]
   public function read_non_exstant_offset_with_null_coalesce() {
     $fixture= new Document(['exists' => 'value']);
     Assert::null($fixture['absent'] ?? null);
   }
 
-  #[@test, @values(['map' => [
-  #  'exists' => true,
-  #  'absent' => false,
-  #]])]
+  #[Test, Values(['map' => ['exists' => true, 'absent' => false,]])]
   public function test_offset($key, $expected) {
     $fixture= new Document(['exists' => 'value']);
     Assert::equals($expected, isset($fixture[$key]));
   }
 
-  #[@test]
+  #[Test]
   public function write_offset() {
     $fixture= new Document([]);
     $fixture['exists']= 'value';
     Assert::equals('value', $fixture['exists']);
   }
 
-  #[@test]
+  #[Test]
   public function delete_offset() {
     $fixture= new Document(['exists' => 'value']);
     unset($fixture['exists']);
