@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.7.0 / 2021-09-16
+
 * Fixed PHP 8.1 compatibility for IteratorAggregate / ArrayAccess return
   type declarations
   (@thekid)
