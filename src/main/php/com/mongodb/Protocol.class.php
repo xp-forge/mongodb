@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use lang\{FormatException, Throwable};
-use peer\Socket;
+use peer\{Socket, ConnectException};
 
 /**
  * MongoDB Wire Protocol 
@@ -79,6 +79,14 @@ class Protocol {
     if ($this->conn->isConnected()) return;
 
     $this->conn->connect(($this->options['params']['connectTimeoutMS'] ?? 40000) / 1000);
+    if ('true' === ($this->options['params']['ssl'] ?? $this->options['params']['tls'] ?? null)) {
+      if (!stream_socket_enable_crypto($this->conn->getHandle(), true, STREAM_CRYPTO_METHOD_ANY_CLIENT)) {
+        $e= new ConnectException('SSL handshake failed');
+        \xp::gc(__FILE__);
+        throw $e;
+      }
+    }
+
     $reply= $this->send(self::OP_QUERY, pack(
       'Va*xVVa*',
       0,   // flags

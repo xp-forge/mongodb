@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Enable SSL/TLS if `ssl=true` or `tls=true` is passed in the connection
+  string parameters; implements feature request #2
+  (@thekid)
 * Made `params` for `Collection::command()` optional - @thekid
 
 ## 0.6.0 / 2020-08-29
