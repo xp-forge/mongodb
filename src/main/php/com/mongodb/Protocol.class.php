@@ -21,6 +21,7 @@ class Protocol {
   private $options, $conn, $auth;
   private $id= 1;
   public $bson;
+  public $readPreference;
 
   /**
    * Creates a new protocol instance
@@ -35,7 +36,7 @@ class Protocol {
       $this->options= ['scheme' => 'mongodb', 'targets' => [[$arg->host, $arg->port]]] + $options;
       $this->conn= $arg;
     } else {
-      preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]+)?(\?(.+))?/', $arg, $m);
+      preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]*)?(\?(.+))?/', $arg, $m);
       $this->options= ['scheme' => $m[1], 'targets' => []] + $options + ['params' => []];
       '' === $m[3] || $this->options['user']= $m[3];
       '' === $m[4] || $this->options['pass']= $m[4];
@@ -77,6 +78,7 @@ class Protocol {
 
     $this->auth= Authentication::mechanism($this->options['params']['authMechanism'] ?? 'SCRAM-SHA-1');
     $this->bson= new BSON();
+    $this->readPreference= ['mode' => $this->options['params']['readPreference'] ?? 'primary'];
   }
 
   /** @return [:var] */
@@ -192,7 +194,7 @@ class Protocol {
       'Vca*', 
       $flags,
       $kind,
-      $this->bson->sections($sections)
+      $this->bson->sections($sections + ['$readPreference' => $this->readPreference])
     ));
 
     if (1 === (int)$result['body']['ok']) return $result;
