@@ -113,8 +113,8 @@ class BSON {
       $offset+= $binary['length'] + 5;
 
       switch ($binary['subtype']) {
-        case 0: return new Bytes($value);
-        case 4: return new UUID(new Bytes($value));
+        case 0: case 2: return new Bytes($value);
+        case 3: case 4: return new UUID(new Bytes($value));
         default: throw new FormatException('Cannot handle binary subtype '.$binary['subtype']);
       }
     } else if ("\x07" === $kind) {    // ObjectId

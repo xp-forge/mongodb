@@ -3,6 +3,7 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed issue #4: Cannot handle binary subtype 3 - @thekid
 * Enable SSL/TLS if `ssl=true` or `tls=true` is passed in the connection
   string parameters; implements feature request #2
   (@thekid)
