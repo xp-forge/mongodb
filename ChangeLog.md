@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed PHP 8.1 compatibility for IteratorAggregate / ArrayAccess return
+  type declarations
+  (@thekid)
 * Fixed issue #4: Cannot handle binary subtype 3 - @thekid
 * Enable SSL/TLS if `ssl=true` or `tls=true` is passed in the connection
   string parameters; implements feature request #2
