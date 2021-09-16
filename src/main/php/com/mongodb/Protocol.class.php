@@ -26,21 +26,53 @@ class Protocol {
    * Creates a new protocol instance
    *
    * @see    https://docs.mongodb.com/manual/reference/connection-string/
+   * @see    https://www.mongodb.com/developer/article/srv-connection-strings/
    * @param  string|peer.Socket $arg Either a connection string or a socket
    * @param  [:string] $options
    */
   public function __construct($arg, $options= []) {
     if ($arg instanceof Socket) {
-      $this->options= ['scheme' => 'mongodb', 'host' => $arg->host, 'port' => $arg->port] + $options;
+      $this->options= ['scheme' => 'mongodb', 'targets' => [[$arg->host, $arg->port]]] + $options;
       $this->conn= $arg;
     } else {
-      $this->options= parse_url($arg) + $options + ['params' => []];
-      if (isset($this->options['query'])) {
-        parse_str($this->options['query'], $params);
-        unset($this->options['query']);
+      preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]+)?(\?(.+))?/', $arg, $m);
+      $this->options= ['scheme' => $m[1], 'targets' => []] + $options + ['params' => []];
+      '' === $m[3] || $this->options['user']= $m[3];
+      '' === $m[4] || $this->options['pass']= $m[4];
+      '' === ($m[6] ?? '') || $this->options['path']= $m[6];
+
+      // Handle MongoDB Seed Lists
+      $p= $m[8] ?? '';
+      if ('mongodb+srv' === $m[1]) {
+        foreach (dns_get_record('_mongodb._tcp.'.$m[5], DNS_SRV) as $record) {
+          $this->options['targets'][]= [$record['target'], $record['port']];
+        }
+        foreach (dns_get_record($m[5], DNS_TXT) as $record) {
+          $p.= '&'.$record['txt'];
+        }
+
+        // As per spec: Use of the +srv connection string modifier automatically sets the tls
+        // (or the equivalent ssl) option to true for the connection
+        if (null === ($this->options['params']['ssl'] ?? $this->options['params']['tls'] ?? null)) {
+          $this->options['params']['ssl']= 'true';
+        }
+      } else {
+        foreach (explode(',', $m[5]) as $authority) {
+          if ('[' === $authority[0]) {
+            sscanf($authority, '[%[0-9a-fA-F:]]:%d', $host, $port);
+          } else {
+            sscanf($authority, '%[^:]:%d', $host, $port);
+          }
+          $this->options['targets'][]= [$host, $port ?? 27017];
+        }
+      }
+
+      if ('' !== $p) {
+        parse_str($p, $params);
         $this->options['params']+= $params;
       }
-      $this->conn= new Socket($this->options['host'], $this->options['port'] ?? 27017);
+
+      $this->conn= new Socket(...$this->options['targets'][0]);
     }
 
     $this->auth= Authentication::mechanism($this->options['params']['authMechanism'] ?? 'SCRAM-SHA-1');
@@ -58,7 +90,11 @@ class Protocol {
       $uri.= $this->options['user'].':'.$secret.'@';
     }
 
-    $uri.= $this->options['host'].':'.($this->options['port'] ?? 27017);
+    $servers= '';
+    foreach ($this->options['targets'] as $target) {
+      $servers.= ','.$target[0].':'.$target[1];
+    }
+    $uri.= substr($servers, 1);
 
     $query= isset($this->options['path']) ? '&authSource='.ltrim($this->options['path'], '/') : '';
     foreach ($this->options['params'] as $key => $value) {

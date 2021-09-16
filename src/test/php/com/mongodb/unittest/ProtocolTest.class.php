@@ -20,8 +20,20 @@ class ProtocolTest {
   #[Test, Values([['mongodb://localhost', ['params' => []]], ['mongodb://localhost?tls=true', ['params' => ['tls' => 'true']]], ['mongodb://u:p@localhost', ['user' => 'u', 'pass' => 'p', 'params' => []]], ['mongodb://u:p@localhost/admin', ['path' => '/admin', 'user' => 'u', 'pass' => 'p', 'params' => []]],])]
   public function options_via_connection_string($uri, $expected) {
     Assert::equals(
-      ['scheme' => 'mongodb', 'host' => 'localhost'] + $expected,
+      ['scheme' => 'mongodb', 'targets' => [['localhost', 27017]]] + $expected,
       (new Protocol($uri))->options()
+    );
+  }
+
+  #[Test]
+  public function cluster_via_connection_string() {
+    $fixture= new Protocol('mongodb://one.local,two.local:27018,[::1]:27019?ssl=true');
+
+    Assert::equals(
+      ['scheme' => 'mongodb', 'targets' => [['one.local', 27017], ['two.local', 27018], ['::1', 27019]], 'params' => [
+        'ssl' => 'true'
+      ]],
+      $fixture->options()
     );
   }
 
@@ -33,7 +45,7 @@ class ProtocolTest {
     ]);
     
     Assert::equals(
-      ['scheme' => 'mongodb', 'host' => 'localhost', 'user' => 'test', 'params' => [
+      ['scheme' => 'mongodb', 'targets' => [['localhost', 27017]], 'user' => 'test', 'params' => [
         'authSource' => 'test',
         'tls'        => 'true'
       ]],
@@ -41,7 +53,7 @@ class ProtocolTest {
     );
   }
 
-  #[Test, Expect(['class'       => IllegalArgumentException::class, 'withMessage' => 'Unknown authentication mechanism UNKNOWN'])]
+  #[Test, Expect(class: IllegalArgumentException::class, withMessage: 'Unknown authentication mechanism UNKNOWN')]
   public function unknown_auth_mechanism() {
     new Protocol('mongodb://localhost?authMechanism=UNKNOWN');
   }
