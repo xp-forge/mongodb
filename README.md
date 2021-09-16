@@ -1,10 +1,11 @@
 MongoDB connectivity
 ====================
 
-[![Build Status on TravisCI](https://secure.travis-ci.org/xp-forge/mongodb.svg)](http://travis-ci.org/xp-forge/mongodb)
+[![Build status on GitHub](https://github.com/xp-forge/mongodb/workflows/Tests/badge.svg)](https://github.com/xp-forge/mongodb/actions)
 [![XP Framework Module](https://raw.githubusercontent.com/xp-framework/web/master/static/xp-framework-badge.png)](https://github.com/xp-framework/core)
 [![BSD Licence](https://raw.githubusercontent.com/xp-framework/web/master/static/licence-bsd.png)](https://github.com/xp-framework/core/blob/master/LICENCE.md)
-[![Requires PHP 7.0+](https://raw.githubusercontent.com/xp-framework/web/master/static/php-7_0plus.png)](http://php.net/)
+[![Requires PHP 7.0+](https://raw.githubusercontent.com/xp-framework/web/master/static/php-7_0plus.svg)](http://php.net/)
+[![Supports PHP 8.0+](https://raw.githubusercontent.com/xp-framework/web/master/static/php-8_0plus.svg)](http://php.net/)
 [![Latest Stable Version](https://poser.pugx.org/xp-forge/mongodb/version.png)](https://packagist.org/packages/xp-forge/mongodb)
 
 This library implements MongoDB connectivity via its binary protocol. It has no dependencies on the PHP extension.
@@ -93,6 +94,19 @@ Authentication
 To authenticate, pass username and password via the connection string, e.g. `mongodb://user:pass@localhost`. The authentication source defaults to *admin* but can be set by supplying a path, e.g. `mongodb://user:pass@localhost/test`.
 
 Currently, *SCRAM-SHA-1* is the only supported authentication mechanism.
+
+SSL / TLS
+---------
+To connect via SSL / TLS, pass `ssl=true` as connection string parameters, e.g.:
+
+```php
+use com\mongodb\MongoConnection;
+
+$c= new MongoConnection('mongodb://localhost?ssl=true');
+
+// Explicit call to connect, can be omitted when using collection()
+$c->connect();
+```
 
 Aggregation
 -----------
