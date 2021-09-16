@@ -1,10 +1,11 @@
 <?php namespace com\mongodb\result;
 
+use IteratorAggregate, Traversable;
 use com\mongodb\{Document, Int64};
 use lang\Value;
 use util\Objects;
 
-class Cursor implements Value, \IteratorAggregate {
+class Cursor implements Value, IteratorAggregate {
   private $proto, $current;
 
   /**
@@ -21,8 +22,8 @@ class Cursor implements Value, \IteratorAggregate {
   /** @return string */
   public function namespace() { return $this->current['ns']; }
 
-  /** @return iterable */
-  public function getIterator() {
+  /** Iterates all documents, fetching batches as necessary */
+  public function getIterator(): Traversable {
     foreach ($this->current['firstBatch'] as $document) {
       yield new Document($document);
     }

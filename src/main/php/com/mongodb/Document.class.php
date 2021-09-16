@@ -1,9 +1,10 @@
 <?php namespace com\mongodb;
 
+use ArrayAccess, Traversable, IteratorAggregate, ReturnTypeWillChange;
 use lang\Value;
 use util\Objects;
 
-class Document implements Value, \ArrayAccess, \IteratorAggregate {
+class Document implements Value, ArrayAccess, IteratorAggregate {
   private $properties;
 
   /** @param [:var] */
@@ -21,6 +22,7 @@ class Document implements Value, \ArrayAccess, \IteratorAggregate {
    * @param  string $name
    * @return bool
    */
+  #[ReturnTypeWillChange]
   public function offsetExists($name) {
     return isset($this->properties[$name]);
   }
@@ -31,6 +33,7 @@ class Document implements Value, \ArrayAccess, \IteratorAggregate {
    * @param  string $name
    * @return bool
    */
+  #[ReturnTypeWillChange]
   public function offsetGet($name) {
     return $this->properties[$name];
   }
@@ -42,6 +45,7 @@ class Document implements Value, \ArrayAccess, \IteratorAggregate {
    * @param  var $value
    * @return void
    */
+  #[ReturnTypeWillChange]
   public function offsetSet($name, $value) {
     $this->properties[$name]= $value;
   }
@@ -52,12 +56,13 @@ class Document implements Value, \ArrayAccess, \IteratorAggregate {
    * @param  string $name
    * @return void
    */
+  #[ReturnTypeWillChange]
   public function offsetUnset($name) {
     unset($this->properties[$name]);
   }
 
-  /** @return iterable */
-  public function getIterator() { yield from $this->properties; }
+  /** Iterator over all properties */
+  public function getIterator(): Traversable { yield from $this->properties; }
 
   /** @return string */
   public function hashCode() {
