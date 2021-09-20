@@ -161,7 +161,7 @@ class Protocol {
         $conversation->send($result['body']);
       } while ($conversation->valid());
     } catch (Throwable $t) {
-      $e= new AuthenticationFailed($t->getMessage(), $this->optopns['user'], $this->optopns['pass']);
+      $e= new AuthenticationFailed($t->getMessage(), $this->options['user'], $this->options['pass']);
       $e->setCause($t);
       throw $t;
     }
