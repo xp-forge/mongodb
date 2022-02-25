@@ -4,6 +4,13 @@ use com\mongodb\auth\Mechanism;
 use lang\IllegalStateException;
 use util\Bytes;
 
+/**
+ * Salted Challenge Response Authentication Mechanism (SCRAM) is the default
+ * authentication mechanism for MongoDB.
+ *
+ * @test  com.mongodb.unittest.ScramSHA1Test
+ * @see   https://docs.mongodb.com/manual/core/security-scram/
+ */
 class ScramSHA1 implements Mechanism {
   const MIN_ITERATIONS = 4096;
   const HASH_ALGORITHM = 'sha1';
@@ -42,7 +49,7 @@ class ScramSHA1 implements Mechanism {
    */
   public function conversation(string $username, string $password, string $authsource) {
 
-    // Step 1: Initiate conversation with username and nonce
+    // Step 1: Initiate conversation with username and a random nonce
     $gs2= 'n,,';
     $nonce= ($this->nonce)();
     $c1b= 'n='.$username.',r='.$nonce;
@@ -88,7 +95,6 @@ class ScramSHA1 implements Mechanism {
     yield [
       'saslContinue'   => 1,
       'payload'        => '',
-      'done'           => true,
       'conversationId' => $next['conversationId'],
       '$db'            => $authsource,
     ];
