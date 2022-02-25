@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.7.2 / 2021-10-25
+
 * Fixed #6: Exception com.mongodb.Error (#40415:Location40415 "BSON field
   'saslContinue.done' is an unknown field.")
   (@thekid)
