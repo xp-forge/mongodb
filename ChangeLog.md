@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed #7: Array to string conversion error in `Document::toString()`
+  (@thekid)
+
 ## 0.7.1 / 2021-10-21
 
 * Made library compatible with XP 11 - @thekid
