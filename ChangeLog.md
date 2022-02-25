@@ -3,6 +3,14 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.7.2 / 2021-10-25
+
+* Fixed #6: Exception com.mongodb.Error (#40415:Location40415 "BSON field
+  'saslContinue.done' is an unknown field.")
+  (@thekid)
+* Fixed #7: Array to string conversion error in `Document::toString()`
+  (@thekid)
+
 ## 0.7.1 / 2021-10-21
 
 * Made library compatible with XP 11 - @thekid

@@ -2,9 +2,21 @@
 
 use com\mongodb\{Document, ObjectId};
 use lang\IndexOutOfBoundsException;
-use unittest\{Assert, Expect, Test, Values};
+use unittest\{Assert, Before, Expect, Test, Values};
 
 class DocumentTest {
+  const OID = '5f1dda9973edf2501751884b';
+
+  /** @return iterable */
+  private function representations() {
+    yield [[], "com.mongodb.Document(-)@{\n}"];
+    yield [['key' => 'value'], "com.mongodb.Document(-)@{\n  key: \"value\"\n}"];
+    yield [['p' => 'more', 'n' => 6100], "com.mongodb.Document(-)@{\n  p: \"more\"\n  n: 6100\n}"];
+    yield [['_id' => 6100], "com.mongodb.Document(6100)@{\n}"];
+    yield [['_id' => new ObjectId(self::OID)], "com.mongodb.Document(".self::OID.")@{\n}"];
+    yield [['_id' => ['PUBLIC']], "com.mongodb.Document([\"PUBLIC\"])@{\n}"];
+    yield [['_id' => 6100, 'key' => 'value'], "com.mongodb.Document(6100)@{\n  key: \"value\"\n}"];
+  }
 
   #[Test]
   public function can_create() {
@@ -23,7 +35,7 @@ class DocumentTest {
 
   #[Test]
   public function with_object_id() {
-    $id= new ObjectId('5f1dda9973edf2501751884b');
+    $id= new ObjectId(self::OID);
     Assert::equals($id, (new Document(['_id' => $id]))->id());
   }
 
@@ -69,5 +81,10 @@ class DocumentTest {
     $fixture= new Document(['exists' => 'value']);
     unset($fixture['exists']);
     Assert::false(isset($fixture['exists']));
+  }
+
+  #[Test, Values('representations')]
+  public function string_representation($fields, $expected) {
+    Assert::equals($expected, (new Document($fields))->toString());
   }
 }

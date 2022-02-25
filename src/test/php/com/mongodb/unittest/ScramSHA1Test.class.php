@@ -70,7 +70,6 @@ class ScramSHA1Test {
       [
         'saslContinue'   => 1,
         'payload'        => '',
-        'done'           => true,
         'conversationId' => 1,
         '$db'            => self::DATABASE
       ],

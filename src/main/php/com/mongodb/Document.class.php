@@ -71,7 +71,18 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
 
   /** @return string */
   public function toString() {
-    $s= nameof($this).(isset($this->properties['_id']) ? '('.$this->properties['_id'].')' : '(-)')."@{\n";
+    $s= nameof($this);
+
+    $id= $this->properties['_id'] ?? null;
+    if (null === $id) {
+      $s.= '(-)';
+    } else if ($id instanceof ObjectId) {
+      $s.= '('.$id->string().')';
+    } else {
+      $s.= '('.Objects::stringOf($this->properties['_id']).')';
+    }
+
+    $s.= "@{\n";
     foreach ($this->properties as $key => $value) {
       '_id' === $key || $s.= '  '.$key.': '.Objects::stringOf($value, '  ')."\n";
     }
