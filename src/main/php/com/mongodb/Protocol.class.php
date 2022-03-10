@@ -231,11 +231,17 @@ class Protocol {
    * @throws com.mongodb.Error
    */
   public function msg($flags, $kind, $sections) {
+
+    // Append read preference unless on a standalone server
+    if (self::Standalone !== $this->server['$kind']) {
+      $sections+= ['$readPreference' => $this->readPreference];
+    }
+
     $result= $this->send(Protocol::OP_MSG, pack(
       'Vca*', 
       $flags,
       $kind,
-      $this->bson->sections($sections + ['$readPreference' => $this->readPreference])
+      $this->bson->sections($sections)
     ));
 
     if (1 === (int)$result['body']['ok']) return $result;
