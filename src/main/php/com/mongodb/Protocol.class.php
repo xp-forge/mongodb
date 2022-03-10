@@ -28,7 +28,7 @@ class Protocol {
 
   private $options, $conn, $auth;
   private $id= 1;
-  private $server= [];
+  protected $server= [];
   public $bson;
   public $readPreference;
 

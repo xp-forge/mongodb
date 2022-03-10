@@ -11,7 +11,7 @@ class CollectionTest {
     $this->protocol= newinstance(Protocol::class, ['mongodb://test'], [
       'responses' => [],
       'returning' => function($response) { $this->responses[]= $response; return $this; },
-      'connect'   => function() { /** NOOP */ },
+      'connect'   => function() { $this->server= ['$kind' => null]; },
       'close'     => function() { /** NOOP */ },
       'send'      => function($op, $payload) { return ['flags' => 0, 'body' => array_shift($this->responses)]; }
     ]);
@@ -24,6 +24,7 @@ class CollectionTest {
    * @return com.mongodb.Collection
    */
   private function newFixture($response) {
+    $this->protocol->connect();
     return new Collection($this->protocol->returning($response), 'testing', 'tests');
   }
 
