@@ -77,6 +77,7 @@ class ProtocolTest {
 
     Assert::equals(
       [
+        '$kind' => Protocol::Standalone,
         'ismaster' => true,
         'maxBsonObjectSize' => 16777216,
         'maxMessageSizeBytes' => 48000000,
@@ -88,7 +89,7 @@ class ProtocolTest {
         'readOnly' => false,
         'ok' => 1.0,
       ],
-      $p->options()['server']
+      $p->server()
     );
   }
 }

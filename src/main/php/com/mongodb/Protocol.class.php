@@ -18,8 +18,17 @@ class Protocol {
   const OP_KILL_CURSORS = 2007;
   const OP_MSG          = 2013;
 
+  const RSGhost         = 'RSGhost';
+  const RSPrimary       = 'RSPrimary';
+  const RSMember        = 'RSMember';
+  const RSSecondary     = 'RSSecondary';
+  const RSArbiter       = 'RSArbiter';
+  const Mongos          = 'Mongos';
+  const Standalone      = 'Standalone';
+
   private $options, $conn, $auth;
   private $id= 1;
+  private $server= [];
   public $bson;
   public $readPreference;
 
@@ -84,6 +93,9 @@ class Protocol {
   /** @return [:var] */
   public function options() { return $this->options; }
 
+  /** @return [:var] */
+  public function server() { return $this->server; }
+
   /** Returns connection string */
   public function connection(bool $password= false): string { 
     $uri= $this->options['scheme'].'://';
@@ -108,6 +120,52 @@ class Protocol {
   }
 
   /**
+   * Performs handshake, storing server information
+   *
+   * @return void
+   */
+  private function handshake() {
+    $reply= $this->send(self::OP_QUERY, pack(
+      'Va*xVVa*',
+      0,   // flags
+      'admin.$cmd',
+      0,   // numberToSkip
+      1,   // numberToReturn
+      $this->bson->sections([
+        'isMaster' => 1,
+        'client'   => [
+          'application' => ['name' => $this->options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
+          'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
+          'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
+        ]
+      ])
+    ));
+    $document= &$reply['documents'][0];
+
+    // See https://github.com/xp-forge/mongodb/issues/3#issuecomment-922724957
+    $kind= self::Standalone;
+    if (isset($document['isreplicaset'])) {
+      $kind= self::RSGhost;
+    } else if ('' !== ($document['setName'] ?? '')) {
+      if ($document['isWritablePrimary'] ?? $document['ismaster'] ?? null) {
+        $kind= self::RSPrimary;
+      } else if ($document['hidden'] ?? null) {
+        $kind= self::RSMember;
+      } else if ($document['secondary'] ?? null) {
+        $kind= self::RSSecondary;
+      } else if ($document['arbiterOnly'] ?? null) {
+        $kind= self::RSArbiter;
+      } else {
+        $kind= self::RSMember;
+      }
+    } else if ('isdbgrid' === ($document['msg'] ?? '')) {
+      $kind= self::Mongos;
+    }
+
+    $this->server= ['$kind' => $kind] + $document;
+  }
+
+  /**
    * Connect (and authenticate, if credentials are present)
    *
    * @throws com.mongodb.AuthenticationFailed
@@ -124,27 +182,10 @@ class Protocol {
         throw $e;
       }
     }
-
-    $reply= $this->send(self::OP_QUERY, pack(
-      'Va*xVVa*',
-      0,   // flags
-      'admin.$cmd',
-      0,   // numberToSkip
-      1,   // numberToReturn
-      $this->bson->sections([
-        'isMaster' => 1,
-        'client'   => [
-          'application' => ['name' => $this->options['params']['appName'] ?? $_SERVER['argv'][0]],
-          'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
-          'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
-        ]
-      ])
-    ));
-    $this->options['server']= current($reply['documents']);
-
-    if (!isset($this->options['user'])) return;
+    $this->handshake();
 
     // Authentication
+    if (!isset($this->options['user'])) return;
     try {
       $conversation= $this->auth->conversation(
         urldecode($this->options['user']),

@@ -2,7 +2,7 @@
 
 use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
-use util\{Bytes, UUID};
+use util\{Bytes, UUID, Objects};
 
 class MongoConnection implements Value {
   private $proto;
@@ -85,10 +85,12 @@ class MongoConnection implements Value {
   }
 
   /** @return string */
-  public function toString() { return nameof($this).'('.$this->proto->connection(false).')'; }
+  public function hashCode() { return spl_object_hash($this); }
 
   /** @return string */
-  public function hashCode() { return spl_object_hash($this); }
+  public function toString() {
+    return nameof($this).'('.$this->proto->connection(false).')@'.Objects::stringOf($this->proto->server());
+  }
 
   /**
    * Compare
