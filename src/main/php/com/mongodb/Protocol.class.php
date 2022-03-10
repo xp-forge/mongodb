@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use lang\{FormatException, Throwable};
-use peer\{Socket, ConnectException};
+use peer\{Socket, ConnectException, ProtocolException};
 
 /**
  * MongoDB Wire Protocol 
@@ -217,7 +217,6 @@ class Protocol {
 
   public function send($operation, $body) {
     $this->id > 2147483647 ? $this->id= 1 : $this->id++;
-
     $payload= pack('VVVV', strlen($body) + 16, $this->id, 0, $operation).$body;
 
     // \util\cmd\Console::writeLine('>>> ', strlen($payload), ': ', $this->hex($payload)); 
@@ -225,6 +224,11 @@ class Protocol {
 
     $header= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->read(16));
     // \util\cmd\Console::writeLine('<<< ', $header);
+    if (false === $header) {
+      $e= new ProtocolException($this->conn->eof() ? 'Received EOF while reading' : 'Reading header failed');
+      \xp::gc(__FILE__);
+      throw $e;
+    }
 
     $response= $this->read($header['messageLength'] - 16);
     // \util\cmd\Console::writeLine('<<< ', strlen($response), ': ', $this->hex($response));

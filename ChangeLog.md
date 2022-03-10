@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.8.0 / 2022-03-10
+
+* Changed implementation to raise `peer.ProtocolException` instead of
+  low-level socket errors
+  (@thekid)
+
 ## 0.7.2 / 2021-10-25
 
 * Fixed #6: Exception com.mongodb.Error (#40415:Location40415 "BSON field
