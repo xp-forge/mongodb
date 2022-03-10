@@ -126,7 +126,7 @@ class Collection {
       'cursor'    => (object)[],
       '$db'       => $this->database,
     ]);
-    return $result['body']['cursor']['firstBatch'][0]['n'];
+    return $result['body']['cursor']['firstBatch'][0]['n'] ?? 0;
   }
 
   /**

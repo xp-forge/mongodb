@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Collection, Document, Protocol};
+use com\mongodb\{Collection, Document, Int64, Protocol};
 use unittest\{Assert, Before, Test};
 
 class CollectionTest {
@@ -78,5 +78,27 @@ class CollectionTest {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 2])->delete(['name' => 'Test']);
 
     Assert::equals(2, $result->deleted());
+  }
+
+  #[Test]
+  public function count_empty() {
+    $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
+      'firstBatch' => [],
+      'id'         => new Int64(0),
+      'ns'         => 'testing.tests'
+    ]]);
+
+    Assert::equals(0, $collection->count());
+  }
+
+  #[Test]
+  public function count() {
+    $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
+      'firstBatch' => [['n' => 1]],
+      'id'         => new Int64(0),
+      'ns'         => 'testing.tests'
+    ]]);
+
+    Assert::equals(1, $collection->count());
   }
 }
