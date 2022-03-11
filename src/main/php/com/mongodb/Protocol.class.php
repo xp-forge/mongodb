@@ -120,9 +120,9 @@ class Protocol {
   }
 
   /**
-   * Performs handshake, storing server information
+   * Performs handshake and return server information
    *
-   * @return void
+   * @return [:var]
    */
   private function handshake() {
     $reply= $this->send(self::OP_QUERY, pack(
@@ -162,7 +162,7 @@ class Protocol {
       $kind= self::Mongos;
     }
 
-    $this->server= ['$kind' => $kind] + $document;
+    return ['$kind' => $kind] + $document;
   }
 
   /**
@@ -182,7 +182,7 @@ class Protocol {
         throw $e;
       }
     }
-    $this->handshake();
+    $this->server= $this->handshake();
 
     // Authentication
     if (!isset($this->options['user'])) return;
