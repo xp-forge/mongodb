@@ -166,6 +166,10 @@ class Collection {
 
     // Look at last pipeline stage: If it's $out or $merge, the pipeline will
     // use write semantics, otherwise, it will be used for reading only!
+    //
+    // TODO check https://jira.mongodb.org/browse/DRIVERS-823,
+    // https://docs.mongodb.com/manual/reference/operator/aggregation/out &
+    // https://docs.mongodb.com/manual/reference/operator/aggregation/merge/ 
     $last= $pipeline ? key($pipeline[sizeof($pipeline) - 1]) : null;
     if ('$out' === $last || '$merge' === $last) {
       $result= $this->proto->write($sections);
