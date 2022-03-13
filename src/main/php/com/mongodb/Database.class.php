@@ -26,7 +26,7 @@ class Database {
    * @throws com.mongodb.Error
    */
   public function collections() {
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->read([
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);
