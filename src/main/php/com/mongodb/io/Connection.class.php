@@ -92,18 +92,23 @@ class Connection {
 
     // Send hello package and determine connection kind
     // https://docs.mongodb.com/v4.4/reference/command/isMaster/
-    $reply= $this->send(
-      self::OP_QUERY,
-      "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
-      [
-        'isMaster' => 1,
-        'client'   => [
-          'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
-          'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
-          'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
+    try {
+      $reply= $this->send(
+        self::OP_QUERY,
+        "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
+        [
+          'isMaster' => 1,
+          'client'   => [
+            'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
+            'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
+            'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
+          ]
         ]
-      ]
-    );
+      );
+    } catch (ProtocolException $e) {
+      throw new ConnectException('Server handshake failed @ '.$this->address(), $e);
+    }
+
     $document= &$reply['documents'][0];
 
     $kind= self::Standalone;

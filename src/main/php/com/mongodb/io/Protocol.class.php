@@ -101,11 +101,17 @@ class Protocol {
   /**
    * Connect (and authenticate, if credentials are present)
    *
+   * @throws peer.ConnectException
    * @throws com.mongodb.AuthenticationFailed
-   * @throws com.mongodb.Error
    */
   public function connect() {
-    $this->nodes || $this->select(array_keys($this->conn), 'initial connect');
+    if ($this->nodes) return;
+
+    try {
+      $this->select(array_keys($this->conn), 'initial connect');
+    } catch (IllegalStateException $e) {
+      throw new ConnectException('Cannot connect to '.$this->options['scheme'].'://'.$this->options['nodes'], $e);
+    }
   }
 
   /**
@@ -139,7 +145,7 @@ class Protocol {
       }
     }
 
-    throw new IllegalStateException('No suitable candidates eligible for '.$intent, $cause);
+    throw new IllegalStateException('No suitable candidates eligible for '.$intent.', tried '.implode(', ', $candidates), $cause);
   }
 
   /**

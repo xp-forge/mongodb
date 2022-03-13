@@ -31,6 +31,17 @@ class MongoConnection implements Value {
   }
 
   /**
+   * Creates a session, optionally supplying a session UUID.
+   *
+   * @param  ?string|util.UUID $uuid
+   * @return com.mongodb.Session
+   */
+  public function session($uuid= null) {
+    $this->proto->connect();
+    return new Session($this->proto, $uuid ?? UUID::randomUUID());
+  }
+
+  /**
    * Selects a given database, connecting if necessary
    *
    * @param  string $name The database name
