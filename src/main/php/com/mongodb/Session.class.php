@@ -4,12 +4,6 @@ use com\mongodb\io\Protocol;
 use lang\Closeable;
 use util\UUID;
 
-  // public function session($uuid= null) {
-  //   $this->proto->connect();
-  //   return new Session($this->proto, $uuid ?? UUID::randomUUID());
-  // }
-
-
 class Session implements Closeable {
   private $proto, $id;
   private $closed= false;
@@ -31,7 +25,7 @@ class Session implements Closeable {
 
     // Fire and forget: If the user has no session that match, the endSessions call has
     // no effect, see https://docs.mongodb.com/manual/reference/command/endSessions/
-    $this->proto->msg(0, 0, [
+    $this->proto->read([
       'endSessions' => [['id' => $this->id]],
       '$db'         => 'admin'
     ]);
