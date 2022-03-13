@@ -1,5 +1,7 @@
 <?php namespace com\mongodb;
 
+use com\mongodb\io\Protocol;
+
 class Database {
   private $proto, $name;
 

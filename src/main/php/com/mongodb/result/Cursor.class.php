@@ -11,7 +11,7 @@ class Cursor implements Value, IteratorAggregate {
   /**
    * Creates a new cursor
    *
-   * @param com.mongodb.Protocol $proto
+   * @param com.mongodb.io.Protocol $proto
    * @param [:var] $current
    */
   public function __construct($proto, $current= []) { 

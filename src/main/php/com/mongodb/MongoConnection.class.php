@@ -1,5 +1,6 @@
 <?php namespace com\mongodb;
 
+use com\mongodb\io\Protocol;
 use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
 use util\{Bytes, UUID, Objects};
@@ -11,7 +12,7 @@ class MongoConnection implements Value {
    * Creates a new connection from a given connection string or by using
    * a given protocol instance.
    *
-   * @param  string|com.mongodb.Protocol $arg
+   * @param  string|com.mongodb.io.Protocol $arg
    */
   public function __construct($arg) {
     $this->proto= $arg instanceof Protocol ? $arg : new Protocol($arg);
@@ -27,11 +28,6 @@ class MongoConnection implements Value {
   public function connect(): self {
     $this->proto->connect();
     return $this;
-  }
-
-  public function session($uuid= null) {
-    $this->proto->connect();
-    return new Session($this->proto, $uuid ?? UUID::randomUUID());
   }
 
   /**
@@ -89,7 +85,7 @@ class MongoConnection implements Value {
 
   /** @return string */
   public function toString() {
-    return nameof($this).'('.$this->proto->connection(false).')@'.Objects::stringOf($this->proto->server());
+    return nameof($this).'('.$this->proto->connection(false).')@'.Objects::stringOf($this->proto->nodes);
   }
 
   /**

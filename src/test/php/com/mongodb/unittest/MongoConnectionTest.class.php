@@ -1,6 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Collection, Database, MongoConnection, Protocol};
+use com\mongodb\io\Protocol;
+use com\mongodb\{Collection, Database, MongoConnection};
 use lang\IllegalArgumentException;
 use unittest\{Assert, Before, Expect, Test};
 

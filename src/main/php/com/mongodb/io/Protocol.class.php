@@ -1,0 +1,187 @@
+<?php namespace com\mongodb\io;
+
+use com\mongodb\Authentication;
+use lang\{IllegalStateException, Throwable};
+use peer\{Socket, ConnectException, ProtocolException};
+
+/**
+ * MongoDB Wire Protocol 
+ *
+ * @see https://docs.mongodb.com/manual/reference/mongodb-wire-protocol/
+ */
+class Protocol {
+  private $options, $conn, $auth;
+  public $nodes= null;
+  public $readPreference;
+
+  /**
+   * Creates a new protocol instance
+   *
+   * @see    https://docs.mongodb.com/manual/reference/connection-string/
+   * @see    https://www.mongodb.com/developer/article/srv-connection-strings/
+   * @param  string|peer.Socket $arg Either a connection string or a socket
+   * @param  [:string] $options
+   */
+  public function __construct($arg, $options= []) {
+    $bson= new BSON();
+
+    if ($arg instanceof Socket) {
+      $conn= new Connection($arg, null, $bson);
+      $this->options= ['scheme' => 'mongodb', 'nodes' => $conn->address()] + $options;
+      $this->conn= [$conn->address() => $conn];
+    } else {
+      preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]*)?(\?(.+))?/', $arg, $m);
+      $this->options= ['scheme' => $m[1], 'nodes' => $m[5]] + $options + ['params' => []];
+      '' === $m[3] || $this->options['user']= $m[3];
+      '' === $m[4] || $this->options['pass']= $m[4];
+      '' === ($m[6] ?? '') || $this->options['path']= $m[6];
+
+      // Handle MongoDB Seed Lists
+      $p= $m[8] ?? '';
+      if ('mongodb+srv' === $m[1]) {
+        foreach (dns_get_record('_mongodb._tcp.'.$m[5], DNS_SRV) as $record) {
+          $conn= new Connection($record['target'], $record['port'], $bson);
+          $this->conn[$conn->address()]= $conn;
+        }
+        foreach (dns_get_record($m[5], DNS_TXT) as $record) {
+          $p.= '&'.$record['txt'];
+        }
+
+        // As per spec: Use of the +srv connection string modifier automatically sets the tls
+        // (or the equivalent ssl) option to true for the connection
+        if (null === ($this->options['params']['ssl'] ?? $this->options['params']['tls'] ?? null)) {
+          $this->options['params']['ssl']= 'true';
+        }
+      } else {
+        foreach (explode(',', $m[5]) as $authority) {
+          $conn= new Connection($authority, null, $bson);
+          $this->conn[$conn->address()]= $conn;
+        }
+      }
+
+      if ('' !== $p) {
+        parse_str($p, $params);
+        $this->options['params']+= $params;
+      }
+    }
+
+    $this->readPreference= ['mode' => $this->options['params']['readPreference'] ?? 'primary'];
+    $this->auth= isset($this->options['user'])
+      ? Authentication::mechanism($this->options['params']['authMechanism'] ?? 'SCRAM-SHA-1')
+      : null
+    ;
+  }
+
+  /** @return [:var] */
+  public function options() { return $this->options; }
+
+  /** @return var */
+  public function connections() { return $this->conn; }
+
+  /** Returns connection string */
+  public function connection(bool $password= false): string { 
+    $uri= $this->options['scheme'].'://';
+    if (isset($this->options['user'])) {
+      $secret= ($password ? $this->options['pass'] : str_repeat('*', strlen($this->options['pass'])));
+      $uri.= $this->options['user'].':'.$secret.'@';
+    }
+    $uri.= $this->options['nodes'];
+
+    $p= ltrim($this->options['path'] ?? '', '/');
+    $query= $p ? '&authSource='.$p : '';
+
+    foreach ($this->options['params'] as $key => $value) {
+      $query.= '&'.$key.'='.$value;
+    }
+    $query && $uri.= '?'.substr($query, 1);
+
+    return $uri;
+  }
+
+  /**
+   * Connect (and authenticate, if credentials are present)
+   *
+   * @throws com.mongodb.AuthenticationFailed
+   * @throws com.mongodb.Error
+   */
+  public function connect() {
+    $this->nodes || $this->select(array_keys($this->conn), 'initial connect');
+  }
+
+  /**
+   * Select a connection
+   *
+   * @param  string[] $candidates
+   * @param  string $intent used within potential error messages
+   * @return com.mongodb.io.Connection
+   * @throws lang.IllegalStateException
+   */
+  private function select($candidates, $intent) {
+    $cause= null;
+    foreach ($candidates as $candidate) {
+      try {
+        $conn= $this->conn[$candidate];
+        // \util\cmd\Console::writeLine('[SELECT] For ', $intent, ': ', $candidate);
+
+        // Refresh view into cluster every time we succesfully connect to a node
+        if (null === $conn->server) {
+          $conn->establish($this->options, $this->auth);
+          $this->nodes= ['primary' => $conn->server['primary'] ?? $candidate, 'secondary' => []];
+          foreach ($conn->server['hosts'] ?? [] as $host) {
+            if ($conn->server['primary'] !== $host) $this->nodes['secondary'][]= $host;
+          }
+        }
+
+        return $conn;
+      } catch (ConnectException $t) {
+        $conn->close();
+        $cause ? $cause->setCause($t) : $cause= $t;
+      }
+    }
+
+    throw new IllegalStateException('No suitable candidates eligible for '.$intent, $cause);
+  }
+
+  /**
+   * Perform a read operation
+   *
+   * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
+   * @param  [:var] $sections
+   * @return var
+   */
+  public function read($sections) {
+    $rp= $this->readPreference['mode'];
+
+    if ('primary' === $rp) {
+      $selected= $this->select([$this->nodes['primary']], 'reading with '.$rp);
+    } else if ('secondary' === $rp) {
+      $selected= $this->select($this->nodes['secondary'], 'reading with '.$rp);
+    } else if ('primaryPreferred' === $rp) {
+      $selected= $this->select([$this->nodes['primary'], ...$this->nodes['secondary']], 'reading with '.$rp);
+    } else if ('secondaryPreferred' === $rp) {
+      $selected= $this->select([...$this->nodes['secondary'], $this->nodes['primary']], 'reading with '.$rp);
+    } else if ('nearest' === $rp) {
+      $selected= $this->select([$this->nodes['primary'], ...$this->nodes['secondary']], 'reading with '.$rp);
+    }
+
+    return $selected->message($sections, $this->readPreference);
+  }
+
+  /**
+   * Perform a write operation
+   *
+   * @param  [:var] $sections
+   * @return var
+   */
+  public function write($sections) {
+    return $this->select([$this->nodes['primary']], 'writing')->message($sections, $this->readPreference);
+  }
+
+  /** @return void */
+  public function close() {
+    foreach ($this->conn as $conn) { 
+      $conn->close();
+    }
+    $this->nodes= null;
+  }
+}
