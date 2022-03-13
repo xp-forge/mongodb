@@ -29,7 +29,7 @@ class Connection {
   const Mongos          = 'Mongos';
   const Standalone      = 'Standalone';
 
-  private $socket;
+  private $socket, $bson;
   private $packet= 1;
   public $server= null;
 
