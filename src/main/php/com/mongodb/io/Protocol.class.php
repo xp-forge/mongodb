@@ -163,9 +163,9 @@ class Protocol {
     } else if ('secondary' === $rp) {
       $selected= $this->select($this->nodes['secondary'], 'reading with '.$rp);
     } else if ('primaryPreferred' === $rp) {
-      $selected= $this->select([$this->nodes['primary'], ...$this->nodes['secondary']], 'reading with '.$rp);
+      $selected= $this->select(array_merge([$this->nodes['primary']], $this->nodes['secondary']), 'reading with '.$rp);
     } else if ('secondaryPreferred' === $rp) {
-      $selected= $this->select([...$this->nodes['secondary'], $this->nodes['primary']], 'reading with '.$rp);
+      $selected= $this->select(array_merge($this->nodes['secondary'], [$this->nodes['primary']]), 'reading with '.$rp);
     } else if ('nearest' === $rp) {
       $selected= $this->select([$this->nodes['primary'], ...$this->nodes['secondary']], 'reading with '.$rp);
     }
