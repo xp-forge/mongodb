@@ -91,13 +91,13 @@ class Connection {
     }
 
     // Send hello package and determine connection kind
-    // https://docs.mongodb.com/v4.4/reference/command/isMaster/
+    // https://docs.mongodb.com/v4.4/reference/command/hello/
     try {
       $reply= $this->send(
         self::OP_QUERY,
         "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
         [
-          'isMaster' => 1,
+          'hello'    => 1,
           'client'   => [
             'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
             'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
@@ -115,7 +115,7 @@ class Connection {
     if (isset($document['isreplicaset'])) {
       $kind= self::RSGhost;
     } else if ('' !== ($document['setName'] ?? '')) {
-      if ($document['isWritablePrimary'] ?? $document['ismaster'] ?? null) {
+      if ($document['isWritablePrimary'] ?? null) {
         $kind= self::RSPrimary;
       } else if ($document['hidden'] ?? null) {
         $kind= self::RSMember;

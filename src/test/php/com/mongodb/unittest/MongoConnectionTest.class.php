@@ -12,11 +12,11 @@ class MongoConnectionTest {
 
   #[Before]
   public function protocol() {
-    $this->protocol= newinstance(Protocol::class, [self::CONNECTION_STRING], [
-      'connected' => null,
-      'connect'   => function() { $this->connected= true; },
-      'close'     => function() { $this->connected= false; },
-    ]);
+    $this->protocol= new class(self::CONNECTION_STRING) extends Protocol {
+      public $connected= null;
+      public function connect() { $this->connected= true; }
+      public function close() { $this->connected= false; }
+    };
   }
 
   #[Test]
