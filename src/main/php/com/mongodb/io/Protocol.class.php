@@ -117,6 +117,7 @@ class Protocol {
   /**
    * Select a connection
    *
+   * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#checking-an-idle-socket-after-socketcheckintervalms
    * @param  string[] $candidates
    * @param  string $intent used within potential error messages
    * @return com.mongodb.io.Connection
@@ -151,6 +152,7 @@ class Protocol {
   /**
    * Perform a read operation
    *
+   * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#read-preference
    * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
    * @param  [:var] $sections
    * @return var
