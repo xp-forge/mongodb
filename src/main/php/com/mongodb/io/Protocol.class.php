@@ -167,7 +167,7 @@ class Protocol {
     } else if ('secondaryPreferred' === $rp) {
       $selected= $this->select(array_merge($this->nodes['secondary'], [$this->nodes['primary']]), 'reading with '.$rp);
     } else if ('nearest' === $rp) {
-      $selected= $this->select([$this->nodes['primary'], ...$this->nodes['secondary']], 'reading with '.$rp);
+      $selected= $this->select(array_merge([$this->nodes['primary']], $this->nodes['secondary']), 'reading with '.$rp);
     }
 
     return $selected->message($sections, $this->readPreference);
