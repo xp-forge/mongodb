@@ -79,7 +79,7 @@ class MongoConnection implements Value {
    */
   public function databases() {
     $this->proto->connect();
-    return $this->proto->msg(0, 0, ['listDatabases' => (object)[], '$db' => 'admin'])['body']['databases'];
+    return $this->proto->read(['listDatabases' => (object)[], '$db' => 'admin'])['body']['databases'];
   }
 
   /**
