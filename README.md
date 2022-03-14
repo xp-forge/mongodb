@@ -118,25 +118,6 @@ The `Collection` class also features aggregation methods:
 
 See https://docs.mongodb.com/manual/reference/command/nav-aggregation/
 
-Sessions
---------
-Using a causally consistent session, an application can read its own writes and is guaranteed monotonic reads, even when reading from replica set secondaries.
-
-```php
-use com\mongodb\{MongoConnection, ObjectId, Operations};
-use util\cmd\Console;
-
-$c= new MongoConnection('mongodb://localhost');
-$session= $c->session();
-
-$id= new ObjectId('...');
-$collection= $c->collection('test.products');
-$collection->update((new Operations(['$set' => ['qty' => 1]]))->select($id), $session);
-
-// Will read the updated document
-$updated= $collection->with()->select($id, $session)->first();
-```
-
 Type mapping
 ------------
 All builtin types are mapped to their BSON equivalents. In addition, the following type mappings are used:
