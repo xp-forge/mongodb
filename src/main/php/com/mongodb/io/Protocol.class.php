@@ -156,6 +156,7 @@ class Protocol {
    * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
    * @param  [:var] $sections
    * @return var
+   * @throws com.mongodb.Error
    */
   public function read($sections) {
     $rp= $this->readPreference['mode'];
@@ -189,6 +190,7 @@ class Protocol {
    *
    * @param  [:var] $sections
    * @return var
+   * @throws com.mongodb.Error
    */
   public function write($sections) {
     return $this->select([$this->nodes['primary']], 'writing')->message($sections, $this->readPreference);

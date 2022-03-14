@@ -174,6 +174,7 @@ class Connection {
    * @param  [:var] $sections
    * @param  ?string $readPreference
    * @return var
+   * @throws com.mongodb.Error
    */
   public function message($sections, $readPreference) {
     if (null !== $readPreference && self::Standalone !== $this->server['$kind']) {
