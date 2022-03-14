@@ -21,9 +21,11 @@ class Protocol {
    * @see    https://www.mongodb.com/developer/article/srv-connection-strings/
    * @param  string|peer.Socket $arg Either a connection string or a socket
    * @param  [:string] $options
+   * @param  com.mongodb.io.BSON $bson
+   * @param  com.mongodb.io.DNS $dns
    */
-  public function __construct($arg, $options= []) {
-    $bson= new BSON();
+  public function __construct($arg, $options= [], $bson= null, $dns= null) {
+    $bson ?? $bson= new BSON();
 
     if ($arg instanceof Socket) {
       $conn= new Connection($arg, null, $bson);
@@ -39,12 +41,14 @@ class Protocol {
       // Handle MongoDB Seed Lists
       $p= $m[8] ?? '';
       if ('mongodb+srv' === $m[1]) {
-        foreach (dns_get_record('_mongodb._tcp.'.$m[5], DNS_SRV) as $record) {
-          $conn= new Connection($record['target'], $record['port'], $bson);
+        $dns ?? $dns= new DNS();
+
+        foreach ($dns->members($m[5]) as $host => $port) {
+          $conn= new Connection($host, $port, $bson);
           $this->conn[$conn->address()]= $conn;
         }
-        foreach (dns_get_record($m[5], DNS_TXT) as $record) {
-          $p.= '&'.$record['txt'];
+        foreach ($dns->params($m[5]) as $param) {
+          $p.= '&'.$param;
         }
 
         // As per spec: Use of the +srv connection string modifier automatically sets the tls

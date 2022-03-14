@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\ObjectId;
-use com\mongodb\io\Protocol;
+use com\mongodb\io\{Protocol, DNS};
 use lang\IllegalArgumentException;
 use unittest\{Assert, Expect, Test, Values};
 use util\{Bytes, Date};
@@ -55,5 +55,16 @@ class ProtocolTest {
   #[Test, Expect(class: IllegalArgumentException::class, withMessage: 'Unknown authentication mechanism UNKNOWN')]
   public function unknown_auth_mechanism() {
     new Protocol('mongodb://user:pass@localhost?authMechanism=UNKNOWN');
+  }
+
+  #[Test]
+  public function resolve_dns_seed_list() {
+    $p= new Protocol('mongodb+srv://example.com', [], null, new class() extends DNS {
+      public function members(string $srv) { return ['mongo01.'.$srv => 27017, 'mongo02.'.$srv => 27317]; }
+      public function params(string $srv) { return ['replicaSet=mySet']; }
+    });
+
+    Assert::equals(['mongo01.example.com:27017', 'mongo02.example.com:27317'], array_keys($p->connections()));
+    Assert::equals(['replicaSet' => 'mySet', 'ssl' => 'true'], $p->options()['params']);
   }
 }
