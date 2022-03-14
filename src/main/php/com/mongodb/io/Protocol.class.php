@@ -75,7 +75,7 @@ class Protocol {
   /** @return [:var] */
   public function options() { return $this->options; }
 
-  /** @return var */
+  /** @return [:com.mongodb.io.Connection] */
   public function connections() { return $this->conn; }
 
   /** Returns connection string */
