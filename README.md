@@ -118,6 +118,25 @@ The `Collection` class also features aggregation methods:
 
 See https://docs.mongodb.com/manual/reference/command/nav-aggregation/
 
+DNS Seed List Connection
+------------------------
+Adding in DNS to specify clusters adds another level of flexibility to deployment. Given the following DNS entries:
+
+```
+Record                            TTL   Class    Priority Weight Port  Target
+_mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27317 mongodb1.example.com.
+_mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27017 mongodb2.example.com.
+```
+
+...the following code will connect to one of the above:
+
+```php
+use com\mongodb\MongoConnection;
+
+$c= new MongoConnection('mongodb+srv://server.example.com');
+$c->connect();
+```
+
 Type mapping
 ------------
 All builtin types are mapped to their BSON equivalents. In addition, the following type mappings are used:

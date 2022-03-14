@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #5: Add support for mongodb+srv. This adds support for DNS
+  seed lists, as well as reading from and writing to separate connections
+  based on the read preference supplied.
+  (@thekid)
+
 ## 0.8.0 / 2022-03-10
 
 * Changed implementation to raise `peer.ProtocolException` instead of
