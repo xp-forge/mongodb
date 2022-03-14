@@ -168,8 +168,17 @@ class Protocol {
       $selected= $this->select(array_merge([$this->nodes['primary']], $this->nodes['secondary']), 'reading with '.$rp);
     } else if ('secondaryPreferred' === $rp) {
       $selected= $this->select(array_merge($this->nodes['secondary'], [$this->nodes['primary']]), 'reading with '.$rp);
-    } else if ('nearest' === $rp) {
-      $selected= $this->select(array_merge([$this->nodes['primary']], $this->nodes['secondary']), 'reading with '.$rp);
+    } else if ('nearest' === $rp) {  // Prefer to stay on already open connections
+      $connected= null;
+      foreach ($this->conn as $id => $conn) {
+        if (null === $conn->server) continue;
+        $connected= $id;
+        break;
+      }
+      $selected= $this->select(
+        array_unique(array_merge([$connected, $this->nodes['primary']], $this->nodes['secondary'])),
+        'reading with '.$rp
+      );
     }
 
     return $selected->message($sections, $this->readPreference);
