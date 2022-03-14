@@ -1,6 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{BSON, Decimal128, Document, Int64, ObjectId, Regex, Timestamp};
+use com\mongodb\io\BSON;
+use com\mongodb\{Decimal128, Document, Int64, ObjectId, Regex, Timestamp};
 use lang\{FormatException, IllegalArgumentException};
 use unittest\{Assert, Expect, Test, Values};
 use util\{Bytes, Date, UUID};

@@ -1,7 +1,8 @@
 <?php namespace com\mongodb\unittest\result;
 
+use com\mongodb\io\Protocol;
 use com\mongodb\result\Cursor;
-use com\mongodb\{Document, Int64, Protocol};
+use com\mongodb\{Document, Int64};
 use unittest\{Assert, Before, Test};
 
 class CursorTest {

@@ -1,5 +1,7 @@
-<?php namespace com\mongodb;
+<?php namespace com\mongodb\io;
 
+use Traversable, StdClass;
+use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Decimal128};
 use lang\{FormatException, IllegalArgumentException};
 use util\{Bytes, Date, TimeZone, UUID};
 
@@ -50,7 +52,7 @@ class BSON {
       return "\x13".$name."\x00".pack('PP', $value->lo(), $value->hi());
     } else if ($value instanceof Regex) {
       return "\x0b".$name."\x00".$value->pattern()."\x00".$value->modifiers()."\x00";
-    } else if ($value instanceof \Traversable || $value instanceof \StdClass) {
+    } else if ($value instanceof Traversable || $value instanceof StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
     } else if (is_string($value)) {
       return "\x02".$name."\x00".pack('V', strlen($value) + 1).$value."\x00";

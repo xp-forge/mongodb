@@ -1,5 +1,7 @@
 <?php namespace com\mongodb;
 
+use com\mongodb\io\Protocol;
+
 class Database {
   private $proto, $name;
 
@@ -24,7 +26,7 @@ class Database {
    * @throws com.mongodb.Error
    */
   public function collections() {
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->read([
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);

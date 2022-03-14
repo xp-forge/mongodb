@@ -1,5 +1,6 @@
 <?php namespace com\mongodb;
 
+use com\mongodb\io\Protocol;
 use com\mongodb\result\{Insert, Update, Delete, Cursor};
 
 /**
@@ -32,7 +33,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function command($name, array $params= []) {
-    return $this->proto->msg(0, 0, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
+    return $this->proto->write([$name => $this->name] + $params + ['$db' => $this->database])['body'];
   }
 
   /**
@@ -52,7 +53,7 @@ class Collection {
       $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
     }
 
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->write([
       'insert'    => $this->name,
       'documents' => $documents,
       'ordered'   => true,
@@ -70,7 +71,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function update($query, $statements): Update {
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->write([
       'update'    => $this->name,
       'updates'   => [['q' => is_array($query) ? $query : ['_id' => $query], 'u' => $statements]],
       'ordered'   => true,
@@ -86,7 +87,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function delete($query): Delete {
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->write([
       'delete'    => $this->name,
       'deletes'   => [is_array($query) ? ['q' => $query, 'limit' => 0] : ['q' => ['_id' => $query], 'limit' => 1]],
       'ordered'   => true,
@@ -103,7 +104,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function find($query= []): Cursor {
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->read([
       'find'   => $this->name,
       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
       '$db'    => $this->database,
@@ -120,13 +121,13 @@ class Collection {
    */
   public function count($filter= []): int {
     $count= ['$count' => 'n'];
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->read([
       'aggregate' => $this->name,
       'pipeline'  => $filter ? [['$match' => $filter], $count] : [$count],
       'cursor'    => (object)[],
       '$db'       => $this->database,
     ]);
-    return $result['body']['cursor']['firstBatch'][0]['n'];
+    return $result['body']['cursor']['firstBatch'][0]['n'] ?? 0;
   }
 
   /**
@@ -139,7 +140,7 @@ class Collection {
    */
   public function distinct($key, $filter= []): array {
     $distinct= ['$group' => ['_id' => 1, 'values' => ['$addToSet' => '$'.$key]]];
-    $result= $this->proto->msg(0, 0, [
+    $result= $this->proto->read([
       'aggregate' => $this->name,
       'pipeline'  => $filter ? [['$match' => $filter], $distinct] : [$distinct],
       'cursor'    => (object)[],
@@ -155,13 +156,27 @@ class Collection {
    * @return com.mongodb.result.Cursor
    * @throws com.mongodb.Error
    */
-  public function aggregate($pipeline): Cursor {
-    $result= $this->proto->msg(0, 0, [
+  public function aggregate(array $pipeline= []): Cursor {
+    $sections= [
       'aggregate' => $this->name,
-      'pipeline'  => (array)$pipeline,
+      'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => $this->database,
-    ]);
+    ];
+
+    // Look at last pipeline stage: If it's $out or $merge, the pipeline will
+    // use write semantics, otherwise, it will be used for reading only!
+    //
+    // TODO check https://jira.mongodb.org/browse/DRIVERS-823,
+    // https://docs.mongodb.com/manual/reference/operator/aggregation/out &
+    // https://docs.mongodb.com/manual/reference/operator/aggregation/merge/ 
+    $last= $pipeline ? key($pipeline[sizeof($pipeline) - 1]) : null;
+    if ('$out' === $last || '$merge' === $last) {
+      $result= $this->proto->write($sections);
+    } else {
+      $result= $this->proto->read($sections);
+    }
+
     return new Cursor($this->proto, $result['body']['cursor']);
   }
 }

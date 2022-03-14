@@ -1,6 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{ObjectId, Protocol};
+use com\mongodb\ObjectId;
+use com\mongodb\io\{Protocol, DNS};
 use lang\IllegalArgumentException;
 use unittest\{Assert, Expect, Test, Values};
 use util\{Bytes, Date};
@@ -20,8 +21,18 @@ class ProtocolTest {
   #[Test, Values([['mongodb://localhost', ['params' => []]], ['mongodb://localhost?tls=true', ['params' => ['tls' => 'true']]], ['mongodb://u:p@localhost', ['user' => 'u', 'pass' => 'p', 'params' => []]], ['mongodb://u:p@localhost/admin', ['path' => '/admin', 'user' => 'u', 'pass' => 'p', 'params' => []]],])]
   public function options_via_connection_string($uri, $expected) {
     Assert::equals(
-      ['scheme' => 'mongodb', 'host' => 'localhost'] + $expected,
+      ['scheme' => 'mongodb', 'nodes' => 'localhost'] + $expected,
       (new Protocol($uri))->options()
+    );
+  }
+
+  #[Test]
+  public function cluster_via_connection_string() {
+    $fixture= new Protocol('mongodb://one.local,two.local:27018,[::1]:27019');
+
+    Assert::equals(
+      ['one.local:27017', 'two.local:27018', '[::1]:27019'],
+      array_keys($fixture->connections())
     );
   }
 
@@ -33,7 +44,7 @@ class ProtocolTest {
     ]);
     
     Assert::equals(
-      ['scheme' => 'mongodb', 'host' => 'localhost', 'user' => 'test', 'params' => [
+      ['scheme' => 'mongodb', 'user' => 'test', 'nodes' => 'localhost', 'params' => [
         'authSource' => 'test',
         'tls'        => 'true'
       ]],
@@ -41,42 +52,19 @@ class ProtocolTest {
     );
   }
 
-  #[Test, Expect(['class'       => IllegalArgumentException::class, 'withMessage' => 'Unknown authentication mechanism UNKNOWN'])]
+  #[Test, Expect(class: IllegalArgumentException::class, withMessage: 'Unknown authentication mechanism UNKNOWN')]
   public function unknown_auth_mechanism() {
-    new Protocol('mongodb://localhost?authMechanism=UNKNOWN');
+    new Protocol('mongodb://user:pass@localhost?authMechanism=UNKNOWN');
   }
 
   #[Test]
-  public function connect_handshake_populates_server_options() {
-    $s= new TestingSocket([
-      "\xef\x00\x00\x00\x92\x09\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00",
-      "\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
-      "\x01\x00\x00\x00\xcb\x00\x00\x00\x08ismaster\x00\x01\x10maxBsonO".
-      "bjectSize\x00\x00\x00\x00\x01\x10maxMessageSizeBytes\x00\x00l\xdc".
-      "\x02\x10maxWriteBatchSize\x00\xa0\x86\x01\x00\x09localTime\x00\xef".
-      "\x00\xa0\xb9s\x01\x00\x00\x10logicalSessionTimeoutMinutes\x00\x1e".
-      "\x00\x00\x00\x10minWireVersion\x00\x00\x00\x00\x00\x10maxWireVers".
-      "ion\x00\x06\x00\x00\x00\x08readOnly\x00\x00\x01ok\x00\x00\x00\x00".
-      "\x00\x00\x00\xf0?\x00"
-    ]);
+  public function resolve_dns_seed_list() {
+    $p= new Protocol('mongodb+srv://example.com', [], null, new class() extends DNS {
+      public function members(string $srv) { return ['mongo01.'.$srv => 27017, 'mongo02.'.$srv => 27317]; }
+      public function params(string $srv) { return ['replicaSet=mySet']; }
+    });
 
-    $p= new Protocol($s);
-    $p->connect();
-
-    Assert::equals(
-      [
-        'ismaster' => true,
-        'maxBsonObjectSize' => 16777216,
-        'maxMessageSizeBytes' => 48000000,
-        'maxWriteBatchSize' => 100000,
-        'localTime' => new Date('2020-08-04 13:18:57+0000'),
-        'logicalSessionTimeoutMinutes' => 30,
-        'minWireVersion' => 0,
-        'maxWireVersion' => 6,
-        'readOnly' => false,
-        'ok' => 1.0,
-      ],
-      $p->options()['server']
-    );
+    Assert::equals(['mongo01.example.com:27017', 'mongo02.example.com:27317'], array_keys($p->connections()));
+    Assert::equals(['replicaSet' => 'mySet', 'ssl' => 'true'], $p->options()['params']);
   }
 }

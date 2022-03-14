@@ -1,6 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Collection, Database, MongoConnection, Protocol};
+use com\mongodb\io\Protocol;
+use com\mongodb\{Collection, Database, MongoConnection};
 use lang\IllegalArgumentException;
 use unittest\{Assert, Before, Expect, Test};
 
@@ -11,11 +12,11 @@ class MongoConnectionTest {
 
   #[Before]
   public function protocol() {
-    $this->protocol= newinstance(Protocol::class, [self::CONNECTION_STRING], [
-      'connected' => null,
-      'connect'   => function() { $this->connected= true; },
-      'close'     => function() { $this->connected= false; },
-    ]);
+    $this->protocol= new class(self::CONNECTION_STRING) extends Protocol {
+      public $connected= null;
+      public function connect() { $this->connected= true; }
+      public function close() { $this->connected= false; }
+    };
   }
 
   #[Test]
