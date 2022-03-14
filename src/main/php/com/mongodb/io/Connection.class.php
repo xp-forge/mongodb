@@ -150,9 +150,7 @@ class Connection {
         $conversation->send($result['body']);
       } while ($conversation->valid());
     } catch (Throwable $t) {
-      $e= new AuthenticationFailed($t->getMessage(), $options['user'], $options['pass']);
-      $e->setCause($t);
-      throw $t;
+      throw new AuthenticationFailed($t->getMessage(), $options['user'], new Secret($options['pass']), $t);
     }
   }
 
