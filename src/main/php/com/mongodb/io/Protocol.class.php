@@ -164,6 +164,7 @@ class Protocol {
    * @throws com.mongodb.Error
    */
   public function read($session, $sections) {
+    $session && $sections+= $session->send($this);
     $rp= $this->readPreference['mode'];
 
     if ('primary' === $rp) {
@@ -187,7 +188,6 @@ class Protocol {
       );
     }
 
-    $session && $sections+= $session->send($this);
     return $selected->message($sections, $this->readPreference);
   }
 
