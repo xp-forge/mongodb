@@ -20,8 +20,8 @@ class CollectionTest {
       'returning' => function($response) { $this->responses[]= $response; return $this; },
       'connect'   => function() { },
       'close'     => function() { /** NOOP */ },
-      'read'      => function($sections) { return ['body' => array_shift($this->responses)]; },
-      'write'     => function($sections) { return ['body' => array_shift($this->responses)]; },
+      'read'      => function($session, $sections) { return ['body' => array_shift($this->responses)]; },
+      'write'     => function($session, $sections) { return ['body' => array_shift($this->responses)]; },
     ]);
   }
 

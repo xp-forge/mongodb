@@ -38,7 +38,7 @@ class Session implements Closeable {
 
     // Fire and forget: If the user has no session that match, the endSessions call has
     // no effect, see https://docs.mongodb.com/manual/reference/command/endSessions/
-    $this->proto->read([
+    $this->proto->read($this, [
       'endSessions' => [['id' => $this->id]],
       '$db'         => 'admin'
     ]);

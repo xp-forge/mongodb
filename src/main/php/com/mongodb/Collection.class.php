@@ -34,7 +34,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function command($name, array $params= [], Session $session= null) {
-    return $this->proto->write([$name => $this->name] + $params + ['$db' => $this->database])['body'];
+    return $this->proto->write($session, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
   }
 
   /**
@@ -56,7 +56,7 @@ class Collection {
       $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
     }
 
-    $result= $this->proto->write([
+    $result= $this->proto->write($session, [
       'insert'    => $this->name,
       'documents' => $documents,
       'ordered'   => true,
@@ -75,7 +75,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function update($query, $statements, Session $session= null): Update {
-    $result= $this->proto->write([
+    $result= $this->proto->write($session, [
       'update'    => $this->name,
       'updates'   => [['q' => is_array($query) ? $query : ['_id' => $query], 'u' => $statements]],
       'ordered'   => true,
@@ -93,7 +93,7 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function delete($query, Session $session= null): Delete {
-    $result= $this->proto->write([
+    $result= $this->proto->write($session, [
       'delete'    => $this->name,
       'deletes'   => [is_array($query) ? ['q' => $query, 'limit' => 0] : ['q' => ['_id' => $query], 'limit' => 1]],
       'ordered'   => true,
@@ -111,12 +111,12 @@ class Collection {
    * @throws com.mongodb.Error
    */
   public function find($query= [], Session $session= null): Cursor {
-    $result= $this->proto->read([
+    $result= $this->proto->read($session, [
       'find'   => $this->name,
       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
       '$db'    => $this->database,
     ]);
-    return new Cursor($this->proto, $result['body']['cursor']);
+    return new Cursor($this->proto, $session, $result['body']['cursor']);
   }
 
   /**
@@ -129,7 +129,7 @@ class Collection {
    */
   public function count($filter= [], Session $session= null): int {
     $count= ['$count' => 'n'];
-    $result= $this->proto->read([
+    $result= $this->proto->read($session, [
       'aggregate' => $this->name,
       'pipeline'  => $filter ? [['$match' => $filter], $count] : [$count],
       'cursor'    => (object)[],
@@ -149,7 +149,7 @@ class Collection {
    */
   public function distinct($key, $filter= [], Session $session= null): array {
     $distinct= ['$group' => ['_id' => 1, 'values' => ['$addToSet' => '$'.$key]]];
-    $result= $this->proto->read([
+    $result= $this->proto->read($session, [
       'aggregate' => $this->name,
       'pipeline'  => $filter ? [['$match' => $filter], $distinct] : [$distinct],
       'cursor'    => (object)[],
@@ -182,11 +182,11 @@ class Collection {
     // https://docs.mongodb.com/manual/reference/operator/aggregation/merge/ 
     $last= $pipeline ? key($pipeline[sizeof($pipeline) - 1]) : null;
     if ('$out' === $last || '$merge' === $last) {
-      $result= $this->proto->write($sections);
+      $result= $this->proto->write($session, $sections);
     } else {
-      $result= $this->proto->read($sections);
+      $result= $this->proto->read($session, $sections);
     }
 
-    return new Cursor($this->proto, $result['body']['cursor']);
+    return new Cursor($this->proto, $session, $result['body']['cursor']);
   }
 }

@@ -22,11 +22,12 @@ class Database {
   /**
    * Returns a list of database information objects
    *
+   * @param  ?com.mongodb.Session $session
    * @return [:var][]
    * @throws com.mongodb.Error
    */
-  public function collections() {
-    $result= $this->proto->read([
+  public function collections($session) {
+    $result= $this->proto->read($session, [
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);

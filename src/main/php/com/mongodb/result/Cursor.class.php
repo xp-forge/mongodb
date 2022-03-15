@@ -6,16 +6,18 @@ use lang\Value;
 use util\Objects;
 
 class Cursor implements Value, IteratorAggregate {
-  private $proto, $current;
+  private $proto, $session, $current;
 
   /**
    * Creates a new cursor
    *
-   * @param com.mongodb.io.Protocol $proto
-   * @param [:var] $current
+   * @param  com.mongodb.io.Protocol $proto
+   * @param  ?com.mongodb.Session $session
+   * @param  [:var] $current
    */
-  public function __construct($proto, $current= []) { 
+  public function __construct($proto, $session, $current= []) { 
     $this->proto= $proto;
+    $this->session= $session;
     $this->current= $current;
   }
 
@@ -31,7 +33,7 @@ class Cursor implements Value, IteratorAggregate {
     // Fetch subsequent batches
     sscanf($this->current['ns'], "%[^.].%[^\r]", $database, $collection);
     while ($this->current['id']->number() > 0) {
-      $result= $this->proto->read([
+      $result= $this->proto->read($this->session, [
         'getMore'    => $this->current['id'],
         'collection' => $collection,
         '$db'        => $database,
@@ -62,7 +64,7 @@ class Cursor implements Value, IteratorAggregate {
     if (0 === $this->current['id']->number()) return;
 
     sscanf($this->current['ns'], "%[^.].%[^\r]", $database, $collection);
-    $this->proto->read([
+    $this->proto->read($this->session, [
       'killCursors' => $collection,
       'cursors'     => [$this->current['id']],
       '$db'         => $database,

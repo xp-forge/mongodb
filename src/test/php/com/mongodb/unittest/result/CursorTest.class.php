@@ -15,7 +15,7 @@ class CursorTest {
 
   #[Test]
   public function can_create() {
-    new Cursor($this->proto, [
+    new Cursor($this->proto, null, [
       'firstBatch' => [],
       'id'         => new Int64(0),
       'ns'         => 'test.collection'
@@ -24,7 +24,7 @@ class CursorTest {
 
   #[Test]
   public function namespace() {
-    $fixture= new Cursor($this->proto, [
+    $fixture= new Cursor($this->proto, null, [
       'firstBatch' => [],
       'id'         => new Int64(0),
       'ns'         => 'test.collection'
@@ -35,7 +35,7 @@ class CursorTest {
   #[Test]
   public function documents() {
     $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
-    $fixture= new Cursor($this->proto, [
+    $fixture= new Cursor($this->proto, null, [
       'firstBatch' => $documents,
       'id'         => new Int64(0),
       'ns'         => 'test.collection'
@@ -50,7 +50,7 @@ class CursorTest {
   #[Test]
   public function first_document() {
     $documents= [['_id' => 'one', 'qty'  => 1000]];
-    $fixture= new Cursor($this->proto, [
+    $fixture= new Cursor($this->proto, null, [
       'firstBatch' => $documents,
       'id'         => new Int64(0),
       'ns'         => 'test.collection'
@@ -62,7 +62,7 @@ class CursorTest {
   #[Test]
   public function first_when_not_found() {
     $documents= [];
-    $fixture= new Cursor($this->proto, [
+    $fixture= new Cursor($this->proto, null, [
       'firstBatch' => [],
       'id'         => new Int64(0),
       'ns'         => 'test.collection'
