@@ -9,6 +9,7 @@ use util\UUID;
  *
  * @see   https://docs.mongodb.com/manual/reference/server-sessions/
  * @see   https://docs.mongodb.com/manual/core/read-isolation-consistency-recency/#std-label-sessions
+ * @see   https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst
  */
 class Session implements Closeable {
   private $proto, $id;
