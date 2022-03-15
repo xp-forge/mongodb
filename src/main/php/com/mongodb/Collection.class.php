@@ -29,10 +29,11 @@ class Collection {
    *
    * @param  string $name
    * @param  [:var] $params
+   * @param  ?com.mongodb.Session $session
    * @return var
    * @throws com.mongodb.Error
    */
-  public function command($name, array $params= []) {
+  public function command($name, array $params= [], Session $session= null) {
     return $this->proto->write([$name => $this->name] + $params + ['$db' => $this->database])['body'];
   }
 
@@ -41,9 +42,11 @@ class Collection {
    * passed documents.
    *
    * @param  com.mongodb.Document|com.mongodb.Document[] $arg
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.Insert
    * @throws com.mongodb.Error
    */
-  public function insert($arg): Insert {
+  public function insert($arg, Session $session= null): Insert {
     $documents= is_array($arg) ? $arg : [$arg];
 
     // See https://docs.mongodb.com/manual/reference/method/db.collection.insert/#id-field:
@@ -63,14 +66,15 @@ class Collection {
   }
 
   /**
-   * Updates collection with given modifications. Use the `Operations` class
-   * as an easy factory to choose whether to update one or more documents.
+   * Updates collection with given modifications.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var] $statements Update operator expressions
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.Update
    * @throws com.mongodb.Error
    */
-  public function update($query, $statements): Update {
+  public function update($query, $statements, Session $session= null): Update {
     $result= $this->proto->write([
       'update'    => $this->name,
       'updates'   => [['q' => is_array($query) ? $query : ['_id' => $query], 'u' => $statements]],
@@ -84,9 +88,11 @@ class Collection {
    * Delete documents
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.Delete
    * @throws com.mongodb.Error
    */
-  public function delete($query): Delete {
+  public function delete($query, Session $session= null): Delete {
     $result= $this->proto->write([
       'delete'    => $this->name,
       'deletes'   => [is_array($query) ? ['q' => $query, 'limit' => 0] : ['q' => ['_id' => $query], 'limit' => 1]],
@@ -100,10 +106,11 @@ class Collection {
    * Find documents in this collection
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Cursor
    * @throws com.mongodb.Error
    */
-  public function find($query= []): Cursor {
+  public function find($query= [], Session $session= null): Cursor {
     $result= $this->proto->read([
       'find'   => $this->name,
       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
@@ -116,10 +123,11 @@ class Collection {
    * Count documents in this collection
    *
    * @param  [:var] $filter
+   * @param  ?com.mongodb.Session $session
    * @return int
    * @throws com.mongodb.Error
    */
-  public function count($filter= []): int {
+  public function count($filter= [], Session $session= null): int {
     $count= ['$count' => 'n'];
     $result= $this->proto->read([
       'aggregate' => $this->name,
@@ -135,10 +143,11 @@ class Collection {
    *
    * @param  string $key
    * @param  [:var] $filter
+   * @param  ?com.mongodb.Session $session
    * @return var[]
    * @throws com.mongodb.Error
    */
-  public function distinct($key, $filter= []): array {
+  public function distinct($key, $filter= [], Session $session= null): array {
     $distinct= ['$group' => ['_id' => 1, 'values' => ['$addToSet' => '$'.$key]]];
     $result= $this->proto->read([
       'aggregate' => $this->name,
@@ -153,10 +162,11 @@ class Collection {
    * Perfom aggregation over documents this collection
    *
    * @param  [:var][] $pipeline
+   * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Cursor
    * @throws com.mongodb.Error
    */
-  public function aggregate(array $pipeline= []): Cursor {
+  public function aggregate(array $pipeline= [], Session $session= null): Cursor {
     $sections= [
       'aggregate' => $this->name,
       'pipeline'  => $pipeline,
