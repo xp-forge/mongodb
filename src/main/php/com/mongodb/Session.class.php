@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
-use lang\Closeable;
+use lang\{Closeable, IllegalStateException};
 use util\UUID;
 
 /**
@@ -31,6 +31,19 @@ class Session implements Closeable {
 
   /** Returns whether this session was closed */
   public function closed(): bool { return $this->closed; }
+
+  /**
+   * Returns fields to be sent along with the command
+   *
+   * @param  com.mongodb.io.Protocol
+   * @return [:var]
+   * @throws lang.IllegalStateException
+   */
+  public function send($proto) {
+    if ($proto === $this->proto) return ['lsid' => ['id' => $this->id]];
+
+    throw new IllegalStateException('Session was created by a different client');
+  }
 
   /** @return void */
   public function close() {
