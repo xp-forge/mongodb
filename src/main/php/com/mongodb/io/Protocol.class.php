@@ -187,6 +187,7 @@ class Protocol {
       );
     }
 
+    $session && $sections+= ['lsid' => ['id' => $session->id()]];
     return $selected->message($sections, $this->readPreference);
   }
 
@@ -199,6 +200,7 @@ class Protocol {
    * @throws com.mongodb.Error
    */
   public function write($session, $sections) {
+    $session && $sections+= ['lsid' => ['id' => $session->id()]];
     return $this->select([$this->nodes['primary']], 'writing')->message($sections, $this->readPreference);
   }
 
