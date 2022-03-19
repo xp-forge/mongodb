@@ -15,7 +15,7 @@ class Cursor implements Value, IteratorAggregate {
    * @param  ?com.mongodb.Session $session
    * @param  [:var] $current
    */
-  public function __construct($proto, $session, $current= []) { 
+  public function __construct($proto, $session, $current) {
     $this->proto= $proto;
     $this->session= $session;
     $this->current= $current;
