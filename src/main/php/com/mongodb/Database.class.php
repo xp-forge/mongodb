@@ -26,7 +26,7 @@ class Database {
    * @return [:var][]
    * @throws com.mongodb.Error
    */
-  public function collections($session) {
+  public function collections($session= null) {
     $result= $this->proto->read($session, [
       'listCollections' => (object)[],
       '$db'             => $this->name
