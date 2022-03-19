@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use com\mongodb\Authentication;
+use com\mongodb\{Authentication, NoSuitableCandidates};
 use lang\{IllegalStateException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
 
@@ -131,7 +131,7 @@ class Protocol {
    * @param  [:var] $sections
    * @param  string $intent used within potential error messages
    * @return var
-   * @throws lang.IllegalStateException
+   * @throws com.mongodb.Error
    */
   private function send($candidates, $sections, $intent) {
     $cause= null;
@@ -156,7 +156,7 @@ class Protocol {
       }
     }
 
-    throw new IllegalStateException('No suitable candidates eligible for '.$intent.', tried '.implode(', ', $candidates), $cause);
+    throw new NoSuitableCandidates($intent, $candidates, $cause);
   }
 
   /**
@@ -168,7 +168,6 @@ class Protocol {
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
-   * @throws lang.IllegalStateException
    */
   public function read($session, $sections) {
     $session && $sections+= $session->send($this);

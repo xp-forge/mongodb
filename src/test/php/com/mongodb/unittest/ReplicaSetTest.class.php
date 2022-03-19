@@ -1,8 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{ObjectId, Int64, Timestamp};
-use lang\IllegalStateException;
+use com\mongodb\{ObjectId, Int64, Timestamp, NoSuitableCandidates};
 use peer\ConnectException;
 use unittest\{Assert, Values, Test};
 use util\Date;
@@ -151,12 +150,12 @@ class ReplicaSetTest {
     );
   }
 
-  #[Test, Expect(class: ConnectException::class, withMessage: '/Cannot connect to mongodb:(.+)/')]
+  #[Test, Expect(class: NoSuitableCandidates::class, withMessage: '/No suitable candidates eligible for initial connect/')]
   public function throws_exception_if_none_of_the_nodes_are_reachable() {
     $this->connect([self::PRIMARY => null, self::SECONDARY1 => null, self::SECONDARY2 => null]);
   }
 
-  #[Test, Expect(class: ConnectException::class, withMessage: '/Cannot connect to mongodb:(.+)/')]
+  #[Test, Expect(class: NoSuitableCandidates::class, withMessage: '/No suitable candidates eligible for initial connect/')]
   public function throws_exception_if_none_of_the_nodes_respond() {
     $this->connect([self::PRIMARY => [], self::SECONDARY1 => [], self::SECONDARY2 => []]);
   }
@@ -260,7 +259,7 @@ class ReplicaSetTest {
     Assert::equals(1, $response['body']['n']);
   }
 
-  #[Test, Expect(class: IllegalStateException::class, withMessage: '/No suitable candidates eligible for reading with secondary/')]
+  #[Test, Expect(class: NoSuitableCandidates::class, withMessage: '/No suitable candidates eligible for reading with secondary/')]
   public function read_throws_if_no_secondaries_are_available() {
     $replicaSet= [
       self::PRIMARY    => [$this->hello(self::PRIMARY)],
@@ -271,7 +270,7 @@ class ReplicaSetTest {
     $fixture->read(null, [/* anything */]);
   }
 
-  #[Test, Expect(class: IllegalStateException::class, withMessage: '/No suitable candidates eligible for writing/')]
+  #[Test, Expect(class: NoSuitableCandidates::class, withMessage: '/No suitable candidates eligible for writing/')]
   public function write_throws_if_no_primary_is_available() {
     $replicaSet= [
       self::PRIMARY    => [$this->hello(self::PRIMARY)],
