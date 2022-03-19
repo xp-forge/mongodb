@@ -78,12 +78,13 @@ class MongoConnection implements Value {
   /**
    * Returns a list of database information objects
    *
+   * @return ?com.mongodb.Session $session
    * @return [:var][]
    * @throws com.mongodb.Error
    */
-  public function databases() {
+  public function databases($session= null) {
     $this->proto->connect();
-    return $this->proto->read(['listDatabases' => (object)[], '$db' => 'admin'])['body']['databases'];
+    return $this->proto->read($session, ['listDatabases' => (object)[], '$db' => 'admin'])['body']['databases'];
   }
 
   /**

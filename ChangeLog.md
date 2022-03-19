@@ -5,6 +5,7 @@ MongoDB for XP Framework ChangeLog
 
 ## 0.9.1 / 2022-03-19
 
+* Fixed `com.mongodb.MongoConnection::databases()` - @thekid
 * Fixed `com.mongodb.Database::collections()` - @thekid
 
 ## 0.9.0 / 2022-03-19
