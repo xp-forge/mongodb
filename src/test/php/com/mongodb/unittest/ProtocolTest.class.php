@@ -14,8 +14,8 @@ class ProtocolTest {
   }
 
   #[Test]
-  public function can_create_with_socket() {
-    new Protocol(new TestingSocket());
+  public function can_create_with_connections() {
+    new Protocol([new TestingConnection('localhost', [])]);
   }
 
   #[Test, Values([['mongodb://localhost', ['params' => []]], ['mongodb://localhost?tls=true', ['params' => ['tls' => 'true']]], ['mongodb://u:p@localhost', ['user' => 'u', 'pass' => 'p', 'params' => []]], ['mongodb://u:p@localhost/admin', ['path' => '/admin', 'user' => 'u', 'pass' => 'p', 'params' => []]],])]

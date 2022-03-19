@@ -19,7 +19,7 @@ class Protocol {
    *
    * @see    https://docs.mongodb.com/manual/reference/connection-string/
    * @see    https://www.mongodb.com/developer/article/srv-connection-strings/
-   * @param  string|peer.Socket $arg Either a connection string or a socket
+   * @param  string|com.mongodb.io.Connection[] $arg Either a connection string or a socket
    * @param  [:string] $options
    * @param  com.mongodb.io.BSON $bson
    * @param  com.mongodb.io.DNS $dns
@@ -27,10 +27,14 @@ class Protocol {
   public function __construct($arg, $options= [], $bson= null, $dns= null) {
     $bson ?? $bson= new BSON();
 
-    if ($arg instanceof Socket) {
-      $conn= new Connection($arg, null, $bson);
-      $this->options= ['scheme' => 'mongodb', 'nodes' => $conn->address()] + $options;
-      $this->conn= [$conn->address() => $conn];
+    if (is_array($arg)) {
+      $nodes= '';
+      $this->conn= [];
+      foreach ($arg as $conn) {
+        $nodes.= ','.$conn->address();
+        $this->conn[$conn->address()]= $conn;
+      }
+      $this->options= ['scheme' => 'mongodb', 'nodes' => substr($nodes, 1)] + $options;
     } else {
       preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]*)?(\?(.+))?/', $arg, $m);
       $this->options= ['scheme' => $m[1], 'nodes' => $m[5]] + $options + ['params' => []];
@@ -105,6 +109,7 @@ class Protocol {
   /**
    * Connect (and authenticate, if credentials are present)
    *
+   * @return void
    * @throws peer.ConnectException
    * @throws com.mongodb.AuthenticationFailed
    */
