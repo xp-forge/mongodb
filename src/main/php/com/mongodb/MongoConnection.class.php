@@ -38,6 +38,10 @@ class MongoConnection implements Value {
    */
   public function session($uuid= null) {
     $this->proto->connect();
+
+    // From the spec: "Drivers SHOULD generate session IDs locally if possible
+    // instead of running the startSession command, since running the command
+    // requires a network round trip".
     return new Session($this->proto, $uuid ?? UUID::randomUUID());
   }
 

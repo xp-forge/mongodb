@@ -158,11 +158,13 @@ class Protocol {
    *
    * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#read-preference
    * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
+   * @param  ?com.mongodb.Session $session
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function read($sections) {
+  public function read($session, $sections) {
+    $session && $sections+= $session->send($this);
     $rp= $this->readPreference['mode'];
 
     if ('primary' === $rp) {
@@ -192,11 +194,13 @@ class Protocol {
   /**
    * Perform a write operation
    *
+   * @param  ?com.mongodb.Session $session
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function write($sections) {
+  public function write($session, $sections) {
+    $session && $sections+= $session->send($this);
     return $this->select([$this->nodes['primary']], 'writing')->message($sections, $this->readPreference);
   }
 

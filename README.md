@@ -137,6 +137,29 @@ $c= new MongoConnection('mongodb+srv://server.example.com');
 $c->connect();
 ```
 
+Sessions
+--------
+Using a causally consistent session, an application can read its own writes and is guaranteed monotonic reads, even when reading from replica set secondaries.
+
+```php
+use com\mongodb\{MongoConnection, ObjectId, Operations};
+use util\cmd\Console;
+
+$c= new MongoConnection('mongodb+srv://server.example.com?readPreference=secondary');
+$session= $c->session();
+
+$id= new ObjectId('...');
+
+// Will write to primary
+$collection= $c->collection('test.products');
+$collection->update($id, ['$set' => ['qty' => 1]], $session);
+
+// Will read the updated document
+$updated= $collection->find($id, $session);
+
+$session->close();
+```
+
 Type mapping
 ------------
 All builtin types are mapped to their BSON equivalents. In addition, the following type mappings are used:
