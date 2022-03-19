@@ -129,7 +129,7 @@ class Protocol {
    * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#checking-an-idle-socket-after-socketcheckintervalms
    * @param  string[] $candidates
    * @param  string $intent used within potential error messages
-   * @return com.mongodb.io.Connection
+   * @return string
    * @throws lang.IllegalStateException
    */
   private function select($candidates, $intent) {
@@ -148,14 +148,14 @@ class Protocol {
           }
         }
 
-        return $conn;
+        return $candidate;
       } catch (ConnectException $t) {
         $conn->close();
         $cause ? $cause->setCause($t) : $cause= $t;
       }
     }
 
-    throw new IllegalStateException('No suitable candidates eligible for '.$intent.', tried '.implode(', ', $candidates), $cause);
+    throw new IllegalStateException('No suitable candidates eligible for '.$intent, $cause);
   }
 
   /**
@@ -167,19 +167,20 @@ class Protocol {
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
+   * @throws lang.IllegalStateException
    */
   public function read($session, $sections) {
     $session && $sections+= $session->send($this);
     $rp= $this->readPreference['mode'];
 
     if ('primary' === $rp) {
-      $selected= $this->select([$this->nodes['primary']], 'reading with '.$rp);
+      $candidates= [$this->nodes['primary']];
     } else if ('secondary' === $rp) {
-      $selected= $this->select($this->nodes['secondary'], 'reading with '.$rp);
+      $candidates= $this->nodes['secondary'];
     } else if ('primaryPreferred' === $rp) {
-      $selected= $this->select(array_merge([$this->nodes['primary']], $this->nodes['secondary']), 'reading with '.$rp);
+      $candidates= array_merge([$this->nodes['primary']], $this->nodes['secondary']);
     } else if ('secondaryPreferred' === $rp) {
-      $selected= $this->select(array_merge($this->nodes['secondary'], [$this->nodes['primary']]), 'reading with '.$rp);
+      $candidates= array_merge($this->nodes['secondary'], [$this->nodes['primary']]);
     } else if ('nearest' === $rp) {  // Prefer to stay on already open connections
       $connected= null;
       foreach ($this->conn as $id => $conn) {
@@ -187,13 +188,18 @@ class Protocol {
         $connected= $id;
         break;
       }
-      $selected= $this->select(
-        array_unique(array_merge([$connected, $this->nodes['primary']], $this->nodes['secondary'])),
-        'reading with '.$rp
-      );
+      $candidates= array_unique(array_merge([$connected, $this->nodes['primary']], $this->nodes['secondary']));
     }
 
-    return $selected->message($sections, $this->readPreference);
+    // Try all available candidates once
+    retry: $selected= $this->select($candidates, 'reading with '.$rp);
+    try {
+      return $this->conn[$selected]->message($sections, $this->readPreference);
+    } catch (ProtocolException $e) {
+      $this->conn[$selected]->close();
+      $candidates= array_diff($candidates, [$selected]);
+      goto retry;
+    }
   }
 
   /**
@@ -206,7 +212,17 @@ class Protocol {
    */
   public function write($session, $sections) {
     $session && $sections+= $session->send($this);
-    return $this->select([$this->nodes['primary']], 'writing')->message($sections, $this->readPreference);
+    $candidates= [$this->nodes['primary']];
+
+    // Try all available candidates once
+    retry: $selected= $this->select($candidates, 'writing');
+    try {
+      return $this->conn[$selected]->message($sections, $this->readPreference);
+    } catch (ProtocolException $e) {
+      $this->conn[$selected]->close();
+      $candidates= array_diff($candidates, [$selected]);
+      goto retry;
+    }
   }
 
   /** @return void */

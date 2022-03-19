@@ -2,6 +2,7 @@
 
 use com\mongodb\io\Protocol;
 use com\mongodb\{ObjectId, Int64, Timestamp};
+use lang\IllegalStateException;
 use peer\ConnectException;
 use unittest\{Assert, Values, Test};
 use util\Date;
@@ -181,7 +182,23 @@ class ReplicaSetTest {
     $replicaSet= [
       self::PRIMARY    => [$this->hello(self::PRIMARY)],
       self::SECONDARY1 => [],
-      self::SECONDARY2 => [$this->hello(self::SECONDARY1), $this->count(0)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2), $this->count(0)],
+    ];
+    $fixture= $this->connect($replicaSet, $readPreference);
+    $fixture->read(null, [/* anything */]);
+
+    Assert::equals(
+      [self::PRIMARY => TestingConnection::RSPrimary, self::SECONDARY1 => null, self::SECONDARY2 => TestingConnection::RSSecondary],
+      $this->connected($fixture)
+    );
+  }
+
+  #[Test, Values(['secondary', 'secondaryPreferred'])]
+  public function reads_from_another_secondary($readPreference) {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY)],
+      self::SECONDARY1 => [$this->hello(self::SECONDARY1)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2), $this->count(0)],
     ];
     $fixture= $this->connect($replicaSet, $readPreference);
     $fixture->read(null, [/* anything */]);
@@ -241,5 +258,27 @@ class ReplicaSetTest {
     ]);
 
     Assert::equals(1, $response['body']['n']);
+  }
+
+  #[Test, Expect(class: IllegalStateException::class, withMessage: '/No suitable candidates eligible for reading with secondary/')]
+  public function read_throws_if_no_secondaries_are_available() {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY)],
+      self::SECONDARY1 => [$this->hello(self::SECONDARY1)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2)],
+    ];
+    $fixture= $this->connect($replicaSet, 'secondary');
+    $fixture->read(null, [/* anything */]);
+  }
+
+  #[Test, Expect(class: IllegalStateException::class, withMessage: '/No suitable candidates eligible for writing/')]
+  public function write_throws_if_no_primary_is_available() {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY)],
+      self::SECONDARY1 => [$this->hello(self::SECONDARY1)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2)],
+    ];
+    $fixture= $this->connect($replicaSet, 'primary');
+    $fixture->write(null, [/* anything */]);
   }
 }
