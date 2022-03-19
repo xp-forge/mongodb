@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Implemented #9: Reconnect - according to specification, by checking
+  a connection with the *ping* command if it has been not used for a
+  defined number of seconds (defaulting to 5)
+  (@thekid)
 * Merged PR #10: Sessions. Adds support for passing sessions to all of
   the database and collection methods.
   (@thekid)

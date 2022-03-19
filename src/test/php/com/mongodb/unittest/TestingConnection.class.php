@@ -29,11 +29,13 @@ class TestingConnection extends Connection {
    * @throws peer.ProtocolException
    */
   public function send($operation, $header, $sections) {
-    if (empty($this->replies)) {
+    $reply= $this->replies ? array_shift($this->replies) : null;
+    if (null === $reply) {
       throw new ProtocolException('Received EOF while reading');
     }
 
-    return array_shift($this->replies) + [
+    $this->lastUsed= time();
+    return $reply + [
       '$clusterTime'  => [
         'clusterTime' => new Timestamp(1647687293, 41),
         'signature'   => [

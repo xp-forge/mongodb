@@ -33,6 +33,7 @@ class Connection {
   private $socket, $bson;
   private $packet= 1;
   public $server= null;
+  public $lastUsed= null;
 
   /**
    * Creates a new connection
@@ -222,6 +223,7 @@ class Connection {
     }
 
     $response= $this->read0($header['messageLength'] - 16);
+    $this->lastUsed= time();
     // \util\cmd\Console::writeLine('<<< ', strlen($response), ': ', addcslashes($response, "\0..\37!\177..\377"));
 
     switch ($header['opCode']) {

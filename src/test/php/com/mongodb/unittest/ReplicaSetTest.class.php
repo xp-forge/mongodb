@@ -278,4 +278,34 @@ class ReplicaSetTest {
     $fixture= $this->connect($replicaSet, 'primary');
     $fixture->write(null, [/* anything */]);
   }
+
+  #[Test]
+  public function reconnects_when_checking_for_socket_with_ping_fails() {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY)],
+      self::SECONDARY1 => [$this->hello(self::SECONDARY1), $this->count(44), null, $this->hello(self::SECONDARY1), $this->count(45)],
+      self::SECONDARY2 => [],
+    ];
+    $fixture= $this->connect($replicaSet, 'secondary');
+    $fixture->socketCheckInterval= 0;
+
+    // This will connect and then read from secondary #1 successfully.
+    $fixture->read(null, [
+      'aggregate' => 'test.entries',
+      'pipeline'  => ['$count' => 'n'],
+      'cursor'    => (object)[],
+      '$db'       => 'test',
+    ]);
+
+    // This will first run into an error while pinging secondary #1, closing the
+    // connection, subsequently reconnecting and then fetching the new count.
+    $response= $fixture->read(null, [
+      'aggregate' => 'test.entries',
+      'pipeline'  => ['$count' => 'n'],
+      'cursor'    => (object)[],
+      '$db'       => 'test',
+    ]);
+
+    Assert::equals([['n' => 45]], $response['body']['cursor']['firstBatch']);
+  }
 }

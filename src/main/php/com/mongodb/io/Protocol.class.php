@@ -13,6 +13,7 @@ class Protocol {
   private $options, $conn, $auth;
   public $nodes= null;
   public $readPreference;
+  public $socketCheckInterval= 5;
 
   /**
    * Creates a new protocol instance
@@ -128,18 +129,27 @@ class Protocol {
    * @throws com.mongodb.Error
    */
   private function send($candidates, $sections, $intent) {
+    $time= time();
     $cause= null;
     foreach ($candidates as $candidate) {
       try {
         $conn= $this->conn[$candidate];
         // \util\cmd\Console::writeLine('[SELECT] For ', $intent, ': ', $candidate);
 
-        // Refresh view into cluster every time we succesfully connect to a node
+        // Refresh view into cluster every time we succesfully connect to a node. For sockets that
+        // have not been used for socketCheckInterval, issue the ping command to check liveness.
         if (null === $conn->server) {
-          $conn->establish($this->options, $this->auth);
+          connect: $conn->establish($this->options, $this->auth);
           $this->nodes= ['primary' => $conn->server['primary'] ?? $candidate, 'secondary' => []];
           foreach ($conn->server['hosts'] ?? [] as $host) {
             if ($conn->server['primary'] !== $host) $this->nodes['secondary'][]= $host;
+          }
+        } else if ($time - $conn->lastUsed >= $this->socketCheckInterval) {
+          try {
+            $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
+          } catch (SocketException $e) {
+            $conn->close();
+            goto connect;
           }
         }
 
