@@ -3,7 +3,8 @@
 use lang\Throwable;
 
 class NoSuitableCandidate extends Error {
-  
+  private $candidates;
+
   public function __construct(string $intent, array $candidates, Throwable $cause= null) {
     parent::__construct(
       6,
@@ -12,4 +13,7 @@ class NoSuitableCandidate extends Error {
       $cause
     );
   }
+
+  /** @return string[] */
+  public function candidates() { return $this->candidates; }
 }
