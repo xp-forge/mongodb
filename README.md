@@ -142,7 +142,7 @@ Sessions
 Using a causally consistent session, an application can read its own writes and is guaranteed monotonic reads, even when reading from replica set secondaries.
 
 ```php
-use com\mongodb\{MongoConnection, ObjectId, Operations};
+use com\mongodb\{MongoConnection, ObjectId};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb+srv://server.example.com?readPreference=secondary');
