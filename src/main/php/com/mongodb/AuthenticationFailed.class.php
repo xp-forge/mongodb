@@ -1,14 +1,13 @@
 <?php namespace com\mongodb;
 
 use lang\Throwable;
-use peer\ConnectException;
 use util\Secret;
 
-class AuthenticationFailed extends ConnectException {
+class AuthenticationFailed extends Error {
   private $user, $secret;
 
   public function __construct(string $message, string $user, Secret $secret, Throwable $cause= null) {
-    parent::__construct($message, $cause);
+    parent::__construct(18, 'AuthenticationFailed', $message, $cause);
     $this->user= $user;
     $this->secret= $secret;
   }

@@ -111,7 +111,6 @@ class Protocol {
    *
    * @return void
    * @throws com.mongodb.Error
-   * @throws com.mongodb.AuthenticationFailed
    */
   public function connect() {
     $this->nodes || $this->send(array_keys($this->conn), null, 'initial connect');

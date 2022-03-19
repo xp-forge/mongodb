@@ -160,6 +160,26 @@ $updated= $collection->find($id, $session);
 $session->close();
 ```
 
+Handling errors
+---------------
+All operations raise instances of the `com.mongodb.Error` class. Connection and authentication errors can be handled by checking for the specific subclasses:
+
+```php
+use com\mongodb\{MongoConnection, Error, AuthenticationFailed, NoSuitableCandidates};
+use util\cmd\Console;
+
+$c= new MongoConnection('mongodb+srv://user:pass@mongo.example.com');
+try {
+  $c->connect();
+} catch (NoSuitableCandidates $e) {
+  // None of the replica set members is reachable
+} catch (AuthenticationFailed $e) {
+  // Error during authentication phase
+} catch (Error $e) {
+  // Any other error
+}
+```
+
 Type mapping
 ------------
 All builtin types are mapped to their BSON equivalents. In addition, the following type mappings are used:
