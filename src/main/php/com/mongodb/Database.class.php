@@ -1,6 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
+use com\mongodb\result\Cursor;
 
 class Database {
   private $proto, $name;
@@ -31,6 +32,6 @@ class Database {
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);
-    return new Cursor($this->proto, $result['body']['cursor']);
+    return new Cursor($this->proto, $session, $result['body']['cursor']);
   }
 }

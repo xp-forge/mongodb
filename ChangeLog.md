@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.9.1 / 2022-03-19
+
+* Fixed `com.mongodb.Database::collections()` - @thekid
+
 ## 0.9.0 / 2022-03-19
 
 * Implemented #9: Reconnect - according to specification, by checking
