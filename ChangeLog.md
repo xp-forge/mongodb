@@ -5,6 +5,7 @@ MongoDB for XP Framework ChangeLog
 
 ## 0.9.1 / 2022-03-19
 
+* Normalized databases enumeration between MongoDB versions - @thekid
 * Fixed `com.mongodb.MongoConnection::databases()` - @thekid
 * Fixed `com.mongodb.Database::collections()` - @thekid
 

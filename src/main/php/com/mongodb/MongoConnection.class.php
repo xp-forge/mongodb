@@ -78,13 +78,32 @@ class MongoConnection implements Value {
   /**
    * Returns a list of database information objects
    *
+   * @see    https://docs.mongodb.com/manual/reference/command/listDatabases/
+   * @param  ?string|com.mongodb.Regex|[:string|com.mongodb.Regex] $filter
    * @return ?com.mongodb.Session $session
-   * @return [:var][]
+   * @return iterable
    * @throws com.mongodb.Error
    */
-  public function databases($session= null) {
+  public function databases($filter= null, $session= null) {
     $this->proto->connect();
-    return $this->proto->read($session, ['listDatabases' => (object)[], '$db' => 'admin'])['body']['databases'];
+
+    $request= ['listDatabases' => 1, '$db' => 'admin'];
+    if (null === $filter) {
+      // NOOP
+    } else if (is_array($filter)) {
+      $request+= ['filter' => $filter];
+    } else {
+      $request+= ['filter' => ['name' => $filter]];
+    }
+
+    foreach ($this->proto->read($session, $request)['body']['databases'] as $d) {
+      yield $d['name'] => [
+        'name'       => $d['name'],
+        'sizeOnDisk' => $d['sizeOnDisk'] instanceof Int64 ? $d['sizeOnDisk'] : new Int64($d['sizeOnDisk']),
+        'empty'      => $d['empty'],
+        'shards'     => $d['shards'] ?? null,
+      ];
+    }
   }
 
   /**
