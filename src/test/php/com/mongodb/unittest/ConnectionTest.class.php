@@ -1,10 +1,22 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Connection;
-use unittest\{Assert, Test};
+use peer\ConnectException;
+use unittest\{Assert, Expect, Test};
 use util\Date;
 
 class ConnectionTest {
+
+  #[Test]
+  public function can_create() {
+    new Connection(new TestingSocket([]));
+  }
+
+  #[Test, Expect(ConnectException::class)]
+  public function establish_throws_connect_exception() {
+    $c= new Connection(new TestingSocket(null));
+    $c->establish();
+  }
 
   #[Test]
   public function connect_handshake_populates_server_options() {
