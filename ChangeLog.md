@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.9.0 / 2022-03-19
+
 * Implemented #9: Reconnect - according to specification, by checking
   a connection with the *ping* command if it has been not used for a
   defined number of seconds (defaulting to 5)
