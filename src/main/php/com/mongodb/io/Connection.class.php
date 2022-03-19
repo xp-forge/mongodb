@@ -72,6 +72,9 @@ class Connection {
     ;
   }
 
+  /** @return bool */
+  public function connected() { return $this->socket->isConnected(); }
+
   /**
    * Establishes this connection
    *
@@ -226,7 +229,7 @@ class Connection {
         $flags= unpack('V', substr($response, 0, 4))[1];
         if ("\x00" === $response[4]) {
           $offset= 5;
-          return ['flags' => $flags, 'body' => $this->bson->document($response, $offset)];          
+          return ['flags' => $flags, 'body' => $this->bson->document($response, $offset)];
         }
 
         throw new ProtocolException('Unknown sequence kind '.ord($response[4]));
