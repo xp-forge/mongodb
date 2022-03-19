@@ -109,11 +109,12 @@ class Protocol {
   /**
    * Connect (and authenticate, if credentials are present)
    *
-   * @return void
+   * @return self
    * @throws com.mongodb.Error
    */
   public function connect() {
     $this->nodes || $this->send(array_keys($this->conn), null, 'initial connect');
+    return $this;
   }
 
   /**

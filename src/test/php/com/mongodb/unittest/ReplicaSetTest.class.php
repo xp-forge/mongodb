@@ -24,9 +24,7 @@ class ReplicaSetTest {
       $conn[]= new TestingConnection($node, $replies);
     }
 
-    $p= new Protocol($conn, ['params' => ['readPreference' => $readPreference]]);
-    $p->connect();
-    return $p;
+    return (new Protocol($conn, ['params' => ['readPreference' => $readPreference]]))->connect();
   }
 
   /**
