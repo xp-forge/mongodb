@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use com\mongodb\{Authentication, NoSuitableCandidates};
+use com\mongodb\{Authentication, NoSuitableCandidate};
 use lang\{IllegalStateException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
 
@@ -160,7 +160,7 @@ class Protocol {
       }
     }
 
-    throw new NoSuitableCandidates($intent, $candidates, $cause);
+    throw new NoSuitableCandidate($intent, $candidates, $cause);
   }
 
   /**

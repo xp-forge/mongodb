@@ -165,13 +165,13 @@ Handling errors
 All operations raise instances of the `com.mongodb.Error` class. Connection and authentication errors can be handled by checking for the specific subclasses:
 
 ```php
-use com\mongodb\{MongoConnection, Error, AuthenticationFailed, NoSuitableCandidates};
+use com\mongodb\{MongoConnection, Error, AuthenticationFailed, NoSuitableCandidate};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb+srv://user:pass@mongo.example.com');
 try {
   $c->connect();
-} catch (NoSuitableCandidates $e) {
+} catch (NoSuitableCandidate $e) {
   // None of the replica set members is reachable
 } catch (AuthenticationFailed $e) {
   // Error during authentication phase
