@@ -2,7 +2,7 @@
 
 use com\mongodb\Authentication;
 use lang\{IllegalStateException, Throwable};
-use peer\{Socket, ConnectException, ProtocolException};
+use peer\{ConnectException, Socket, SocketException};
 
 /**
  * MongoDB Wire Protocol 
@@ -117,22 +117,23 @@ class Protocol {
     if ($this->nodes) return;
 
     try {
-      $this->select(array_keys($this->conn), 'initial connect');
+      $this->send(array_keys($this->conn), null, 'initial connect');
     } catch (IllegalStateException $e) {
       throw new ConnectException('Cannot connect to '.$this->options['scheme'].'://'.$this->options['nodes'], $e);
     }
   }
 
   /**
-   * Select a connection
+   * Select a connection, then send message
    *
    * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#checking-an-idle-socket-after-socketcheckintervalms
    * @param  string[] $candidates
+   * @param  [:var] $sections
    * @param  string $intent used within potential error messages
-   * @return string
+   * @return var
    * @throws lang.IllegalStateException
    */
-  private function select($candidates, $intent) {
+  private function send($candidates, $sections, $intent) {
     $cause= null;
     foreach ($candidates as $candidate) {
       try {
@@ -148,14 +149,14 @@ class Protocol {
           }
         }
 
-        return $candidate;
-      } catch (ConnectException $t) {
+        return null === $sections ? null : $conn->message($sections, $this->readPreference);
+      } catch (SocketException $e) {
         $conn->close();
-        $cause ? $cause->setCause($t) : $cause= $t;
+        $cause ? $cause->setCause($e) : $cause= $e;
       }
     }
 
-    throw new IllegalStateException('No suitable candidates eligible for '.$intent, $cause);
+    throw new IllegalStateException('No suitable candidates eligible for '.$intent.', tried '.implode(', ', $candidates), $cause);
   }
 
   /**
@@ -191,15 +192,7 @@ class Protocol {
       $candidates= array_unique(array_merge([$connected, $this->nodes['primary']], $this->nodes['secondary']));
     }
 
-    // Try all available candidates once
-    retry: $selected= $this->select($candidates, 'reading with '.$rp);
-    try {
-      return $this->conn[$selected]->message($sections, $this->readPreference);
-    } catch (ProtocolException $e) {
-      $this->conn[$selected]->close();
-      $candidates= array_diff($candidates, [$selected]);
-      goto retry;
-    }
+    return $this->send($candidates, $sections, 'reading with '.$rp);
   }
 
   /**
@@ -212,17 +205,8 @@ class Protocol {
    */
   public function write($session, $sections) {
     $session && $sections+= $session->send($this);
-    $candidates= [$this->nodes['primary']];
 
-    // Try all available candidates once
-    retry: $selected= $this->select($candidates, 'writing');
-    try {
-      return $this->conn[$selected]->message($sections, $this->readPreference);
-    } catch (ProtocolException $e) {
-      $this->conn[$selected]->close();
-      $candidates= array_diff($candidates, [$selected]);
-      goto retry;
-    }
+    return $this->send([$this->nodes['primary']], $sections, 'writing');
   }
 
   /** @return void */
