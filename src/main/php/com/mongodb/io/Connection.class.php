@@ -3,6 +3,7 @@
 use com\mongodb\{AuthenticationFailed, Error};
 use lang\Throwable;
 use peer\{Socket, ProtocolException, ConnectException};
+use util\Secret;
 
 /**
  * A single connection to MongoDB server, of which more than one may exist
