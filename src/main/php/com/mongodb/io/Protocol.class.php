@@ -110,17 +110,11 @@ class Protocol {
    * Connect (and authenticate, if credentials are present)
    *
    * @return void
-   * @throws peer.ConnectException
+   * @throws com.mongodb.Error
    * @throws com.mongodb.AuthenticationFailed
    */
   public function connect() {
-    if ($this->nodes) return;
-
-    try {
-      $this->send(array_keys($this->conn), null, 'initial connect');
-    } catch (IllegalStateException $e) {
-      throw new ConnectException('Cannot connect to '.$this->options['scheme'].'://'.$this->options['nodes'], $e);
-    }
+    $this->nodes || $this->send(array_keys($this->conn), null, 'initial connect');
   }
 
   /**
