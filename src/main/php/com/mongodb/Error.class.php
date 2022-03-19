@@ -1,13 +1,13 @@
 <?php namespace com\mongodb;
 
-use peer\ProtocolException;
+use lang\XPException;
 
 /**
  * MongoDB error
  *
  * @see   https://raw.githubusercontent.com/mongodb/mongo/master/src/mongo/base/error_codes.yml
  */
-class Error extends ProtocolException {
+class Error extends XPException {
   private $kind;
   
   /**

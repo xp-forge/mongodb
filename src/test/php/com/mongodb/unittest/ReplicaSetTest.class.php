@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{ObjectId, Int64, Timestamp, NoSuitableCandidate};
+use com\mongodb\{Error, ObjectId, Int64, Timestamp, NoSuitableCandidate};
 use peer\ConnectException;
 use unittest\{Assert, Values, Test};
 use util\Date;
@@ -307,5 +307,32 @@ class ReplicaSetTest {
     ]);
 
     Assert::equals([['n' => 45]], $response['body']['cursor']['firstBatch']);
+  }
+
+  #[Test]
+  public function does_not_disconnect_for_operation_errors() {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY), [
+        'flags' => 0,
+        'body'  => [
+          'topologyVersion' => ['processId' => new ObjectId('6235b49ff525c94b4ecdd835'), 'counter' => new Int64(4)],
+          'ok'              => 0,
+          'errmsg'          => 'Unallowed argument in listDatabases command: filter',
+          'code'            => 8000,
+          'codeName'        => 'AtlasError',
+        ]
+      ]],
+      self::SECONDARY1 => [$this->hello(self::SECONDARY1)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2)],
+    ];
+    $fixture= $this->connect($replicaSet, 'primary');
+
+    Assert::throws(Error::class, function() use($fixture) {
+      $fixture->read(null, [/* anything */]);
+    });
+    Assert::equals(
+      [self::PRIMARY => TestingConnection::RSPrimary, self::SECONDARY1 => null, self::SECONDARY2 => null],
+      $this->connected($fixture)
+    );
   }
 }
