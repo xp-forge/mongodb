@@ -12,13 +12,19 @@ class ConnectionTest {
     new Connection(new TestingSocket([]));
   }
 
-  #[Test, Expect(ConnectException::class)]
+  #[Test, Expect(class: ConnectException::class, withMessage: 'Cannot connect to localhost:27017 within 40 seconds')]
   public function establish_throws_connect_exception_when_socket_connect_fails() {
     $c= new Connection(new TestingSocket(null));
     $c->establish();
   }
 
-  #[Test, Expect(ConnectException::class)]
+  #[Test, Expect(class: ConnectException::class, withMessage: 'SSL handshake failed')]
+  public function establish_throws_connect_exception_when_ssl_handshake_fails() {
+    $c= new Connection(new TestingSocket([]));
+    $c->establish(['params' => ['ssl' => 'true']]);
+  }
+
+  #[Test, Expect(class: ConnectException::class, withMessage: 'Server handshake failed @ localhost:27017')]
   public function establish_throws_connect_exception_when_server_sends_empty_reply() {
     $c= new Connection(new TestingSocket([]));
     $c->establish();

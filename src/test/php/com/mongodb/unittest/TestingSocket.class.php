@@ -23,6 +23,10 @@ class TestingSocket extends Socket {
     return $this->connected;
   }
 
+  public function getHandle() {
+    return fopen('data://text/plain;base64,'.base64_encode(implode('', $this->replies)), 'rb');
+  }
+
   public function eof() {
     return empty($this->replies);
   }
