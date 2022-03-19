@@ -32,7 +32,6 @@ class CollectionTest {
    * @return com.mongodb.Collection
    */
   private function newFixture($response) {
-    $this->protocol->connect();
     return new Collection($this->protocol->returning($response), 'testing', 'tests');
   }
 
