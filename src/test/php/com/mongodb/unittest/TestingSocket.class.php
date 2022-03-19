@@ -23,6 +23,10 @@ class TestingSocket extends Socket {
     return $this->connected;
   }
 
+  public function eof() {
+    return empty($this->replies);
+  }
+
   public function write($bytes) {
     $this->requests[]= $bytes;
   }

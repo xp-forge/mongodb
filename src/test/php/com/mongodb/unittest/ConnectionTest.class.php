@@ -13,8 +13,14 @@ class ConnectionTest {
   }
 
   #[Test, Expect(ConnectException::class)]
-  public function establish_throws_connect_exception() {
+  public function establish_throws_connect_exception_when_socket_connect_fails() {
     $c= new Connection(new TestingSocket(null));
+    $c->establish();
+  }
+
+  #[Test, Expect(ConnectException::class)]
+  public function establish_throws_connect_exception_when_server_sends_empty_reply() {
+    $c= new Connection(new TestingSocket([]));
     $c->establish();
   }
 
