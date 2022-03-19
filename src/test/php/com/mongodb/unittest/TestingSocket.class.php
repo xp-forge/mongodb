@@ -1,20 +1,26 @@
 <?php namespace com\mongodb\unittest;
 
-use peer\Socket;
+use peer\{Socket, ConnectException};
 
 class TestingSocket extends Socket {
   public $requests, $replies;
-  public $connected= null;
+  private $connected= false;
 
-  public function __construct($replies= []) {
+  public function __construct($replies= [], $address= 'localhost:27017') {
     $this->requests= [];
     $this->replies= $replies;
-    $this->host= 'localhost';
-    $this->port= 27017;
+    sscanf($address, '%[^:]:%d', $this->host, $this->port);
   }
 
   public function connect($timeout= 2.0) {
+    if (null === $this->replies) {
+      throw new ConnectException('Cannot connect to '.$this->host.':'.$this->port.' within '.$timeout.' seconds');
+    }
     $this->connected= true;
+  }
+
+  public function isConnected() {
+    return $this->connected;
   }
 
   public function write($bytes) {
