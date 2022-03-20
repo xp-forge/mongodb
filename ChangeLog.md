@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.10.0 / 2022-03-20
+
+* Merged PR #13: Implement multi-document transactions - @thekid
+
 ## 0.9.1 / 2022-03-19
 
 * Fixed operation errors causing reconnection - @thekid
