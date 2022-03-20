@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Changed `Collection::update()` to update all documents the query finds
+  in the same way *delete()* does.
+  (@thekid)
+
 ## 0.10.0 / 2022-03-20
 
 * Merged PR #13: Implement multi-document transactions - @thekid

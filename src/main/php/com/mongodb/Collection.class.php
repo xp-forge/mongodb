@@ -77,7 +77,10 @@ class Collection {
   public function update($query, $statements, Session $session= null): Update {
     $result= $this->proto->write($session, [
       'update'    => $this->name,
-      'updates'   => [['q' => is_array($query) ? $query : ['_id' => $query], 'u' => $statements]],
+      'updates'   => [['u' => $statements] + (is_array($query)
+        ? ['q' => $query, 'multi' => true]
+        : ['q' => ['_id' => $query], 'multi' => false]
+      )],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
@@ -95,7 +98,10 @@ class Collection {
   public function delete($query, Session $session= null): Delete {
     $result= $this->proto->write($session, [
       'delete'    => $this->name,
-      'deletes'   => [is_array($query) ? ['q' => $query, 'limit' => 0] : ['q' => ['_id' => $query], 'limit' => 1]],
+      'deletes'   => [is_array($query)
+        ? ['q' => $query, 'limit' => 0]
+        : ['q' => ['_id' => $query], 'limit' => 1]
+      ],
       'ordered'   => true,
       '$db'       => $this->database,
     ]);

@@ -6,7 +6,7 @@ use lang\Value;
 use util\Objects;
 
 class Cursor implements Value, IteratorAggregate {
-  private $proto, $session, $current;
+  protected $proto, $session, $current;
 
   /**
    * Creates a new cursor
