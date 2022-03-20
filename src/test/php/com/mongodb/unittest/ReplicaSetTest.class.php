@@ -1,15 +1,16 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Error, ObjectId, Int64, Timestamp, NoSuitableCandidate};
+use com\mongodb\{Error, Int64, NoSuitableCandidate, ObjectId, Session, Timestamp};
 use peer\ConnectException;
 use unittest\{Assert, Values, Test};
-use util\Date;
+use util\{Date, UUID};
 
 class ReplicaSetTest {
   const PRIMARY    = 'shard2.test:27017';
   const SECONDARY1 = 'shard1.test:27017';
   const SECONDARY2 = 'shard0.test:27017';
+  const SESSION    = '6ce334fc-4ce5-4d0c-be6a-1e34feebbad4';
 
   /**
    * Connect to a given replica set definition
@@ -89,6 +90,15 @@ class ReplicaSetTest {
   }
 
   /**
+   * Creates an OK reply
+   *
+   * @return [:var]
+   */
+  private function ok() {
+    return ['flags' => 0, 'body' => ['ok' => 1]];
+  }
+
+  /**
    * Creates a count reply
    *
    * @param  int $n
@@ -135,7 +145,7 @@ class ReplicaSetTest {
   #[Test]
   public function connects_to_primary_when_no_secondary_available() {
     $replicaSet= [
-      self::PRIMARY    => [$this->hello(self::PRIMARY), $this->count(0)],
+      self::PRIMARY    => [$this->hello(self::PRIMARY), $this->ok()],
       self::SECONDARY1 => [],
       self::SECONDARY2 => [],
     ];
@@ -162,7 +172,7 @@ class ReplicaSetTest {
   public function reads_from_first_secondary_with($readPreference) {
     $replicaSet= [
       self::PRIMARY    => [$this->hello(self::PRIMARY)],
-      self::SECONDARY1 => [$this->hello(self::SECONDARY1), $this->count(0)],
+      self::SECONDARY1 => [$this->hello(self::SECONDARY1), $this->ok()],
       self::SECONDARY2 => [$this->hello(self::SECONDARY2)],
     ];
     $fixture= $this->connect($replicaSet, $readPreference);
@@ -179,7 +189,7 @@ class ReplicaSetTest {
     $replicaSet= [
       self::PRIMARY    => [$this->hello(self::PRIMARY)],
       self::SECONDARY1 => [],
-      self::SECONDARY2 => [$this->hello(self::SECONDARY2), $this->count(0)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2), $this->ok()],
     ];
     $fixture= $this->connect($replicaSet, $readPreference);
     $fixture->read(null, [/* anything */]);
@@ -195,7 +205,7 @@ class ReplicaSetTest {
     $replicaSet= [
       self::PRIMARY    => [$this->hello(self::PRIMARY)],
       self::SECONDARY1 => [$this->hello(self::SECONDARY1)],
-      self::SECONDARY2 => [$this->hello(self::SECONDARY2), $this->count(0)],
+      self::SECONDARY2 => [$this->hello(self::SECONDARY2), $this->ok()],
     ];
     $fixture= $this->connect($replicaSet, $readPreference);
     $fixture->read(null, [/* anything */]);
@@ -334,5 +344,52 @@ class ReplicaSetTest {
       [self::PRIMARY => TestingConnection::RSPrimary, self::SECONDARY1 => null, self::SECONDARY2 => null],
       $this->connected($fixture)
     );
+  }
+
+  #[Test]
+  public function session_id_is_sent_along() {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY), $this->count(45), $this->ok()],
+      self::SECONDARY1 => [],
+      self::SECONDARY2 => [],
+    ];
+    $fixture= $this->connect($replicaSet, 'primary');
+    $count= ['count' => 'entries', '$db' => 'test'];
+
+    $id= new UUID(self::SESSION);
+    $session= new Session($fixture, $id);
+    $fixture->read($session, $count);
+    $session->close();
+
+    $conn= $fixture->connections()[self::PRIMARY];
+    $context= ['lsid' => ['id' => $id], '$readPreference' => ['mode' => 'primary']];
+
+    Assert::equals($count + $context, $conn->command(-2));
+    Assert::equals(['endSessions' => [['id' => $id]], '$db' => 'admin'] + $context, $conn->command(-1));
+  }
+
+  #[Test]
+  public function transaction_context_is_sent_along() {
+    $replicaSet= [
+      self::PRIMARY    => [$this->hello(self::PRIMARY), $this->ok(), $this->ok(), $this->ok()],
+      self::SECONDARY1 => [],
+      self::SECONDARY2 => [],
+    ];
+    $fixture= $this->connect($replicaSet, 'primary');
+    $update= ['update' => 'entries', 'updates' => [], '$db' => 'test'];
+
+    $id= new UUID(self::SESSION);
+    $transaction= (new Session($fixture, $id))->transaction();
+    $fixture->write($transaction, $update);
+    $fixture->write($transaction, $update);
+    $transaction->commit();
+
+    $conn= $fixture->connections()[self::PRIMARY];
+    $context= ['lsid' => ['id' => $id], '$readPreference' => ['mode' => 'primary']];
+    $txn= ['txnNumber' => new Int64(1), 'autocommit' => false];
+
+    Assert::equals($txn + ['startTransaction' => true] + $update + $context, $conn->command(-3));
+    Assert::equals($txn + $update + $context, $conn->command(-2));
+    Assert::equals($txn + ['commitTransaction' => 1, '$db' => 'admin'] + $context, $conn->command(-1));
   }
 }
