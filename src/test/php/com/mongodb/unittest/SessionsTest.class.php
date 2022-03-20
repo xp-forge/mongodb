@@ -80,31 +80,23 @@ class SessionsTest {
 
   #[Test]
   public function readPreference_passed_to_transaction() {
-    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->ok(), $this->ok(), $this->ok(), $this->ok()]];
-    $update= ['update' => 'entries', 'updates' => [], '$db' => 'test'];
-    $fixture= $this->transaction($replies, $update, 'readPreference=primaryPreferred');
+    $fixture= $this->transaction(
+      [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->ok(), $this->ok(), $this->ok(), $this->ok()]],
+      [/* anything */],
+      'readPreference=primaryPreferred'
+    );
 
-    $conn= $fixture->connections()[self::$PRIMARY];
-    $context= ['lsid' => ['id' => $this->id], '$readPreference' => ['mode' => 'primaryPreferred']];
-    $txn= ['txnNumber' => new Int64(1), 'autocommit' => false];
-
-    Assert::equals($txn + ['startTransaction' => true] + $update + $context, $conn->command(-4));
-    Assert::equals($txn + $update + $context, $conn->command(-3));
-    Assert::equals($txn + ['commitTransaction' => 1, '$db' => 'admin'] + $context, $conn->command(-2));
+    Assert::equals('primaryPreferred', $fixture->connections()[self::$PRIMARY]->command(-3)['$readPreference']['mode']);
   }
 
   #[Test]
   public function timeoutMS_passed_to_transaction() {
-    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->ok(), $this->ok(), $this->ok(), $this->ok()]];
-    $update= ['update' => 'entries', 'updates' => [], '$db' => 'test'];
-    $fixture= $this->transaction($replies, $update, 'timeoutMS=5000');
+    $fixture= $this->transaction(
+      [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->ok(), $this->ok(), $this->ok(), $this->ok()]],
+      [/* anything */],
+      'timeoutMS=5000'
+    );
 
-    $conn= $fixture->connections()[self::$PRIMARY];
-    $context= ['lsid' => ['id' => $this->id], '$readPreference' => ['mode' => 'primary']];
-    $txn= ['txnNumber' => new Int64(1), 'autocommit' => false];
-
-    Assert::equals($txn + ['startTransaction' => true] + $update + $context, $conn->command(-4));
-    Assert::equals($txn + $update + $context, $conn->command(-3));
-    Assert::equals($txn + ['commitTransaction' => 1, 'maxTimeMS' => new Int64(5000), '$db' => 'admin'] + $context, $conn->command(-2));
+    Assert::equals(new Int64(5000), $fixture->connections()[self::$PRIMARY]->command(-2)['maxTimeMS']);
   }
 }
