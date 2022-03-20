@@ -9,6 +9,19 @@ use util\{Date, UUID};
 class ReplicaSetTest {
   use WireTesting;
 
+  /**
+   * Returns map of addresses to server kinds
+   * 
+   * @param  com.mongodb.io.Protocol $proto
+   * @return [:?string]
+   */
+  private function connected($proto) {
+    return array_map(
+      function($conn) { return $conn->connected() ? $conn->server['$kind'] : null; },
+      $proto->connections()
+    );
+  }
+
   #[Test]
   public function connections_when_first_is_primary() {
     $fixture= $this->connect([

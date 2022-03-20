@@ -26,19 +26,6 @@ trait WireTesting {
   }
 
   /**
-   * Returns map of addresses to server kinds
-   * 
-   * @param  com.mongodb.io.Protocol $proto
-   * @return [:?string]
-   */
-  private function connected($proto) {
-    return array_map(
-      function($conn) { return $conn->connected() ? $conn->server['$kind'] : null; },
-      $proto->connections()
-    );
-  }
-
-  /**
    * Creates a hello reply
    *
    * @param  string $node
