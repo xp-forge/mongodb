@@ -76,6 +76,7 @@ class SessionsTest {
     Assert::equals($txn + ['startTransaction' => true] + $update + $context, $conn->command(-4));
     Assert::equals($txn + $update + $context, $conn->command(-3));
     Assert::equals($txn + ['commitTransaction' => 1, '$db' => 'admin'] + $context, $conn->command(-2));
+    Assert::equals(['endSessions' => [['id' => $this->id]], '$db' => 'admin'] + $context, $conn->command(-1));
   }
 
   #[Test]
