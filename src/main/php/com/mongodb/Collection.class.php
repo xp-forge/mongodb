@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\result\{Insert, Update, Delete, Cursor};
+use com\mongodb\result\{Insert, Update, Delete, Cursor, ChangeStream};
 
 /**
  * A collection inside a database.
@@ -194,5 +194,25 @@ class Collection {
     }
 
     return new Cursor($this->proto, $session, $result['body']['cursor']);
+  }
+
+  /**
+   * Watch for changes in this collection
+   *
+   * @param  [:var][] $pipeline
+   * @param  [:var] $options
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.ChangeStream
+   * @throws com.mongodb.Error
+   */
+  public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
+    array_unshift($pipeline, ['$changeStream' => (object)$options]);
+    $result= $this->proto->read($session, [
+      'aggregate' => $this->name,
+      'pipeline'  => $pipeline,
+      'cursor'    => (object)[],
+      '$db'       => $this->database,
+    ]);
+    return new ChangeStream($this->proto, $session, $result['body']['cursor']);
   }
 }
