@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 0.11.0 / 2022-03-20
+
+* Merged PR #15: Change streams: Watch databases and collections for
+  changes. See https://docs.mongodb.com/manual/changeStreams/
+  (@thekid)
 * Changed `Collection::update()` to update all documents the query finds
   in the same way *delete()* does.
   (@thekid)
