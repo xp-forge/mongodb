@@ -7,6 +7,7 @@ use util\Bytes;
 
 class TestingConnection extends Connection {
   private $replies;
+  private $sent= [];
 
   /**
    * Creates a new testing connection with specified replies.
@@ -29,6 +30,8 @@ class TestingConnection extends Connection {
    * @throws peer.ProtocolException
    */
   public function send($operation, $header, $sections) {
+    $this->sent[]= $sections;
+
     $reply= $this->replies ? array_shift($this->replies) : null;
     if (null === $reply) {
       throw new ProtocolException('Received EOF while reading');
@@ -45,5 +48,15 @@ class TestingConnection extends Connection {
       ],
       'operationTime' => new Timestamp(1647687293, 41),
     ];
+  }
+
+  /**
+   * Access the sent command history.
+   *
+   * @param  int $offset
+   * @return var[]
+   */
+  public function command($offset) {
+    return $this->sent[$offset < 0 ? sizeof($this->sent) + $offset : $offset] ?? null;
   }
 }

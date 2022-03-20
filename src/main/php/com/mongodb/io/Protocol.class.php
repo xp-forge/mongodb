@@ -7,7 +7,8 @@ use peer\{ConnectException, Socket, SocketException};
 /**
  * MongoDB Wire Protocol 
  *
- * @see https://docs.mongodb.com/manual/reference/mongodb-wire-protocol/
+ * @see   https://docs.mongodb.com/manual/reference/mongodb-wire-protocol/
+ * @test  com.mongodb.unittest.ReplicaSetTest
  */
 class Protocol {
   private $options, $conn, $auth;
