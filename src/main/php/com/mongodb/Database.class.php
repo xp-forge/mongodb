@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\result\Cursor;
+use com\mongodb\result\{Cursor, ChangeStream};
 
 class Database {
   private $proto, $name;
@@ -33,5 +33,25 @@ class Database {
       '$db'             => $this->name
     ]);
     return new Cursor($this->proto, $session, $result['body']['cursor']);
+  }
+
+  /**
+   * Watch for changes in this database
+   *
+   * @param  [:var][] $pipeline
+   * @param  [:var] $options
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.ChangeStream
+   * @throws com.mongodb.Error
+   */
+  public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
+    array_unshift($pipeline, ['$changeStream' => (object)$options]);
+    $result= $this->proto->read($session, [
+      'aggregate' => 1,
+      'pipeline'  => $pipeline,
+      'cursor'    => (object)[],
+      '$db'       => $this->name,
+    ]);
+    return new ChangeStream($this->proto, $session, $result['body']['cursor']);
   }
 }

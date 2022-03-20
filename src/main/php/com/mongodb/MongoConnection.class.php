@@ -1,6 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
+use com\mongodb\result\ChangeStream;
 use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
 use util\{Bytes, UUID, Objects};
@@ -104,6 +105,28 @@ class MongoConnection implements Value {
         'shards'     => $d['shards'] ?? null,
       ];
     }
+  }
+
+  /**
+   * Watch for changes in all databases.
+   *
+   * @param  [:var][] $pipeline
+   * @param  [:var] $options
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.ChangeStream
+   * @throws com.mongodb.Error
+   */
+  public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
+    $this->proto->connect();
+
+    array_unshift($pipeline, ['$changeStream' => ['allChangesForCluster' => true] + $options]);
+    $result= $this->proto->read($session, [
+      'aggregate' => 1,
+      'pipeline'  => $pipeline,
+      'cursor'    => (object)[],
+      '$db'       => 'admin',
+    ]);
+    return new ChangeStream($this->proto, $session, $result['body']['cursor']);
   }
 
   /**
