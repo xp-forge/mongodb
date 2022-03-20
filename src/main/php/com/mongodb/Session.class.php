@@ -38,19 +38,30 @@ class Session implements Value, Closeable {
    * Starts a multi-document transaction associated with the session. At any
    * given time, you can have at most one open transaction for a session.
    *
+   * @see    https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#transactionoptions
+   * @param  ?string $options
    * @return self
    * @throws lang.IllegalStateException if a transaction has already been started
    */
-  public function transaction(): self {
+  public function transaction($options= null): self {
     if (isset($this->transaction['context'])) {
       throw new IllegalStateException('Cannot start more than one transaction on a session');
     }
 
+    null === $options ? $params= [] : parse_str($options, $params);
     $this->transaction['context']= [
       'txnNumber'        => new Int64(++$this->transaction['n']),
       'autocommit'       => false,
       'startTransaction' => true,
     ];
+
+    // Overwrite readPreference, defaults to inheriting from client
+    isset($params['readPreference']) && $this->transaction['context']['$readPreference']= ['mode' => $params['readPreference']];
+
+    // Support timeoutMS and the deprecated maxCommitTimeMS
+    $timeout= $params['timeoutMS'] ?? $params['maxCommitTimeMS'] ?? null;
+    $this->transaction['t']= null === $timeout ? [] : ['maxTimeMS' => new Int64($timeout)];
+
     return $this;
   }
 
@@ -68,7 +79,7 @@ class Session implements Value, Closeable {
 
     try {
       if (!isset($this->transaction['context']['startTransaction'])) {
-        $this->proto->write($this, ['commitTransaction' => 1, '$db' => 'admin'] + $this->transaction['context']);
+        $this->proto->write($this, ['commitTransaction' => 1, '$db' => 'admin'] + $this->transaction['t'] + $this->transaction['context']);
       }
     } finally {
       unset($this->transaction['context']);
@@ -97,7 +108,7 @@ class Session implements Value, Closeable {
   }
 
   /**
-   * Returns fields to be sent along with the command
+   * Returns fields to be sent along with the command. Used by Protocol class.
    *
    * @param  com.mongodb.io.Protocol
    * @return [:var]
