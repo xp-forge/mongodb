@@ -2,6 +2,7 @@
 
 use lang\Value;
 
+/** @test com.mongodb.unittest.Int64Test */
 class Int64 implements Value {
   private $number;
 
