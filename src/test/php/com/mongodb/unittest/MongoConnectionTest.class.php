@@ -6,24 +6,18 @@ use lang\IllegalArgumentException;
 use unittest\{Assert, Before, Expect, Test};
 
 class MongoConnectionTest {
+  use WireTesting;
+
   const DSN = 'mongodb://test';
 
-  private $protocol;
-
-  #[Before]
-  public function protocol() {
-    $this->protocol= new class(self::DSN) extends Protocol {
-      public $connected= null;
-      public function connect() { $this->connected= true; }
-      public function close() { $this->connected= false; }
-      public function read($session, $sections) { }
-      public function write($session, $sections) { }
-    };
+  #[Test]
+  public function can_create_with_dsn() {
+    new MongoConnection(self::DSN);
   }
 
   #[Test]
-  public function can_create() {
-    new MongoConnection(self::DSN);
+  public function can_create_with_protocol() {
+    new MongoConnection($this->protocol([]));
   }
 
   #[Test]
@@ -45,53 +39,65 @@ class MongoConnectionTest {
 
   #[Test]
   public function initially_not_connected() {
-    $fixture= new MongoConnection($this->protocol);
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    new MongoConnection($protocol);
 
-    Assert::null($this->protocol->connected);
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
-  public function connect_returns_self() {
-    $fixture= new MongoConnection($this->protocol);
-    $return= $fixture->connect();
+  public function connect() {
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $fixture= new MongoConnection($protocol);
+    $fixture->connect();
 
-    Assert::equals($fixture, $return);
-    Assert::true($this->protocol->connected);
+    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
   public function close() {
-    $fixture= new MongoConnection($this->protocol);
-    $fixture->connect()->close();
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $fixture= new MongoConnection($protocol);
+    $fixture->connect();
+    $fixture->close();
 
-    Assert::false($this->protocol->connected);
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
+  }
+
+  #[Test]
+  public function close_unconnected() {
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $fixture= new MongoConnection($protocol);
+    $fixture->close();
+
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
   public function connects_when_selecting_database() {
-    $fixture= new MongoConnection($this->protocol);
-    $database= $fixture->database('test');
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $database= (new MongoConnection($protocol))->database('test');
 
     Assert::instance(Database::class, $database);
-    Assert::true($this->protocol->connected);
+    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
   public function connects_when_selecting_collection_via_namespace() {
-    $fixture= new MongoConnection($this->protocol);
-    $collection= $fixture->collection('test.products');
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $collection= (new MongoConnection($protocol))->collection('test.products');
 
     Assert::instance(Collection::class, $collection);
-    Assert::true($this->protocol->connected);
+    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
   public function connects_when_selecting_collection_via_args() {
-    $fixture= new MongoConnection($this->protocol);
-    $collection= $fixture->collection('test', 'products');
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $collection= (new MongoConnection($protocol))->collection('test', 'products');
 
     Assert::instance(Collection::class, $collection);
-    Assert::true($this->protocol->connected);
+    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test, Expect(IllegalArgumentException::class)]
@@ -101,10 +107,10 @@ class MongoConnectionTest {
 
   #[Test]
   public function connects_when_creating_session() {
-    $fixture= new MongoConnection($this->protocol);
-    $session= $fixture->session();
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
+    $session= (new MongoConnection($protocol))->session();
 
     Assert::instance(Session::class, $session);
-    Assert::true($this->protocol->connected);
+    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
   }
 }
