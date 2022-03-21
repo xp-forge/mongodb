@@ -48,9 +48,7 @@ class Decimal128 implements Value {
     // Hi = Digits >> 64, Lo = (Hi << 64) ^ Digits
     $this->hi= bcdiv($digits, $S64);
     $h= bcmul($this->hi, $S64);
-    $p= unpack('J2', pack('JJ',
-      bcdiv($h, $I64), bcmod($h, $I64)) ^ pack('JJ', bcdiv($digits, $I64), bcmod($digits, $I64))
-    );
+    $p= unpack('J2', pack('JJ', bcdiv($h, $I64), bcmod($h, $I64)) ^ pack('JJ', bcdiv($digits, $I64), bcmod($digits, $I64)));
     $n= bcadd(bcmul($p[1], $I64), $p[2]);
     $this->lo= bccomp($n, $I64) > 0 ? bcsub($n, $S64) : $n;
 

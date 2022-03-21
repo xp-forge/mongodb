@@ -15,7 +15,7 @@ class Int64 implements Value {
   public function number() { return $this->number; }
 
   /** @return string */
-  public function __toString() { return $this->number; }
+  public function __toString() { return (string)$this->number; }
 
   /** @return string */
   public function hashCode() { return $this->number.'L'; }
