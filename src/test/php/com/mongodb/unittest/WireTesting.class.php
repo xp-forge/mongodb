@@ -10,19 +10,22 @@ trait WireTesting {
   private static $SECONDARY2 = 'shard0.test:27017';
 
   /**
-   * Connect to a given replica set definition
+   * Return a protocol with a given replica set definition
    *
-   * @param  [:var[]] $definition
+   * @param  var[]|[:var[]] $definition
    * @param  string $readPreference
    * @return com.mongodb.io.Protocol
    */
-  private function connect($definition, $readPreference= 'primary') {
-    $conn= [];
-    foreach ($definition as $node => $replies) {
-      $conn[]= new TestingConnection($node, $replies);
+  private function protocol($definition, $readPreference= 'primary') {
+    if (0 === key($definition)) {
+      $conn= [new TestingConnection(self::$PRIMARY, $definition)];
+    } else {
+      $conn= [];
+      foreach ($definition as $node => $replies) {
+        $conn[]= new TestingConnection($node, $replies);
+      }
     }
-
-    return (new Protocol($conn, ['params' => ['readPreference' => $readPreference]]))->connect();
+    return new Protocol($conn, ['params' => ['readPreference' => $readPreference]]);
   }
 
   /**
@@ -83,16 +86,16 @@ trait WireTesting {
   }
 
   /**
-   * Creates a count reply
+   * Creates a cursor reply
    *
-   * @param  int $n
+   * @param  [:var][] $documents
    * @return [:var]
    */
-  private function count($n) {
+  private function cursor($documents) {
     return [
       'flags' => 0,
       'body'  => [
-        'cursor' => ['firstBatch' => [['n' => $n]], 'id' => new Int64(0), 'ns' => 'test.entries'],
+        'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ],
     ];

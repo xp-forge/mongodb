@@ -17,7 +17,7 @@ class SessionsTest {
    * @return com.mongodb.io.Protocol
    */
   private function session($replies, $execute) {
-    $proto= $this->connect($replies, 'primary');
+    $proto= $this->protocol($replies, 'primary')->connect();
 
     $session= new Session($proto, $this->id);
     $execute($proto, $session);
@@ -50,7 +50,7 @@ class SessionsTest {
 
   #[Test]
   public function session_id_is_sent_along() {
-    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->count(45), $this->ok()]];
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([['n' => 45]]), $this->ok()]];
     $count= ['count' => 'entries', '$db' => 'test'];
     $fixture= $this->session($replies, function($proto, $session) use($count) {
       $proto->read($session, $count);
