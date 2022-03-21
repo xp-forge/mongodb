@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Collection, Database, Session, MongoConnection, Int64};
+use com\mongodb\{Collection, Database, Session, MongoConnection, ObjectId, Timestamp, Int64, Document};
 use lang\IllegalArgumentException;
 use unittest\{Assert, Before, Expect, Test};
 
@@ -142,5 +142,36 @@ class MongoConnectionTest {
       ['test' => ['name' => 'test', 'sizeOnDisk' => new Int64(6100), 'empty' => false, 'shards' => null]],
       iterator_to_array((new MongoConnection($protocol))->databases())
     );
+  }
+
+  #[Test]
+  public function watch_command() {
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY), $this->cursor([])])->connect();
+    (new MongoConnection($protocol))->watch();
+
+    Assert::equals(
+      [
+        'aggregate'       => 1,
+        'pipeline'        => [['$changeStream' => ['allChangesForCluster' => true]]],
+        'cursor'          => (object)[],
+        '$db'             => 'admin',
+        '$readPreference' => ['mode' => 'primary']
+      ],
+      $protocol->connections()[self::$PRIMARY]->command(-1)
+    );
+  }
+
+  #[Test]
+  public function watch() {
+    $change= [
+      '_id'           => ['_data' => '826238BC7C000000182B...'],
+      'operationType' => 'delete',
+      'clusterTime'   => new Timestamp(1647885436, 24),
+      'ns'            => ['db' => 'test', 'coll' => 'products'],
+      'documentKey'   => ['_id' => new ObjectId('622b6377414115a6034c47e2')],
+    ];
+    $fixture= new MongoConnection($this->protocol([$this->hello(self::$PRIMARY), $this->cursor([$change])]));
+
+    Assert::equals([new Document($change)], iterator_to_array($fixture->watch()));
   }
 }
