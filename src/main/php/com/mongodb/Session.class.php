@@ -10,6 +10,7 @@ use util\{UUID, Objects};
  * @see   https://docs.mongodb.com/manual/reference/server-sessions/
  * @see   https://docs.mongodb.com/manual/core/read-isolation-consistency-recency/#std-label-sessions
  * @see   https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst
+ * @test  com.mongodb.unittest.SessionTest
  * @test  com.mongodb.unittest.SessionsTest
  */
 class Session implements Value, Closeable {
