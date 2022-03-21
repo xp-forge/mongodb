@@ -10,7 +10,11 @@ class CursorTest {
 
   #[Before]
   public function protocol() {
-    $this->proto= new Protocol('mongodb://test');
+    $this->proto= new class('mongodb://test') extends Protocol {
+      private $return= null;
+      public function returning($return) { $this->return= $return; return $this; }
+      public function read($session, $sections) { return ['flags' => 0, 'body' => array_shift($this->return)]; }
+    };
   }
 
   #[Test]
@@ -69,5 +73,49 @@ class CursorTest {
     ]);
 
     Assert::null($fixture->first());
+  }
+
+  #[Test]
+  public function iterate_all_given_next_batches() {
+    $documents= [
+      ['_id' => 'eins', 'qty'  => 111],
+      ['_id' => 'zwei', 'qty'  => 222],
+      ['_id' => 'drei', 'qty'  => 333],
+      ['_id' => 'vier', 'qty'  => 444],
+      ['_id' => 'fünf', 'qty'  => 555],
+    ];
+
+    $firstBatch= [
+      'firstBatch' => [$documents[0], $documents[1]],
+      'id'         => new Int64(1),
+      'ns'         => 'test.collection',
+    ];
+    $nextBatches= [
+      ['cursor' => [
+        'nextBatch'  => [$documents[2], $documents[3]],
+        'id'         => new Int64(1),
+        'ns'         => 'test.collection',
+      ]],
+      ['cursor' => [
+        'nextBatch'  => [$documents[4]],
+        'id'         => new Int64(0),
+        'ns'         => 'test.collection',
+      ]],
+    ];
+
+    Assert::equals(
+      array_map(function($d) { return new Document($d); }, $documents),
+      iterator_to_array(new Cursor($this->proto->returning($nextBatches), null, $firstBatch))
+    );
+  }
+
+  #[Test]
+  public function close_before_iterating_all() {
+    $firstBatch= [
+      'firstBatch' => [],
+      'id'         => new Int64(1),
+      'ns'         => 'test.collection',
+    ];
+    (new Cursor($this->proto->returning(['ok' => 1]), null, $firstBatch))->close();
   }
 }
