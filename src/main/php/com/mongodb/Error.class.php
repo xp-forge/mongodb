@@ -5,6 +5,7 @@ use lang\XPException;
 /**
  * MongoDB error
  *
+ * @test  com.mongodb.unittest.ErrorTest
  * @see   https://raw.githubusercontent.com/mongodb/mongo/master/src/mongo/base/error_codes.yml
  */
 class Error extends XPException {
