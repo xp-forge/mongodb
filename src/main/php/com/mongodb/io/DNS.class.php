@@ -9,6 +9,7 @@
  * _mongodb._tcp.server.example.com. 86400 IN SRV   0        5      27017 mongodb2.example.com.
  * ```
  *
+ * @codeCoverageIgnore This can only be integration-tested!
  * @see   https://docs.mongodb.com/manual/reference/connection-string/#dns-seed-list-connection-format
  */
 class DNS {
