@@ -36,6 +36,23 @@ class CollectionTest {
   }
 
   #[Test]
+  public function name() {
+    Assert::equals('tests', (new Collection($this->protocol, 'testing', 'tests'))->name());
+  }
+
+  #[Test]
+  public function namespace() {
+    Assert::equals('testing.tests', (new Collection($this->protocol, 'testing', 'tests'))->namespace());
+  }
+
+  #[Test]
+  public function command() {
+    $result= $this->newFixture(['text' => 'PONG'])->command('ping');
+
+    Assert::equals(['text' => 'PONG'], $result);
+  }
+
+  #[Test]
   public function insert_one() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1])->insert(
       new Document(['_id' => 'one', 'name' => 'Test'])
@@ -109,6 +126,32 @@ class CollectionTest {
     Assert::equals(1, $collection->count());
   }
 
+  #[Test]
+  public function distinct() {
+    $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
+      'firstBatch' => [['values' => ['A', 'B', 'C']]],
+      'id'         => new Int64(0),
+      'ns'         => 'testing.tests'
+    ]]);
+
+    Assert::equals(['A', 'B', 'C'], $collection->distinct('name'));
+  }
+
+  #[Test, Values('documents')]
+  public function find($documents) {
+    $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
+      'firstBatch' => $documents,
+      'id'         => new Int64(0),
+      'ns'         => 'testing.tests'
+    ]]);
+
+    $results= [];
+    foreach ($collection->find([]) as $document) {
+      $results[]= $document->properties();
+    }
+    Assert::equals($documents, $results);
+  }
+
   #[Test, Values('documents')]
   public function aggregate($documents) {
     $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
@@ -138,6 +181,21 @@ class CollectionTest {
 
     $results= [];
     foreach ($collection->aggregate([]) as $document) {
+      $results[]= $document->properties();
+    }
+    Assert::equals($documents, $results);
+  }
+
+  #[Test, Values('documents')]
+  public function watch($documents) {
+    $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
+      'firstBatch' => $documents,
+      'id'         => new Int64(0),
+      'ns'         => 'testing.tests'
+    ]]);
+
+    $results= [];
+    foreach ($collection->watch() as $document) {
       $results[]= $document->properties();
     }
     Assert::equals($documents, $results);
