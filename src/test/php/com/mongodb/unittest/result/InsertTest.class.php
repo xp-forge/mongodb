@@ -41,4 +41,12 @@ class InsertTest {
   public function id_throws_if_invoked_on_result_with_multiple_inserts() {
     (new Insert(['n' => 2, 'ok' => 1], [new ObjectId(self::ID), new ObjectId('4f1dda9973edf2501751884b')]))->id();
   }
+
+  #[Test]
+  public function string_representation() {
+    Assert::equals(
+      "com.mongodb.result.Insert(ids= 5f1dda9973edf2501751884b)@[\n  n => 1\n  ok => 1\n]",
+      (new Insert(['n' => 1, 'ok' => 1], [new ObjectId(self::ID)]))->toString()
+    );
+  }
 }
