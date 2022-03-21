@@ -3,6 +3,7 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed `com.mongodb.Decimal128` for large negative numbers - @thekid
 * Fixed `com.mongodb.NoSuitableCandidate::candidates()` - @thekid
 * Fixed equality comparisons for `com.mongodb.result.Cursor` - @thekid
 * Increased code coverage significantly by adding a variety of unittests

@@ -6,6 +6,7 @@ use lang\Value;
  * Decimal 128
  *
  * @ext   bcmath
+ * @test  com.mongodb.unittest.Decimal128Test
  * @see   https://github.com/estolfo/bson-ruby/blob/RUBY-1098-decimal128/lib/bson/decimal128.rb
  */
 class Decimal128 implements Value {
@@ -18,7 +19,7 @@ class Decimal128 implements Value {
   private $lo, $hi;
   private $string= null;
 
-  /** @param ?string $in */
+  /** @param ?string|int $in */
   public function __construct($in= null) {
     static $I64= '9223372036854775807';
     static $S64= '18446744073709551616';
@@ -61,7 +62,8 @@ class Decimal128 implements Value {
       $this->hi |= $exponent << 49;
     }
 
-    if ('-' === $in[0]) {
+    // Handle sign
+    if (is_int($in) ? $in < 0 : '-' === $in[0]) {
       $this->hi |= (1 << 63);
     }
   }
@@ -70,7 +72,7 @@ class Decimal128 implements Value {
    * Creates a new instance with LO and HI values
    *
    * @param  int $lo
-   * @param  int $lo
+   * @param  int $hi
    * @return self
    */
   public static function create($lo, $hi) {
@@ -100,7 +102,7 @@ class Decimal128 implements Value {
       $significand= '0';
       $exponent= (($this->hi & 0x1fffe00000000000) >> 47) - self::EXPONENT_OFFSET;
     } else {
-      $significand= (string)((($this->hi & 0x1ffffffffffff) << 64) | $this->lo);
+      $significand= ltrim(((($this->hi & 0x1ffffffffffff) << 64) | $this->lo), '-');
       $exponent= (($this->hi & 0x7fff800000000000) >> 49) - self::EXPONENT_OFFSET;
     }
 
