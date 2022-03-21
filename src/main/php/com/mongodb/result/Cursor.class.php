@@ -5,6 +5,7 @@ use com\mongodb\{Document, Int64};
 use lang\Value;
 use util\Objects;
 
+/** @test com.mongodb.unittest.result.CursorTest */
 class Cursor implements Value, IteratorAggregate {
   protected $proto, $session, $current;
 
