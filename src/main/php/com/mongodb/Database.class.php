@@ -3,6 +3,11 @@
 use com\mongodb\io\Protocol;
 use com\mongodb\result\{Cursor, ChangeStream};
 
+/**
+ * A MongoDB database
+ *
+ * @test  com.mongodb.unittest.DatabaseTest
+ */
 class Database {
   private $proto, $name;
 
