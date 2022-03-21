@@ -38,15 +38,15 @@ class TimestampTest {
 
   #[Test]
   public function string_representation() {
-    Assert::equals('com.mongodb.Timestamp('.self::SECONDS.',14)', (new Timestamp(self::SECONDS, 14))->toString());
+    Assert::equals('com.mongodb.Timestamp('.self::SECONDS.', 14)', (new Timestamp(self::SECONDS, 14))->toString());
   }
 
   #[Test]
-  public function comparison($n) {
+  public function comparison() {
     $fixture= new Timestamp(self::SECONDS);
 
     Assert::equals(new Timestamp(self::SECONDS), $fixture);
-    Assert::equals(new Timestamp(self::SECONDS, 14), $fixture);
+    Assert::notEquals(new Timestamp(self::SECONDS, 14), $fixture);
     Assert::notEquals(new Timestamp(6100), $fixture);
   }
 }
