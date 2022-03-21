@@ -16,7 +16,7 @@ abstract class Result implements Value {
   }
 
   /** @return string */
-  public function hashCode() { return static::class[0].Objects::hashOf($this->result); }
+  public function hashCode() { return static::class[strlen(__NAMESPACE__) + 1].Objects::hashOf($this->result); }
 
   /** @return string */
   public function toString() { return nameof($this).'@'.Objects::stringOf($this->result); }
