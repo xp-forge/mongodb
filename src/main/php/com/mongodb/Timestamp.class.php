@@ -2,7 +2,13 @@
 
 use lang\Value;
 
-/** @see https://docs.mongodb.com/manual/reference/bson-types/#timestamps */
+/**
+ * BSON has a special timestamp type for internal MongoDB use and is not
+ * associated with the regular Date type.
+ *
+ * @test  com.mongodb.unittest.TimestampTest
+ * @see   https://docs.mongodb.com/manual/reference/bson-types/#timestamps
+ */
 class Timestamp implements Value {
   private $seconds, $increment;
 
