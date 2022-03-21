@@ -3,6 +3,7 @@
 use lang\IllegalStateException;
 use util\Objects;
 
+/** @test com.mongodb.unittest.result.InsertTest */
 class Insert extends Result {
   private $ids;
 
