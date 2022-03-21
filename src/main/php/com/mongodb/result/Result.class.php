@@ -16,10 +16,12 @@ abstract class Result implements Value {
   }
 
   /** @return string */
-  public function hashCode() { return static::class[strlen(__NAMESPACE__) + 1].crc32(print_r($this->result, true)); }
+  public function toString() { return nameof($this).'@'.Objects::stringOf($this->result); }
 
   /** @return string */
-  public function toString() { return nameof($this).'@'.Objects::stringOf($this->result); }
+  public function hashCode() {
+    return static::class[strlen(__NAMESPACE__) + 1].crc32(print_r($this->result, true));
+  }
 
   /**
    * Compare
