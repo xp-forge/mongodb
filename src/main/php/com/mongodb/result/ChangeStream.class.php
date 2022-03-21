@@ -1,5 +1,6 @@
 <?php namespace com\mongodb\result;
 
+/** @test com.mongodb.unittest.result.ChangeStreamTest */
 class ChangeStream extends Cursor {
 
   /** @return ?[:var] */
