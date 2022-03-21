@@ -2,6 +2,7 @@
 
 use lang\Throwable;
 
+/** @test com.mongodb.unittest.NoSuitableCandidateTest */
 class NoSuitableCandidate extends Error {
   private $candidates;
 
@@ -12,6 +13,7 @@ class NoSuitableCandidate extends Error {
       'No suitable candidate eligible for '.$intent.', tried '.implode(', ', $candidates),
       $cause
     );
+    $this->candidates= $candidates;
   }
 
   /** @return string[] */
