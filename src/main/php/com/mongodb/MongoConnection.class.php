@@ -6,6 +6,21 @@ use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
 use util\{Bytes, UUID, Objects};
 
+/**
+ * Entry point for MongoDB connections
+ *
+ * ```php
+ * $conn= new MongoConnection('mongo://localhost');
+ * $conn= new MongoConnection('mongo+srv://user:pass@example.mongodb.net?readPreference=primary');
+ *
+ * foreach ($conn->collection('test.products')->find([]) as $product) {
+ *   // ...
+ * }
+ * ```
+ *
+ * @see   https://docs.mongodb.com/manual/reference/connection-string/
+ * @test  com.mongodb.unittest.MongoConnectionTest
+ */
 class MongoConnection implements Value {
   private $proto;
 
