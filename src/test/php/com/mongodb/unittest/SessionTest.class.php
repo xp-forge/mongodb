@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\Session;
 use com\mongodb\io\Protocol;
+use com\mongodb\{Session, Error};
 use lang\IllegalStateException;
 use unittest\{Assert, Before, Test};
 use util\UUID;
@@ -15,7 +15,7 @@ class SessionTest {
   public function protocol() {
     $this->protocol= new class('mongo://localhost') extends Protocol {
       public $sent= [];
-      public function write($session, $sections) { return ['flags' => 0, 'body' => ['ok' => 1]]; }
+      public function write($session, $sections) { return ['ok' => 1]; }
     };
   }
 
@@ -75,6 +75,19 @@ class SessionTest {
   #[Test]
   public function close() {
     $session= new Session($this->protocol, self::ID);
+    $session->close();
+
+    Assert::true($session->closed());
+  }
+
+  #[Test]
+  public function closes_even_when_endSessions_raises_an_exception() {
+    $protocol= new class('mongo://localhost') extends Protocol {
+      public function write($session, $sections) {
+        throw new Error(6100, 'MorePower', 'Closing failed');
+      }
+    };
+    $session= new Session($protocol, self::ID);
     $session->close();
 
     Assert::true($session->closed());
