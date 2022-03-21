@@ -3,6 +3,7 @@
 use lang\Throwable;
 use util\Secret;
 
+/** @test com.mongodb.unittest.AuthenticationFailedTest */
 class AuthenticationFailed extends Error {
   private $user, $secret;
 
