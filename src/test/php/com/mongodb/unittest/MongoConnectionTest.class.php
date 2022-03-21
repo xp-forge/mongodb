@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Collection, Database, Session, MongoConnection};
+use com\mongodb\{Collection, Database, Session, MongoConnection, Int64};
 use lang\IllegalArgumentException;
 use unittest\{Assert, Before, Expect, Test};
 
@@ -112,5 +112,35 @@ class MongoConnectionTest {
 
     Assert::instance(Session::class, $session);
     Assert::true($protocol->connections()[self::$PRIMARY]->connected());
+  }
+
+  #[Test, Values([[null, []], ['test', ['filter' => ['name' => 'test']]], [['name' => 'test'], ['filter' => ['name' => 'test']]]])]
+  public function databases_command($filter, $request) {
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY), [
+      'flags' => 0,
+      'body'  => ['ok' => 1, 'databases' => []]
+    ]]);
+
+    iterator_count((new MongoConnection($protocol))->databases($filter));
+
+    Assert::equals(
+      ['listDatabases' => 1, '$db' => 'admin', '$readPreference' => ['mode' => 'primary']] + $request,
+      $protocol->connections()[self::$PRIMARY]->command(-1)
+    );
+  }
+
+  #[Test, Values(eval: '[6100, new Int64(6100)]')]
+  public function database_enumeration($size) {
+    $protocol= $this->protocol([$this->hello(self::$PRIMARY), [
+      'flags' => 0,
+      'body'  => ['ok' => 1, 'databases' => [
+        ['name' => 'test', 'sizeOnDisk' => $size, 'empty' => false]
+      ]]
+    ]]);
+
+    Assert::equals(
+      ['test' => ['name' => 'test', 'sizeOnDisk' => new Int64(6100), 'empty' => false, 'shards' => null]],
+      iterator_to_array((new MongoConnection($protocol))->databases())
+    );
   }
 }
