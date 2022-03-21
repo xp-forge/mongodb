@@ -76,9 +76,6 @@ class Cursor implements Value, IteratorAggregate {
   }
 
   /** @return string */
-  public function hashCode() { return 'C'.$this->current['id']->number(); }
-
-  /** @return string */
   public function toString() {
     return sprintf(
       '%s(id= %d, ns= %s, current= %s, size= %d)',
@@ -90,6 +87,11 @@ class Cursor implements Value, IteratorAggregate {
     );
   }
 
+  /** @return string */
+  public function hashCode() {
+    return 'C'.spl_object_hash($this->proto).Objects::hashOf($this->current);
+  }
+
   /**
    * Compare
    *
@@ -97,7 +99,10 @@ class Cursor implements Value, IteratorAggregate {
    * @return int
    */
   public function compareTo($value) {
-    return $value instanceof self ? $this->current['id']->compareTo($value->current['id']) : 1;
+    return $value instanceof self && $this->proto === $value->proto
+      ? Objects::compare($this->current, $value->current)
+      : 1
+    ;
   }
 
   /** @return void */

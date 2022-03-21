@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed equality comparisons for `com.mongodb.result.Cursor` - @thekid
+* Increased code coverage significantly by adding a variety of unittests
+  (@thekid)
+
 ## 0.11.0 / 2022-03-20
 
 * Merged PR #15: Change streams: Watch databases and collections for

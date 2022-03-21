@@ -8,42 +8,52 @@ use unittest\{Assert, Before, Test};
 class CursorTest {
   private $proto;
 
+  /**
+   * Creates first batch
+   *
+   * @param  [:var][] $documents
+   * @param  bool $last
+   * @return [:var]
+   */
+  private function firstBatch($documents= [], $last= true) {
+    return [
+      'firstBatch' => $documents,
+      'id'         => new Int64($last ? 0 : 1),
+      'ns'         => 'test.collection'
+    ];
+  }
+
   #[Before]
   public function protocol() {
     $this->proto= new class('mongodb://test') extends Protocol {
       private $return= null;
-      public function returning($return) { $this->return= $return; return $this; }
-      public function read($session, $sections) { return ['flags' => 0, 'body' => array_shift($this->return)]; }
+
+      public function returning($return) {
+        $this->return= $return;
+        return $this;
+      }
+
+      public function read($session, $sections) {
+        return ['flags' => 0, 'body' => array_shift($this->return)];
+      }
     };
   }
 
   #[Test]
   public function can_create() {
-    new Cursor($this->proto, null, [
-      'firstBatch' => [],
-      'id'         => new Int64(0),
-      'ns'         => 'test.collection'
-    ]);
+    new Cursor($this->proto, null, $this->firstBatch());
   }
 
   #[Test]
   public function namespace() {
-    $fixture= new Cursor($this->proto, null, [
-      'firstBatch' => [],
-      'id'         => new Int64(0),
-      'ns'         => 'test.collection'
-    ]);
+    $fixture= new Cursor($this->proto, null, $this->firstBatch());
     Assert::equals('test.collection', $fixture->namespace());
   }
 
   #[Test]
   public function documents() {
     $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
-    $fixture= new Cursor($this->proto, null, [
-      'firstBatch' => $documents,
-      'id'         => new Int64(0),
-      'ns'         => 'test.collection'
-    ]);
+    $fixture= new Cursor($this->proto, null, $this->firstBatch($documents));
 
     Assert::equals(
       array_map(function($d) { return new Document($d); }, $documents),
@@ -54,11 +64,7 @@ class CursorTest {
   #[Test]
   public function first_document() {
     $documents= [['_id' => 'one', 'qty'  => 1000]];
-    $fixture= new Cursor($this->proto, null, [
-      'firstBatch' => $documents,
-      'id'         => new Int64(0),
-      'ns'         => 'test.collection'
-    ]);
+    $fixture= new Cursor($this->proto, null, $this->firstBatch($documents));
 
     Assert::equals(new Document($documents[0]), $fixture->first());
   }
@@ -66,11 +72,7 @@ class CursorTest {
   #[Test]
   public function first_when_not_found() {
     $documents= [];
-    $fixture= new Cursor($this->proto, null, [
-      'firstBatch' => [],
-      'id'         => new Int64(0),
-      'ns'         => 'test.collection'
-    ]);
+    $fixture= new Cursor($this->proto, null, $this->firstBatch());
 
     Assert::null($fixture->first());
   }
@@ -85,11 +87,7 @@ class CursorTest {
       ['_id' => 'fünf', 'qty'  => 555],
     ];
 
-    $firstBatch= [
-      'firstBatch' => [$documents[0], $documents[1]],
-      'id'         => new Int64(1),
-      'ns'         => 'test.collection',
-    ];
+    $firstBatch= $this->firstBatch([$documents[0], $documents[1]], false);
     $nextBatches= [
       ['cursor' => [
         'nextBatch'  => [$documents[2], $documents[3]],
@@ -111,11 +109,33 @@ class CursorTest {
 
   #[Test]
   public function close_before_iterating_all() {
-    $firstBatch= [
-      'firstBatch' => [],
-      'id'         => new Int64(1),
-      'ns'         => 'test.collection',
-    ];
-    (new Cursor($this->proto->returning(['ok' => 1]), null, $firstBatch))->close();
+    (new Cursor($this->proto->returning(['ok' => 1]), null, $this->firstBatch([], false)))->close();
+  }
+
+  #[Test]
+  public function string_representation() {
+    $fixture= new Cursor($this->proto, null, $this->firstBatch());
+    Assert::equals(
+      'com.mongodb.result.Cursor(id= 0, ns= test.collection, current= firstBatch, size= 0)',
+      $fixture->toString()
+    );
+  }
+
+  #[Test]
+  public function same_cursors_qual() {
+    $one= new Cursor($this->proto, null, $this->firstBatch([]));
+    $two= new Cursor($this->proto, null, $this->firstBatch([]));
+
+    Assert::equals($one, $two);
+    Assert::equals($one->hashCode(), $two->hashCode());
+  }
+
+  #[Test]
+  public function different_cursors_not_equal() {
+    $one= new Cursor($this->proto, null, $this->firstBatch([['_id' => 'one', 'qty'  => 1000]]));
+    $two= new Cursor($this->proto, null, $this->firstBatch([]));
+
+    Assert::notEquals($one, $two);
+    Assert::notEquals($one->hashCode(), $two->hashCode());
   }
 }
