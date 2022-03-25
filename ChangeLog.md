@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.0.0 / 2022-03-25
+
+This first major release supports working with replica sets as well as
+with standalone MongoDB servers. There is no support for read and write
+concerns yet, and no support for client-side encryption.
+
 * Fixed `com.mongodb.Decimal128` for large negative numbers - @thekid
 * Fixed `com.mongodb.NoSuitableCandidate::candidates()` - @thekid
 * Fixed equality comparisons for `com.mongodb.result.Cursor` - @thekid
