@@ -50,7 +50,7 @@ class Decimal128 implements Value {
     $this->hi= $d->shiftRight(64);
     $this->lo= $this->hi->shiftLeft(64)->bitwiseXor($d);
 
-    if (1 === $this->hi->shiftRight(49)->intValue()) {
+    if ($this->hi->shiftRight(49)->equals(1)) {
       $this->hi= $this->hi
         ->bitwiseAnd(0x7fffffffffff)
         ->bitwiseOr(self::THB)
@@ -82,23 +82,23 @@ class Decimal128 implements Value {
 
   /** @return int */
   public function lo() {
-    return ($this->lo->compareTo(new BigInt('9223372036854775807')) > 0 ? $this->lo->subtract0(self::U64) : $this->lo)->intValue();
+    return ($this->lo->compare('9223372036854775807') > 0 ? $this->lo->subtract0(self::U64) : $this->lo)->intValue();
   }
 
   /** @return int */
   public function hi() {
-    return ($this->hi->compareTo(new BigInt('9223372036854775807')) > 0 ? $this->hi->subtract0(self::U64) : $this->hi)->intValue();
+    return ($this->hi->compare('9223372036854775807') > 0 ? $this->hi->subtract0(self::U64) : $this->hi)->intValue();
   }
 
   /** @return string */
   public function __toString() {
     if (null !== $this->string) return $this->string;
 
-    $sign= $this->hi->bitwiseAnd(self::SBM)->intValue() ? '-' : '';
+    $sign= $this->hi->bitwiseAnd(self::SBM)->equals(self::SBM) ? '-' : '';
 
     // Special values
-    if (self::NAN === $this->hi->bitwiseAnd(self::NAN)->intValue()) return $this->string= 'NaN';
-    if (self::INF === $this->hi->bitwiseAnd(self::INF)->intValue()) return $this->string= $sign.'Infinity';
+    if ($this->hi->bitwiseAnd(self::NAN)->equals(self::NAN)) return $this->string= 'NaN';
+    if ($this->hi->bitwiseAnd(self::INF)->equals(self::INF)) return $this->string= $sign.'Infinity';
 
     // The two highest bits of the 64 high order bits are set
     if (self::THB === $this->hi->bitwiseAnd(self::THB)->intValue()) {
