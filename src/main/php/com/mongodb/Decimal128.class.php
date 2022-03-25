@@ -1,6 +1,7 @@
 <?php namespace com\mongodb;
 
 use lang\Value;
+use math\BigInt;
 
 /**
  * Decimal 128
@@ -13,6 +14,8 @@ class Decimal128 implements Value {
   const NAN = 0x7c00000000000000;
   const INF = 0x7800000000000000;
   const THB = 0x6000000000000000;
+  const SBM = '9223372036854775808';
+  const U64 = '18446744073709551616';
 
   const EXPONENT_OFFSET = 6176;
 
@@ -21,9 +24,6 @@ class Decimal128 implements Value {
 
   /** @param ?string|int $in */
   public function __construct($in= null) {
-    static $I64= '9223372036854775807';
-    static $S64= '18446744073709551616';
-
     if (null === $in) return;
 
     $decimal= explode('.', ltrim($in, '+-')) + ['', ''];
@@ -46,23 +46,23 @@ class Decimal128 implements Value {
     $exponent+= self::EXPONENT_OFFSET;
 
     // Hi = Digits >> 64, Lo = (Hi << 64) ^ Digits
-    $this->hi= bcdiv($digits, $S64);
-    $h= bcmul($this->hi, $S64);
-    $p= unpack('J2', pack('JJ', bcdiv($h, $I64), bcmod($h, $I64)) ^ pack('JJ', bcdiv($digits, $I64), bcmod($digits, $I64)));
-    $n= bcadd(bcmul($p[1], $I64), $p[2]);
-    $this->lo= bccomp($n, $I64) > 0 ? bcsub($n, $S64) : $n;
+    $d= new BigInt($digits);
+    $this->hi= $d->shiftRight(64);
+    $this->lo= $this->hi->shiftLeft(64)->bitwiseXor($d);
 
-    if (1 === $this->hi >> 49) {
-      $this->hi &= 0x7fffffffffff;
-      $this->hi |= self::THB;
-      $this->hi |= ($exponent & 0x3fff) << 47;
+    if (1 === $this->hi->shiftRight(49)->intValue()) {
+      $this->hi= $this->hi
+        ->bitwiseAnd(0x7fffffffffff)
+        ->bitwiseOr(self::THB)
+        ->bitwiseOr(($exponent & 0x3fff) << 47)
+      ;
     } else {
-      $this->hi |= $exponent << 49;
+      $this->hi= $this->hi->bitwiseOr($exponent << 49);
     }
 
     // Handle sign
     if (is_int($in) ? $in < 0 : '-' === $in[0]) {
-      $this->hi |= (1 << 63);
+      $this->hi= $this->hi->bitwiseOr(self::SBM);
     }
   }
 
@@ -75,40 +75,46 @@ class Decimal128 implements Value {
    */
   public static function create($lo, $hi) {
     $self= new self();
-    $self->lo= $lo;
-    $self->hi= $hi;
+    $self->lo= $lo < 0 ? (new BigInt($lo))->add0(self::U64) : new BigInt($lo);
+    $self->hi= $hi < 0 ? (new BigInt($hi))->add0(self::U64) : new BigInt($hi);
     return $self;
   }
 
   /** @return int */
-  public function lo() { return $this->lo; }
+  public function lo() {
+    return ($this->lo->compareTo(new BigInt('9223372036854775807')) > 0 ? $this->lo->subtract0(self::U64) : $this->lo)->intValue();
+  }
 
   /** @return int */
-  public function hi() { return $this->hi; }
+  public function hi() {
+    return ($this->hi->compareTo(new BigInt('9223372036854775807')) > 0 ? $this->hi->subtract0(self::U64) : $this->hi)->intValue();
+  }
 
   /** @return string */
   public function __toString() {
     if (null !== $this->string) return $this->string;
-    $sign= $this->hi < 0 ? '-' : '';
+
+    $sign= $this->hi->bitwiseAnd(self::SBM)->intValue() ? '-' : '';
 
     // Special values
-    if (self::NAN === $this->hi & self::NAN) return $this->string= 'NaN';
-    if (self::INF === $this->hi & self::INF) return $this->string= $sign.'Infinity';
+    if (self::NAN === $this->hi->bitwiseAnd(self::NAN)->intValue()) return $this->string= 'NaN';
+    if (self::INF === $this->hi->bitwiseAnd(self::INF)->intValue()) return $this->string= $sign.'Infinity';
 
     // The two highest bits of the 64 high order bits are set
-    if (self::THB === $this->hi & self::THB) {
+    if (self::THB === $this->hi->bitwiseAnd(self::THB)->intValue()) {
       $significand= '0';
-      $exponent= (($this->hi & 0x1fffe00000000000) >> 47) - self::EXPONENT_OFFSET;
+      $exponent= $this->hi->bitwiseAnd(0x1fffe00000000000)->shiftRight(47)->subtract(self::EXPONENT_OFFSET)->intValue();
     } else {
-      $significand= ltrim(((($this->hi & 0x1ffffffffffff) << 64) | $this->lo), '-');
-      $exponent= (($this->hi & 0x7fff800000000000) >> 49) - self::EXPONENT_OFFSET;
+      $significand= (string)$this->hi->bitwiseAnd(0x1ffffffffffff)->shiftLeft(64)->bitwiseOr($this->lo);
+      $exponent= $this->hi->bitwiseAnd(0x7fff800000000000)->shiftRight(49)->subtract(self::EXPONENT_OFFSET)->intValue();
     }
 
     // Handle exponent
     if ($exponent >= 0) return $this->string= $sign.$significand;
     $l= strlen($significand);
-    if ($l > abs($exponent)) {
-      $dec= $l - abs($exponent);
+    $a= abs($exponent);
+    if ($l > $a) {
+      $dec= $l - $a;
       return $this->string= $sign.substr($significand, 0, $dec).'.'.substr($significand, $dec);
     } else {
       $pad= abs($exponent + $l);
