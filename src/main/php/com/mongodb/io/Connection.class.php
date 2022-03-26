@@ -160,17 +160,21 @@ class Connection {
   }
 
   /**
-   * Reads a given number of bytes.
+   * Reads a given number of bytes. Throws an error if EOF is reached before
+   * the buffer is completely populated.
    *
    * @param  int $bytes
    * @return string
+   * @throws peer.ProtocolException
    */
   private function read0($bytes) {
     $b= '';
     do {
-      $b.= $this->socket->readBinary($bytes - strlen($b));
-    } while (strlen($b) < $bytes && !$this->socket->eof());
-    return $b;
+      $b.= $this->socket->readBinary($bytes);
+      if (0 === ($bytes-= strlen($b))) return $b;
+    } while ($bytes > 0 && !$this->socket->eof());
+
+    throw new ProtocolException('Received EOF while reading @ '.$this->address());
   }
 
   /**
@@ -207,15 +211,8 @@ class Connection {
     $body= $header.$this->bson->sections($sections);
     $payload= pack('VVVV', strlen($body) + 16, $this->packet, 0, $operation).$body;
 
-    // Write payload and check for server response
     $this->socket->write($payload);
-    $header= $this->read0(16);
-    if (16 !== strlen($header)) {
-      throw new ProtocolException('Received EOF while reading @ '.$this->address());
-    }
-
-    // Read complete response and update last used time
-    $meta= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $header);
+    $meta= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->read0(16));
     $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
 
