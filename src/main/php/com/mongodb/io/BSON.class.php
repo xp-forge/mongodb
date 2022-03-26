@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\io;
 
 use Traversable, StdClass;
-use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128};
+use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128, MinKey, MaxKey};
 use lang\{FormatException, IllegalArgumentException};
 use util\{Bytes, Date, TimeZone, UUID};
 
@@ -54,6 +54,10 @@ class BSON {
       return "\x0b".$name."\x00".$value->pattern()."\x00".$value->modifiers()."\x00";
     } else if ($value instanceof Code) {
       return "\x0d".$name."\x00".pack('V', $value->length() + 1).$value->source()."\x00";
+    } else if ($value instanceof MinKey) {
+      return "\xff".$name."\x00";
+    } else if ($value instanceof MaxKey) {
+      return "\x7f".$name."\x00";
     } else if ($value instanceof Traversable || $value instanceof StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
     } else if (is_string($value)) {
@@ -166,6 +170,10 @@ class BSON {
       $value= unpack('Plo/Phi', substr($bytes, $offset, 16));
       $offset+= 16;
       return Decimal128::create($value['lo'], $value['hi']);
+    } else if ("\x7f" === $kind) {    // Max key
+      return new MaxKey();
+    } else if ("\xff" === $kind) {    // Min key
+      return new MinKey();
     }
 
     throw new FormatException('Unknown type 0x'.dechex(ord($kind)).': '.substr($bytes, $offset));

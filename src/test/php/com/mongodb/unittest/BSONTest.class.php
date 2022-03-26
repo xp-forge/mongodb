@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\BSON;
-use com\mongodb\{Code, Decimal128, Document, Int64, ObjectId, Regex, Timestamp};
+use com\mongodb\{Code, Decimal128, Document, Int64, MaxKey, MinKey, ObjectId, Regex, Timestamp};
 use lang\{FormatException, IllegalArgumentException};
 use unittest\{Assert, Expect, Test, Values};
 use util\{Bytes, Date, UUID};
@@ -53,6 +53,10 @@ class BSONTest {
     // Code
     yield [new Code('function () { }'), "\x0dtest\x00\x10\x00\x00\x00function () { }\x00"];
     yield [new Code('function (x, y) { return x + y; }'), "\x0dtest\x00\x22\x00\x00\x00function (x, y) { return x + y; }\x00"];
+
+    // Min and Max Keys
+    yield [new MaxKey(), "\x7ftest\x00"];
+    yield [new MinKey(), "\xfftest\x00"];
 
     // Special types
     yield [new Bytes('abc'), "\x05test\x00\x03\x00\x00\x00\x00abc"];
