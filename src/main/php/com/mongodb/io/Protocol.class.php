@@ -89,7 +89,7 @@ class Protocol {
   public function connections() { return $this->conn; }
 
   /** Returns connection string */
-  public function connection(bool $password= false): string { 
+  public function dsn(bool $password= false): string {
     $uri= $this->options['scheme'].'://';
     if (isset($this->options['user'])) {
       $secret= ($password ? $this->options['pass'] : str_repeat('*', strlen($this->options['pass'])));

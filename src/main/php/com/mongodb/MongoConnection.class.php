@@ -158,7 +158,7 @@ class MongoConnection implements Value {
 
   /** @return string */
   public function toString() {
-    return nameof($this).'('.$this->proto->connection(false).')@'.Objects::stringOf($this->proto->nodes);
+    return nameof($this).'('.$this->proto->dsn(false).')@'.Objects::stringOf($this->proto->nodes);
   }
 
   /**
