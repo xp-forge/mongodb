@@ -168,7 +168,7 @@ class Connection {
   private function read0($bytes) {
     $b= '';
     do {
-      $b.= $this->socket->readBinary($bytes);
+      $b.= $this->socket->readBinary($bytes - strlen($b));
     } while (strlen($b) < $bytes && !$this->socket->eof());
     return $b;
   }
