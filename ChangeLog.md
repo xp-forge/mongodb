@@ -5,6 +5,7 @@ MongoDB for XP Framework ChangeLog
 
 ## 1.1.0 / 2022-03-26
 
+* Merged PR #17: Add support for MinKey and MaxKey types - @thekid
 * Merged PR #16: Code support - @thekid
 * Simplified EOF handling in `Connection::send()` - @thekid
 * Renamed Protocol class' connection() method to `dsn()` - @thekid
