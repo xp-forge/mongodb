@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\io;
 
 use Traversable, StdClass;
-use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Decimal128};
+use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128};
 use lang\{FormatException, IllegalArgumentException};
 use util\{Bytes, Date, TimeZone, UUID};
 
@@ -52,6 +52,8 @@ class BSON {
       return "\x13".$name."\x00".pack('PP', $value->lo(), $value->hi());
     } else if ($value instanceof Regex) {
       return "\x0b".$name."\x00".$value->pattern()."\x00".$value->modifiers()."\x00";
+    } else if ($value instanceof Code) {
+      return "\x0d".$name."\x00".pack('V', $value->length() + 1).$value->source()."\x00";
     } else if ($value instanceof Traversable || $value instanceof StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
     } else if (is_string($value)) {
@@ -146,6 +148,11 @@ class BSON {
       return new Timestamp($binary['seconds'], $binary['increment']);
     } else if ("\x0a" === $kind) {    // Null value
       return null;
+    } else if ("\x0d" === $kind) {    // Code
+      $length= unpack('V', substr($bytes, $offset, 4))[1];
+      $value= substr($bytes, $offset + 4, $length - 1);
+      $offset+= $length + 4;
+      return new Code($value);
     } else if ("\x10" === $kind) {    // 32-bit integer
       $bytes= substr($bytes, $offset, 4);
       $offset+= 4;
