@@ -163,18 +163,21 @@ class Connection {
    * Reads a given number of bytes. Throws an error if EOF is reached before
    * the buffer is completely populated.
    *
-   * @param  int $bytes
+   * @param  int $n
    * @return string
    * @throws peer.ProtocolException
    */
-  private function read0($bytes) {
+  private function read0($n) {
     $b= '';
     do {
-      $b.= $this->socket->readBinary($bytes);
-      if (0 === ($bytes-= strlen($b))) return $b;
-    } while ($bytes > 0 && !$this->socket->eof());
+      if ('' === ($chunk= (string)$this->socket->readBinary($n))) {
+        throw new ProtocolException('Received EOF while reading @ '.$this->address());
+      }
 
-    throw new ProtocolException('Received EOF while reading @ '.$this->address());
+      $b.= $chunk;
+      $n-= strlen($chunk);
+    } while ($n > 0);
+    return $b;
   }
 
   /**

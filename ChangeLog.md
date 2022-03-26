@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed reading large documents - @thekid
+
 ## 1.1.0 / 2022-03-26
 
 * Merged PR #17: Add support for MinKey and MaxKey types - @thekid
