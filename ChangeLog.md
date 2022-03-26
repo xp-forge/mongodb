@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Simplified EOF handling in `Connection::send()` - @thekid
+* Renamed Protocol class' connection() method to `dsn()` - @thekid
+
 ## 1.0.0 / 2022-03-25
 
 This first major release supports working with replica sets as well as

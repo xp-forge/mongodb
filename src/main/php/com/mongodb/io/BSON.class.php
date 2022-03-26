@@ -120,12 +120,12 @@ class BSON {
       return $this->document($bytes, $offset);
     } else if ("\x05" === $kind) {    // Binary data
       $binary= unpack('Vlength/csubtype', substr($bytes, $offset, 5));
-      $value= substr($bytes, $offset + 5, $binary['length']);
+      $value= new Bytes(substr($bytes, $offset + 5, $binary['length']));
       $offset+= $binary['length'] + 5;
 
       switch ($binary['subtype']) {
-        case 0: case 2: return new Bytes($value);
-        case 3: case 4: return new UUID(new Bytes($value));
+        case 0: case 2: return $value;
+        case 3: case 4: return new UUID($value);
         default: throw new FormatException('Cannot handle binary subtype '.$binary['subtype']);
       }
     } else if ("\x07" === $kind) {    // ObjectId
