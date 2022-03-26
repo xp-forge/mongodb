@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.1.1 / 2022-03-26
+
 * Fixed reading large documents - @thekid
 
 ## 1.1.0 / 2022-03-26
