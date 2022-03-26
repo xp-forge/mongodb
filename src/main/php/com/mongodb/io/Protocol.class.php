@@ -135,7 +135,6 @@ class Protocol {
     foreach ($candidates as $candidate) {
       try {
         $conn= $this->conn[$candidate];
-        // \util\cmd\Console::writeLine('[SELECT] For ', $intent, ': ', $candidate);
 
         // Refresh view into cluster every time we succesfully connect to a node. For sockets that
         // have not been used for socketCheckInterval, issue the ping command to check liveness.

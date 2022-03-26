@@ -207,26 +207,19 @@ class Connection {
     $body= $header.$this->bson->sections($sections);
     $payload= pack('VVVV', strlen($body) + 16, $this->packet, 0, $operation).$body;
 
-    // \util\cmd\Console::writeLine('>>> ', strlen($payload), ': ', addcslashes($payload, "\0..\37!\177..\377")); 
+    // Write payload and check for server response
     $this->socket->write($payload);
-
-    $header= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->read0(16));
-    // \util\cmd\Console::writeLine('<<< ', $header);
-    if (false === $header) {
-      $e= new ProtocolException(
-        ($this->socket->eof() ? 'Received EOF while reading' : 'Reading header failed').
-        ' @ '.
-        $this->address()
-      );
-      \xp::gc(__FILE__);
-      throw $e;
+    $header= $this->read0(16);
+    if (16 !== strlen($header)) {
+      throw new ProtocolException('Received EOF while reading @ '.$this->address());
     }
 
-    $response= $this->read0($header['messageLength'] - 16);
+    // Read complete response and update last used time
+    $meta= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $header);
+    $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
-    // \util\cmd\Console::writeLine('<<< ', strlen($response), ': ', addcslashes($response, "\0..\37!\177..\377"));
 
-    switch ($header['opCode']) {
+    switch ($meta['opCode']) {
       case self::OP_MSG:
         $flags= unpack('V', substr($response, 0, 4))[1];
         if ("\x00" === $response[4]) {
@@ -248,7 +241,7 @@ class Connection {
         return $reply;
 
       default:
-        return ['opCode' => $header['opCode']];
+        return ['opCode' => $meta['opCode']];
     }
   }
 
