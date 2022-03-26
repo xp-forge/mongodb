@@ -144,15 +144,6 @@ class MongoConnection implements Value {
     return new ChangeStream($this->proto, $session, $result['body']['cursor']);
   }
 
-  /**
-   * Close connection
-   *
-   * @return void
-   */
-  public function close() {
-    $this->proto->close();
-  }
-
   /** @return string */
   public function hashCode() { return spl_object_hash($this); }
 
@@ -169,5 +160,14 @@ class MongoConnection implements Value {
    */
   public function compareTo($value) {
     return $this === $value ? 0 : 1;
+  }
+
+  /**
+   * Close connection
+   *
+   * @return void
+   */
+  public function close() {
+    $this->proto->close();
   }
 }
