@@ -68,6 +68,14 @@ class BSON {
     throw new IllegalArgumentException('Cannot encode value '.$name.' of type '.typeof($value));
   }
 
+  /**
+   * Decode given bytes to a docuument according to BSON specification
+   *
+   * @param  string $bytes
+   * @param  int $offset
+   * @return var
+   * @throws lang.FormatException
+   */
   public function document($input, &$offset) {
     $length= unpack('V', substr($input, $offset, 4))[1];
     $offset+= 4;
@@ -88,6 +96,7 @@ class BSON {
    *
    * @param  string $name
    * @param  string $bytes
+   * @param  int $offset
    * @return var
    * @throws lang.FormatException
    */
