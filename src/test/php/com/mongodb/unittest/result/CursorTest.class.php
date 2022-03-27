@@ -3,6 +3,7 @@
 use com\mongodb\io\Protocol;
 use com\mongodb\result\Cursor;
 use com\mongodb\{Document, Int64};
+use lang\IllegalStateException;
 use unittest\{Assert, Before, Test};
 
 class CursorTest {
@@ -21,6 +22,21 @@ class CursorTest {
       'id'         => new Int64($last ? 0 : 1),
       'ns'         => 'test.collection'
     ];
+  }
+
+  /**
+   * Creates next batch
+   *
+   * @param  [:var][] $documents
+   * @param  bool $last
+   * @return [:var]
+   */
+  private function nextBatch($documents= [], $last= true) {
+    return ['cursor' => [
+      'nextBatch'  => $documents,
+      'id'         => new Int64($last ? 0 : 1),
+      'ns'         => 'test.collection'
+    ]];
   }
 
   #[Before]
@@ -77,6 +93,57 @@ class CursorTest {
     Assert::null($fixture->first());
   }
 
+  #[Test, Expect(class: IllegalStateException::class, withMessage: '/Cursor has been forwarded/')]
+  public function first_after_iterating() {
+    $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
+    $fixture= new Cursor(
+      $this->proto->returning([$this->nextBatch([$documents[1]], true)]),
+      null,
+      $this->firstBatch([$documents[0]], false)
+    );
+    iterator_count($fixture);
+
+    Assert::null($fixture->first());
+  }
+
+  #[Test]
+  public function present() {
+    $documents= [['_id' => 'one', 'qty'  => 1000]];
+    $fixture= new Cursor($this->proto, null, $this->firstBatch($documents));
+
+    Assert::true($fixture->present());
+  }
+
+  #[Test]
+  public function present_when_not_found() {
+    $documents= [];
+    $fixture= new Cursor($this->proto, null, $this->firstBatch());
+
+    Assert::false($fixture->present());
+  }
+
+  #[Test]
+  public function present_after_iterating() {
+    $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
+    $fixture= new Cursor($this->proto, null, $this->firstBatch($documents));
+    iterator_count($fixture);
+
+    Assert::true($fixture->present());
+  }
+
+  #[Test]
+  public function present_after_iterating_batches() {
+    $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
+    $fixture= new Cursor(
+      $this->proto->returning([$this->nextBatch([$documents[1]], true)]),
+      null,
+      $this->firstBatch([$documents[0]], false)
+    );
+    iterator_count($fixture);
+
+    Assert::true($fixture->present());
+  }
+
   #[Test]
   public function iterate_all_given_next_batches() {
     $documents= [
@@ -89,16 +156,8 @@ class CursorTest {
 
     $firstBatch= $this->firstBatch([$documents[0], $documents[1]], false);
     $nextBatches= [
-      ['cursor' => [
-        'nextBatch'  => [$documents[2], $documents[3]],
-        'id'         => new Int64(1),
-        'ns'         => 'test.collection',
-      ]],
-      ['cursor' => [
-        'nextBatch'  => [$documents[4]],
-        'id'         => new Int64(0),
-        'ns'         => 'test.collection',
-      ]],
+      $this->nextBatch([$documents[2], $documents[3]], false),
+      $this->nextBatch([$documents[4]], true),
     ];
 
     Assert::equals(

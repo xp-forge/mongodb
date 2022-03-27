@@ -2,7 +2,7 @@
 
 use IteratorAggregate, Traversable;
 use com\mongodb\{Document, Int64};
-use lang\Value;
+use lang\{Value, IllegalStateException};
 use util\Objects;
 
 /** @test com.mongodb.unittest.result.CursorTest */
@@ -51,9 +51,23 @@ class Cursor implements Value, IteratorAggregate {
    * Returns the first document, if there is one; NULL otherwise
    *
    * @return ?com.mongodb.Document
+   * @throws lang.IllegalStateException if the cursor has been forwarded
    */
   public function first() {
-    return $this->current['firstBatch'] ? new Document($this->current['firstBatch'][0]) : null;
+    if (isset($this->current['firstBatch'])) {
+      return $this->current['firstBatch'] ? new Document($this->current['firstBatch'][0]) : null;
+    }
+
+    throw new IllegalStateException('Cursor has been forwarded - cannot fetch first element');
+  }
+
+  /**
+   * Returns whether any documents are present in this cursor.
+   *
+   * @return bool
+   */
+  public function present() {
+    return !empty($this->current['firstBatch'] ?? $this->current['nextBatch'] ?? null);
   }
 
   /**

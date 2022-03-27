@@ -3,6 +3,15 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.2.0 / 2022-03-27
+
+* Fixed `com.mongodb.result.Cursor::first()` to raise a meaningful error
+  message when cursor has been forwarded
+  (@thekid)
+* Added `com.mongodb.result.Cursor::present()` to check whether a cursor
+  represents a non-empty result
+  (@thekid)
+
 ## 1.1.1 / 2022-03-26
 
 * Fixed reading large documents - @thekid
