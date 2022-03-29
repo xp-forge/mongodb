@@ -144,6 +144,7 @@ class Protocol {
           foreach ($conn->server['hosts'] ?? [] as $host) {
             if ($conn->server['primary'] !== $host) $this->nodes['secondary'][]= $host;
           }
+          shuffle($this->nodes['secondary']);
         } else if ($time - $conn->lastUsed >= $this->socketCheckInterval) {
           try {
             $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
