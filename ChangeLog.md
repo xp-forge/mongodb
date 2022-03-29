@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.3.0 / 2022-03-29
+
+* Merged PR #19: Pick a random secondary, improving load distribution
+  (@thekid)
+
 ## 1.2.0 / 2022-03-27
 
 * Fixed `com.mongodb.result.Cursor::first()` to raise a meaningful error
