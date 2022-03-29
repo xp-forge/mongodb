@@ -114,8 +114,8 @@ class Connection {
       throw new ConnectException('Server handshake failed @ '.$this->address(), $e);
     }
 
+    // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
     $document= &$reply['documents'][0];
-
     $kind= self::Standalone;
     if (isset($document['isreplicaset'])) {
       $kind= self::RSGhost;
