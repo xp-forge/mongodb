@@ -109,6 +109,20 @@ class ReplicaSetTest {
   }
 
   #[Test, Values(['secondary', 'secondaryPreferred'])]
+  public function reads_from_any_secondary($readPreference) {
+    $replicaSet= [
+      self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
+      self::$SECONDARY1 => [$this->hello(self::$SECONDARY1), $this->ok()],
+      self::$SECONDARY2 => [$this->hello(self::$SECONDARY2), $this->ok()],
+    ];
+    $fixture= $this->protocol($replicaSet, $readPreference)->connect();
+    $fixture->read(null, [/* anything */]);
+
+    $connected= $this->connected($fixture);
+    Assert::equals(TestingConnection::RSSecondary, $connected[self::$SECONDARY1] ?? $connected[self::$SECONDARY2]);
+  }
+
+  #[Test, Values(['secondary', 'secondaryPreferred'])]
   public function reads_from_another_secondary($readPreference) {
     $replicaSet= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
