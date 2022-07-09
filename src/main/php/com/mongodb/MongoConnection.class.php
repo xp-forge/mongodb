@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\result\ChangeStream;
+use com\mongodb\result\{ChangeStream, Run};
 use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
 use util\{Bytes, UUID, Objects};
@@ -44,6 +44,26 @@ class MongoConnection implements Value {
   public function connect(): self {
     $this->proto->connect();
     return $this;
+  }
+
+  /**
+   * Runs a command in the `admin` database.
+   *
+   * @param  string $name
+   * @param  [:var] $arguments
+   * @param  string $method one of `read` or `write`
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.Run
+   * @throws com.mongodb.Error
+   */
+  public function run($name, array $arguments= [], $method= 'write', Session $session= null) {
+    $this->proto->connect();
+
+    return new Run(
+      $this->proto,
+      $session,
+      $this->proto->{$method}($session, [$name => 1] + $arguments + ['$db' => 'admin'])
+    );
   }
 
   /**
