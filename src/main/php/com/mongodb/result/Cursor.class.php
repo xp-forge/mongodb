@@ -27,7 +27,7 @@ class Cursor implements Value, IteratorAggregate {
 
   /** Iterates all documents, fetching batches as necessary */
   public function getIterator(): Traversable {
-    foreach ($this->current['firstBatch'] as $document) {
+    foreach ($this->current['firstBatch'] ?? [] as $document) {
       yield new Document($document);
     }
 
@@ -48,6 +48,15 @@ class Cursor implements Value, IteratorAggregate {
   }
 
   /**
+   * Returns whether any documents are present in this cursor.
+   *
+   * @return bool
+   */
+  public function present() {
+    return !empty($this->current['firstBatch'] ?? $this->current['nextBatch'] ?? null);
+  }
+
+  /**
    * Returns the first document, if there is one; NULL otherwise
    *
    * @return ?com.mongodb.Document
@@ -58,16 +67,21 @@ class Cursor implements Value, IteratorAggregate {
       return $this->current['firstBatch'] ? new Document($this->current['firstBatch'][0]) : null;
     }
 
-    throw new IllegalStateException('Cursor has been forwarded - cannot fetch first element');
+    throw new IllegalStateException('Cursor has been forwarded - cannot fetch first document');
   }
 
   /**
-   * Returns whether any documents are present in this cursor.
+   * Returns all documents in an array
    *
-   * @return bool
+   * @return com.mongodb.Document[]
+   * @throws lang.IllegalStateException if the cursor has been forwarded
    */
-  public function present() {
-    return !empty($this->current['firstBatch'] ?? $this->current['nextBatch'] ?? null);
+  public function all() {
+    if (isset($this->current['firstBatch'])) {
+      return iterator_to_array($this);
+    }
+
+    throw new IllegalStateException('Cursor has been forwarded - cannot fetch all documents');
   }
 
   /**
