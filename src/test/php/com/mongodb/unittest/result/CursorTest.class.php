@@ -103,7 +103,39 @@ class CursorTest {
     );
     iterator_count($fixture);
 
-    Assert::null($fixture->first());
+    $fixture->first();
+  }
+
+  #[Test]
+  public function all_documents() {
+    $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
+    $fixture= new Cursor($this->proto, null, $this->firstBatch($documents));
+
+    Assert::equals(
+      array_map(function($d) { return new Document($d); }, $documents),
+      $fixture->all()
+    );
+  }
+
+  #[Test]
+  public function all_when_not_found() {
+    $documents= [];
+    $fixture= new Cursor($this->proto, null, $this->firstBatch());
+
+    Assert::equals([], $fixture->all());
+  }
+
+  #[Test, Expect(class: IllegalStateException::class, withMessage: '/Cursor has been forwarded/')]
+  public function all_after_iterating() {
+    $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
+    $fixture= new Cursor(
+      $this->proto->returning([$this->nextBatch([$documents[1]], true)]),
+      null,
+      $this->firstBatch([$documents[0]], false)
+    );
+    iterator_count($fixture);
+
+    $fixture->all();
   }
 
   #[Test]

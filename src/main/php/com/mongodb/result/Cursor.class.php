@@ -58,7 +58,21 @@ class Cursor implements Value, IteratorAggregate {
       return $this->current['firstBatch'] ? new Document($this->current['firstBatch'][0]) : null;
     }
 
-    throw new IllegalStateException('Cursor has been forwarded - cannot fetch first element');
+    throw new IllegalStateException('Cursor has been forwarded - cannot fetch first document');
+  }
+
+  /**
+   * Returns all documents in an array
+   *
+   * @return com.mongodb.Document[]
+   * @throws lang.IllegalStateException if the cursor has been forwarded
+   */
+  public function all() {
+    if (isset($this->current['firstBatch'])) {
+      return iterator_to_array($this);
+    }
+
+    throw new IllegalStateException('Cursor has been forwarded - cannot fetch all documents');
   }
 
   /**
