@@ -118,6 +118,27 @@ The `Collection` class also features aggregation methods:
 
 See https://docs.mongodb.com/manual/reference/command/nav-aggregation/
 
+Commands
+--------
+To run commands on a given collection, use the *run()* method:
+
+```php
+use com\mongodb\MongoConnection;
+
+$c= new MongoConnection('mongodb+srv://server.example.com');
+
+// A simple connection-wide command without arguments
+$result= $c->run('ping')->value();
+
+// A command might return a cursor
+$indexes= $c->collection('app.sessions')->run('listIndexes', [], 'read');
+foreach ($indexes->cursor() as $index) {
+  // ...
+}
+```
+
+See https://www.mongodb.com/docs/manual/reference/command/ for a list of commands.
+
 DNS Seed List Connection
 ------------------------
 Adding in DNS to specify clusters adds another level of flexibility to deployment. Given the following DNS entries:
