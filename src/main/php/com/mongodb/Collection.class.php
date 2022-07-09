@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\result\{Insert, Update, Delete, Cursor, ChangeStream};
+use com\mongodb\result\{Insert, Update, Delete, Cursor, Run, ChangeStream};
 
 /**
  * A collection inside a database.
@@ -27,6 +27,7 @@ class Collection {
   /**
    * Runs a command in this database
    *
+   * @deprecated Use `run()` instead!
    * @param  string $name
    * @param  [:var] $params
    * @param  ?com.mongodb.Session $session
@@ -35,6 +36,24 @@ class Collection {
    */
   public function command($name, array $params= [], Session $session= null) {
     return $this->proto->write($session, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
+  }
+
+  /**
+   * Runs a command in this database
+   *
+   * @param  string $name
+   * @param  [:var] $params
+   * @param  string $method one of `read` or `write`
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.Run
+   * @throws com.mongodb.Error
+   */
+  public function run($name, array $params= [], $method= 'write', Session $session= null) {
+    return new Run(
+      $this->proto,
+      $session,
+      $this->proto->{$method}($session, [$name => $this->name] + $params + ['$db' => $this->database])
+    );
   }
 
   /**
