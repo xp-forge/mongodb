@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.4.0 / 2022-07-09
+
+* Merged PR #22: Add `Cursor::all()`. This is equivalent to iterating and
+  storing all documents in an array but more concise.
+  (@thekid)
 * Merged PR #21: Add `Collection::run()` to run commands. This deprecates
   the *command* method, which will be removed in a future release.
   (@thekid)
