@@ -27,7 +27,7 @@ class Cursor implements Value, IteratorAggregate {
 
   /** Iterates all documents, fetching batches as necessary */
   public function getIterator(): Traversable {
-    foreach ($this->current['firstBatch'] as $document) {
+    foreach ($this->current['firstBatch'] ?? [] as $document) {
       yield new Document($document);
     }
 
