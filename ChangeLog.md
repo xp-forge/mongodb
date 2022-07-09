@@ -5,6 +5,9 @@ MongoDB for XP Framework ChangeLog
 
 ## 1.4.0 / 2022-07-09
 
+* Merged PR #23: Add `MongoConnection::run()` to run commands in the
+  *admin* database, e.g. *ping*.
+  (@thekid)
 * Merged PR #22: Add `Cursor::all()`. This is equivalent to iterating and
   storing all documents in an array but more concise.
   (@thekid)
