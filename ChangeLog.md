@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #21: Add `Collection::run()` to run commands. This deprecates
+  the *command* method, which will be removed in a future release.
+  (@thekid)
+
 ## 1.3.0 / 2022-03-29
 
 * Merged PR #19: Pick a random secondary, improving load distribution
