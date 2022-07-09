@@ -53,6 +53,37 @@ class CollectionTest {
   }
 
   #[Test]
+  public function run_command() {
+    $result= $this->newFixture(['text' => 'PONG'])->run('ping');
+
+    Assert::false($result->isCursor());
+    Assert::equals(['text' => 'PONG'], $result->value());
+  }
+
+  #[Test]
+  public function run_command_as_cursor() {
+    $index= [
+      'v'                  => 2,
+      'key'                => ['_created' => 1],
+      'name'               => '_created_1',
+      'expireAfterSeconds' => 1800,
+    ];
+    $cursor= [
+      'ok'     => 1,
+      'cursor' => [
+        'id'         => new Int64(0),
+        'ns'         => 'test.sessions',
+        'firstBatch' => [$index],
+      ]
+    ];
+    $result= $this->newFixture($cursor)->run('listIndexes', []);
+
+    Assert::true($result->isCursor());
+    Assert::equals([new Document($index)], iterator_to_array($result->cursor()));
+  }
+
+
+  #[Test]
   public function insert_one() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1])->insert(
       new Document(['_id' => 'one', 'name' => 'Test'])
