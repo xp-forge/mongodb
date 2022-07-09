@@ -45,6 +45,7 @@ class CollectionTest {
     Assert::equals('testing.tests', (new Collection($this->protocol, 'testing', 'tests'))->namespace());
   }
 
+  /** @deprecated */
   #[Test]
   public function command() {
     $result= $this->newFixture(['text' => 'PONG'])->command('ping');
