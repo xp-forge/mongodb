@@ -48,6 +48,15 @@ class Cursor implements Value, IteratorAggregate {
   }
 
   /**
+   * Returns whether any documents are present in this cursor.
+   *
+   * @return bool
+   */
+  public function present() {
+    return !empty($this->current['firstBatch'] ?? $this->current['nextBatch'] ?? null);
+  }
+
+  /**
    * Returns the first document, if there is one; NULL otherwise
    *
    * @return ?com.mongodb.Document
@@ -73,15 +82,6 @@ class Cursor implements Value, IteratorAggregate {
     }
 
     throw new IllegalStateException('Cursor has been forwarded - cannot fetch all documents');
-  }
-
-  /**
-   * Returns whether any documents are present in this cursor.
-   *
-   * @return bool
-   */
-  public function present() {
-    return !empty($this->current['firstBatch'] ?? $this->current['nextBatch'] ?? null);
   }
 
   /**
