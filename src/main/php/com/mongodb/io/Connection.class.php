@@ -86,6 +86,7 @@ class Connection {
    * @throws peer.ConnectException
    */
   public function establish($options= [], $auth= null) {
+    $this->socket->setTimeout(($options['params']['socketTimeoutMS'] ?? 60000) / 1000);
     $this->socket->connect(($options['params']['connectTimeoutMS'] ?? 40000) / 1000);
     if ('true' === ($options['params']['ssl'] ?? $options['params']['tls'] ?? null)) {
       if (!stream_socket_enable_crypto($this->socket->getHandle(), true, STREAM_CRYPTO_METHOD_ANY_CLIENT)) {

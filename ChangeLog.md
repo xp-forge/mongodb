@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Added support for `socketTimeoutMS` parameter in connection string,
+  defaulting to 60000 (1 minute, the default socket timeout).
+  See https://www.mongodb.com/docs/manual/reference/connection-string/
+  (@thekid)
+
 ## 1.4.0 / 2022-07-09
 
 * Merged PR #23: Add `MongoConnection::run()` to run commands in the
