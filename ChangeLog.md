@@ -3,11 +3,14 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
-## 1.5.0 / 2022-09-10
+## 1.6.0 / 2022-09-10
 
 * Merged PR #24: Add `Collection::upsert()` which calls the *update*
   command with `upsert: true`.
   (@thekid)
+
+## 1.5.0 / 2022-09-01
+
 * Added support for `socketTimeoutMS` parameter in connection string,
   defaulting to 60000 (1 minute, the default socket timeout).
   See https://www.mongodb.com/docs/manual/reference/connection-string/
