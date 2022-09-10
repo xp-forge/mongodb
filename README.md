@@ -69,6 +69,24 @@ $result= $c->collection('test.products')->update(['name' => 'Test'], ['$inc' => 
 Console::writeLine('>> ', $result);
 ```
 
+[Upserting](https://www.mongodb.com/docs/manual/reference/command/update/#std-label-update-command-upsert) documents:
+
+```php
+use com\mongodb\MongoConnection;
+use util\cmd\Console;
+
+$c= new MongoConnection('mongodb://localhost');
+
+$result= $c->collection('test.products')->upsert(['slug' => 'test'], new Document([
+  'slug' => 'test',
+  'name' => 'Test',
+  'qty'  => 10,
+  'tags' => ['new', 'tested'],
+]));
+
+Console::writeLine('>> ', $result);
+```
+
 Deleting documents:
 
 ```php
