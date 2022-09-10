@@ -88,17 +88,17 @@ class Collection {
    * Upserts collection with given modifications.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
-   * @param  [:var] $statements Update operator expressions
+   * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
    * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Update
    * @throws com.mongodb.Error
    */
-  public function upsert($query, $statements, Session $session= null): Update {
+  public function upsert($query, $arg, Session $session= null): Update {
     $result= $this->proto->write($session, [
       'update'    => $this->name,
       'updates'   => [[
         'q'      => $query instanceof ObjectId ? ['_id' => $query] : $query,
-        'u'      => $statements,
+        'u'      => $arg,
         'upsert' => true,
         'multi'  => false
       ]],
