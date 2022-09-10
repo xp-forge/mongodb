@@ -107,7 +107,7 @@ class CollectionTest {
   public function upsert_when_updating() {
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1, 'nModified' => 1])->upsert(
       ['_id' => 'one'],
-      new Document(['_id' => 'one', 'name' => 'A']),
+      new Document(['_id' => 'one', 'name' => 'A'])
     );
 
     Assert::equals([1, 1, []], [$result->matched(), $result->modified(), $result->upserted()]);
@@ -118,7 +118,7 @@ class CollectionTest {
     $upsert= ['index' => 0, '_id' => new ObjectId('631c6206306c05628f1caff7')];
     $result= $this->newFixture(['ok' => 1.0, 'n' => 1, 'nModified' => 0, 'upserted' => [$upsert]])->upsert(
       ['_id' => 'one'],
-      new Document(['_id' => 'one', 'name' => 'A']),
+      new Document(['_id' => 'one', 'name' => 'A'])
     );
 
     Assert::equals([1, 0, [$upsert['_id']]], [$result->matched(), $result->modified(), $result->upserted()]);
