@@ -85,6 +85,29 @@ class Collection {
   }
 
   /**
+   * Upserts collection with given modifications.
+   *
+   * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  [:var] $statements Update operator expressions
+   * @param  ?com.mongodb.Session $session
+   * @return com.mongodb.result.Update
+   * @throws com.mongodb.Error
+   */
+  public function upsert($query, $statements, Session $session= null): Update {
+    $result= $this->proto->write($session, [
+      'update'    => $this->name,
+      'updates'   => [[
+        'q'      => $query instanceof ObjectId ? ['_id' => $query] : $query,
+        'u'      => $statements,
+        'upsert' => true,
+        'multi'  => false
+      ]],
+      '$db'       => $this->database,
+    ]);
+    return new Update($result['body']);
+  }
+
+  /**
    * Updates collection with given modifications.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query

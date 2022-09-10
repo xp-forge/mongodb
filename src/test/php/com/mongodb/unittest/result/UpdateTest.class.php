@@ -1,5 +1,6 @@
 <?php namespace com\mongodb\unittest\result;
 
+use com\mongodb\ObjectId;
 use com\mongodb\result\Update;
 use unittest\{Assert, Test};
 
@@ -19,6 +20,17 @@ class UpdateTest {
   #[Test]
   public function modified() {
     Assert::equals(0, (new Update(self::RESULT))->modified());
+  }
+
+  #[Test]
+  public function upserted() {
+    $upsert= ['index' => 0, '_id' => new ObjectId('631c6206306c05628f1caff7')];
+    Assert::equals([$upsert['_id']], (new Update(self::RESULT + ['upserted' => [$upsert]]))->upserted());
+  }
+
+  #[Test]
+  public function no_upsert() {
+    Assert::equals([], (new Update(self::RESULT))->upserted());
   }
 
   #[Test]
