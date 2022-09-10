@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Collection, Document, Int64};
+use com\mongodb\{Collection, Document, ObjectId, Int64};
 use unittest\{Assert, Before, Test};
 
 class CollectionTest {
@@ -101,6 +101,27 @@ class CollectionTest {
     ]);
 
     Assert::equals([2, ['one', 'two']], [$result->inserted(), $result->ids()]);
+  }
+
+  #[Test]
+  public function upsert_when_updating() {
+    $result= $this->newFixture(['ok' => 1.0, 'n' => 1, 'nModified' => 1])->upsert(
+      ['_id' => 'one'],
+      new Document(['_id' => 'one', 'name' => 'A'])
+    );
+
+    Assert::equals([1, 1, []], [$result->matched(), $result->modified(), $result->upserted()]);
+  }
+
+  #[Test]
+  public function upsert_when_inserting() {
+    $upsert= ['index' => 0, '_id' => new ObjectId('631c6206306c05628f1caff7')];
+    $result= $this->newFixture(['ok' => 1.0, 'n' => 1, 'nModified' => 0, 'upserted' => [$upsert]])->upsert(
+      ['_id' => 'one'],
+      new Document(['_id' => 'one', 'name' => 'A'])
+    );
+
+    Assert::equals([1, 0, [$upsert['_id']]], [$result->matched(), $result->modified(), $result->upserted()]);
   }
 
   #[Test]
