@@ -15,6 +15,11 @@ class MongoConnectionTest {
     new MongoConnection(self::DSN);
   }
 
+  #[Test, Expect(IllegalArgumentException::class)]
+  public function fails_with_empty_dsn() {
+    new MongoConnection('');
+  }
+
   #[Test]
   public function can_create_with_protocol() {
     new MongoConnection($this->protocol([]));

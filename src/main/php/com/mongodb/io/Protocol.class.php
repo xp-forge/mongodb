@@ -1,8 +1,9 @@
 <?php namespace com\mongodb\io;
 
 use com\mongodb\{Authentication, NoSuitableCandidate};
-use lang\{IllegalStateException, Throwable};
+use lang\{IllegalStateException, IllegalArgumentException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
+use util\Objects;
 
 /**
  * MongoDB Wire Protocol 
@@ -21,10 +22,11 @@ class Protocol {
    *
    * @see    https://docs.mongodb.com/manual/reference/connection-string/
    * @see    https://www.mongodb.com/developer/article/srv-connection-strings/
-   * @param  string|com.mongodb.io.Connection[] $arg Either a connection string or a socket
+   * @param  string|com.mongodb.io.Connection[] $arg Either a connection string or connections
    * @param  [:string] $options
    * @param  com.mongodb.io.BSON $bson
    * @param  com.mongodb.io.DNS $dns
+   * @throws lang.IllegalArgumentException
    */
   public function __construct($arg, $options= [], $bson= null, $dns= null) {
     $bson ?? $bson= new BSON();
@@ -37,8 +39,7 @@ class Protocol {
         $this->conn[$conn->address()]= $conn;
       }
       $this->options= ['scheme' => 'mongodb', 'nodes' => substr($nodes, 1)] + $options;
-    } else {
-      preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]*)?(\?(.+))?/', $arg, $m);
+    } else if (preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]*)?(\?(.+))?/', $arg, $m)) {
       $this->options= ['scheme' => $m[1], 'nodes' => $m[5]] + $options + ['params' => []];
       '' === $m[3] || $this->options['user']= $m[3];
       '' === $m[4] || $this->options['pass']= $m[4];
@@ -73,6 +74,11 @@ class Protocol {
         parse_str($p, $params);
         $this->options['params']+= $params;
       }
+    } else {
+      throw new IllegalArgumentException(sprintf(
+        'Expected a connection string or connections, have %s',
+        Objects::stringOf($arg)
+      ));
     }
 
     $this->readPreference= ['mode' => $this->options['params']['readPreference'] ?? 'primary'];
