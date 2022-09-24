@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.7.0 / 2022-09-24
+
+* Changed error message when an empty or malformed DSN is passed to the
+  `Protocol` class' constructor to better indicate what has gone wrong
+  (@thekid)
+
 ## 1.6.0 / 2022-09-10
 
 * Merged PR #24: Add `Collection::upsert()` which calls the *update*
