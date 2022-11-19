@@ -17,6 +17,7 @@ class CollectionTest {
   public function protocol() {
     $this->protocol= newinstance(Protocol::class, ['mongodb://test'], [
       'responses' => [],
+      'options'   => ['scheme' => 'mongodb', 'nodes' => 'test'],
       'returning' => function($response) { $this->responses[]= $response; return $this; },
       'connect'   => function() { },
       'close'     => function() { /** NOOP */ },
@@ -252,5 +253,13 @@ class CollectionTest {
       $results[]= $document->properties();
     }
     Assert::equals($documents, $results);
+  }
+
+  #[Test]
+  public function string_representation() {
+    Assert::equals(
+      'com.mongodb.Collection<testing.tests@mongodb://test>',
+      (new Collection($this->protocol, 'testing', 'tests'))->toString()
+    );
   }
 }
