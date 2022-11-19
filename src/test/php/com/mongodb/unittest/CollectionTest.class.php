@@ -17,6 +17,7 @@ class CollectionTest {
   public function protocol() {
     $this->protocol= newinstance(Protocol::class, ['mongodb://test'], [
       'responses' => [],
+      'options'   => ['scheme' => 'mongodb', 'nodes' => 'test'],
       'returning' => function($response) { $this->responses[]= $response; return $this; },
       'connect'   => function() { },
       'close'     => function() { /** NOOP */ },

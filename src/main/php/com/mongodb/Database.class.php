@@ -69,7 +69,8 @@ class Database implements Value {
 
   /** @return string */
   public function toString() {
-    return nameof($this).'<'.$this->name.'@'.$this->proto->dsn().'>';
+    $options= $this->proto->options();
+    return nameof($this).'<'.$this->name.'@'.$options['scheme'].'://'.$options['nodes'].'>';
   }
 
   /**

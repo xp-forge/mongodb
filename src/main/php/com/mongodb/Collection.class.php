@@ -267,7 +267,8 @@ class Collection implements Value {
 
   /** @return string */
   public function toString() {
-    return nameof($this).'<'.$this->database.'.'.$this->name.'@'.$this->proto->dsn().'>';
+    $options= $this->proto->options();
+    return nameof($this).'<'.$this->database.'.'.$this->name.'@'.$options['scheme'].'://'.$options['nodes'].'>';
   }
 
   /**
