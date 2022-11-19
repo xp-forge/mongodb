@@ -2,13 +2,15 @@
 
 use com\mongodb\io\Protocol;
 use com\mongodb\result\{Cursor, ChangeStream};
+use lang\Value;
+use util\Objects;
 
 /**
  * A MongoDB database
  *
  * @test  com.mongodb.unittest.DatabaseTest
  */
-class Database {
+class Database implements Value {
   private $proto, $name;
 
   /** Creates a new database instance */
@@ -58,5 +60,28 @@ class Database {
       '$db'       => $this->name,
     ]);
     return new ChangeStream($this->proto, $session, $result['body']['cursor']);
+  }
+
+  /** @return string */
+  public function hashCode() {
+    return 'D'.md5($this->name.'@'.$this->proto->dsn());
+  }
+
+  /** @return string */
+  public function toString() {
+    return nameof($this).'<'.$this->name.'@'.$this->proto->dsn().'>';
+  }
+
+  /**
+   * Comparison
+   *
+   * @param  var $value
+   * @return int
+   */
+  public function compareTo($value) {
+    return $value instanceof self ? Objects::compare(
+      [$this->name, $this->proto->dsn()],
+      [$value->name, $value->proto->dsn()]
+    ) : 1;
   }
 }

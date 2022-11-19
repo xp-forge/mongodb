@@ -2,13 +2,15 @@
 
 use com\mongodb\io\Protocol;
 use com\mongodb\result\{Insert, Update, Delete, Cursor, Run, ChangeStream};
+use lang\Value;
+use util\Objects;
 
 /**
  * A collection inside a database.
  *
  * @test  xp://com.mongodb.unittest.CollectionTest
  */
-class Collection {
+class Collection implements Value {
   private $proto, $database, $name;
 
   /** Creates a new collection */
@@ -256,5 +258,28 @@ class Collection {
       '$db'       => $this->database,
     ]);
     return new ChangeStream($this->proto, $session, $result['body']['cursor']);
+  }
+
+  /** @return string */
+  public function hashCode() {
+    return 'C'.md5($this->database.'.'.$this->name.'@'.$this->proto->dsn());
+  }
+
+  /** @return string */
+  public function toString() {
+    return nameof($this).'<'.$this->database.'.'.$this->name.'@'.$this->proto->dsn().'>';
+  }
+
+  /**
+   * Comparison
+   *
+   * @param  var $value
+   * @return int
+   */
+  public function compareTo($value) {
+    return $value instanceof self ? Objects::compare(
+      [$this->database, $this->name, $this->proto->dsn()],
+      [$value->database, $value->name, $value->proto->dsn()]
+    ) : 1;
   }
 }

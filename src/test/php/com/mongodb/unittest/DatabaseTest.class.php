@@ -103,4 +103,12 @@ class DatabaseTest {
 
     Assert::equals([new Document($change)], iterator_to_array($fixture->watch()));
   }
+
+  #[Test]
+  public function string_representation() {
+    Assert::equals(
+      'com.mongodb.Database<test@mongodb://'.self::$PRIMARY.'?readPreference=primary>',
+      (new Database($this->protocol([$this->hello(self::$PRIMARY)]), 'test'))->toString()
+    );
+  }
 }

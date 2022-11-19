@@ -253,4 +253,12 @@ class CollectionTest {
     }
     Assert::equals($documents, $results);
   }
+
+  #[Test]
+  public function string_representation() {
+    Assert::equals(
+      'com.mongodb.Collection<testing.tests@mongodb://test>',
+      (new Collection($this->protocol, 'testing', 'tests'))->toString()
+    );
+  }
 }
