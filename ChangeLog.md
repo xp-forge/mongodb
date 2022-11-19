@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.8.0 / 2022-11-20
+
+* Merged PR #25: Implement `toString()` for collections and databases
+  (@thekid)
+
 ## 1.7.0 / 2022-09-24
 
 * Changed error message when an empty or malformed DSN is passed to the
