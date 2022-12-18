@@ -57,20 +57,18 @@ class Connection {
     } else {
       if ('[' === $arg[0]) {
         sscanf($arg, '[%[0-9a-fA-F:]]:%d', $host, $port);
+        $this->socket= new Socket("[{$host}]", $port ?? 27017);
       } else {
         sscanf($arg, '%[^:]:%d', $host, $port);
+        $this->socket= new Socket($host, $port ?? 27017);
       }
-      $this->socket= new Socket($host, $port ?? 27017);
     }
     $this->bson= $bson ?: new BSON();
   }
 
   /** @return string */
   public function address() {
-    return false === strpos($this->socket->host, ':')
-      ? $this->socket->host.':'.$this->socket->port
-      : '['.$this->socket->host.']:'.$this->socket->port
-    ;
+    return $this->socket->host.':'.$this->socket->port;
   }
 
   /** @return bool */
