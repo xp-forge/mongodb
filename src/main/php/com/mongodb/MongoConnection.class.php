@@ -34,6 +34,9 @@ class MongoConnection implements Value {
     $this->proto= $arg instanceof Protocol ? $arg : new Protocol($arg);
   }
 
+  /** @return com.mongodb.io.Protocol */
+  public function protocol() { return $this->proto; }
+
   /**
    * Connects and returns this connection
    *
