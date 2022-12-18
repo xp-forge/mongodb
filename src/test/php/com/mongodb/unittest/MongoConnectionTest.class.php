@@ -34,6 +34,11 @@ class MongoConnectionTest {
   }
 
   #[Test]
+  public function protocol_dsn() {
+    Assert::equals(self::DSN, (new MongoConnection(self::DSN))->protocol()->dsn());
+  }
+
+  #[Test]
   public function two_connections_are_not_equal() {
     $one= new MongoConnection(self::DSN);
     $two= new MongoConnection(self::DSN);

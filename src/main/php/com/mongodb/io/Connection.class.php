@@ -54,12 +54,11 @@ class Connection {
       $this->socket= new Socket($arg, $port);
     } else if ($arg instanceof Socket) {
       $this->socket= $arg;
+    } else if ('[' === $arg[0]) {
+      sscanf($arg, '[%[0-9a-fA-F:]]:%d', $host, $port);
+      $this->socket= new Socket("[{$host}]", $port ?? 27017);
     } else {
-      if ('[' === $arg[0]) {
-        sscanf($arg, '[%[0-9a-fA-F:]]:%d', $host, $port);
-      } else {
-        sscanf($arg, '%[^:]:%d', $host, $port);
-      }
+      sscanf($arg, '%[^:]:%d', $host, $port);
       $this->socket= new Socket($host, $port ?? 27017);
     }
     $this->bson= $bson ?: new BSON();
@@ -67,10 +66,7 @@ class Connection {
 
   /** @return string */
   public function address() {
-    return false === strpos($this->socket->host, ':')
-      ? $this->socket->host.':'.$this->socket->port
-      : '['.$this->socket->host.']:'.$this->socket->port
-    ;
+    return $this->socket->host.':'.$this->socket->port;
   }
 
   /** @return bool */

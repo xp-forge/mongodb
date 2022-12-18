@@ -26,6 +26,16 @@ class ProtocolTest {
     );
   }
 
+  #[Test, Values(['mongodb://localhost', 'mongodb://localhost?tls=true', 'mongodb://u:p@localhost', 'mongodb://one.local,two.local:27018,[::1]:27019'])]
+  public function dsn_via_connection_string($uri) {
+    Assert::equals($uri, (new Protocol($uri))->dsn(true));
+  }
+
+  #[Test]
+  public function dsn_without_password() {
+    Assert::equals('mongodb://u:****@localhost', (new Protocol('mongodb://u:pass@localhost'))->dsn(false));
+  }
+
   #[Test]
   public function cluster_via_connection_string() {
     $fixture= new Protocol('mongodb://one.local,two.local:27018,[::1]:27019');
@@ -66,5 +76,6 @@ class ProtocolTest {
 
     Assert::equals(['mongo01.example.com:27017', 'mongo02.example.com:27317'], array_keys($p->connections()));
     Assert::equals(['replicaSet' => 'mySet', 'ssl' => 'true'], $p->options()['params']);
+    Assert::equals('mongodb+srv://example.com?ssl=true&replicaSet=mySet', $p->dsn());
   }
 }
