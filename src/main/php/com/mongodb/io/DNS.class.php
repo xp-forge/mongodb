@@ -1,5 +1,7 @@
 <?php namespace com\mongodb\io;
 
+use io\IOException;
+
 /** 
  * DNS-constructed seed list
  * 
@@ -16,14 +18,26 @@ class DNS {
 
   /** @return iterable */
   public function members(string $srv) {
-    foreach (dns_get_record('_mongodb._tcp.'.$srv, DNS_SRV) as $record) {
+    if (false === ($lookup= dns_get_record('_mongodb._tcp.'.$srv, DNS_SRV))) {
+      $e= new IOException('Cannot lookup SRV record for '.$srv);
+      \xp::gc(__FILE__);
+      throw $e;
+    }
+
+    foreach ($lookup as $record) {
       yield $record['target'] => $record['port'];
     }
   }
 
   /** @return iterable */
   public function params(string $srv) {
-    foreach (dns_get_record($srv, DNS_TXT) as $record) {
+    if (false === ($lookup= dns_get_record($srv, DNS_TXT))) {
+      $e= new IOException('Cannot lookup TXT record for '.$srv);
+      \xp::gc(__FILE__);
+      throw $e;
+    }
+
+    foreach ($lookup as $record) {
       yield $record['txt'];
     }
   }
