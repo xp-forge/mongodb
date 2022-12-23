@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.9.1 / 2022-12-23
+
+* Merged PR #27: Handle errors from `dns_get_record()` - @thekid
+
 ## 1.9.0 / 2022-12-18
 
 * Merged PR #26: Add `MongoConnection::protocol()` - @thekid
