@@ -199,7 +199,11 @@ class Protocol {
         $connected= $id;
         break;
       }
-      $candidates= array_unique(array_merge([$connected, $this->nodes['primary']], $this->nodes['secondary']));
+      $candidates= array_unique(array_merge(
+        (array)$connected,
+        [$this->nodes['primary']],
+        $this->nodes['secondary']
+      ));
     }
 
     return $this->send($candidates, $sections, 'reading with '.$rp);
