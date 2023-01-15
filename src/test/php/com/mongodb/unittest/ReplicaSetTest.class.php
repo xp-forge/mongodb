@@ -267,4 +267,28 @@ class ReplicaSetTest {
       $this->connected($fixture)
     );
   }
+
+  #[Test]
+  public function reconnect_using_nearest_when_disconnected() {
+    $replicaSet= [
+      self::$PRIMARY     => [$this->hello(self::$PRIMARY), $this->hello(self::$PRIMARY), $this->cursor([['n' => 45]])],
+      self::$SECONDARY1  => [$this->hello(self::$SECONDARY1)],
+      self::$SECONDARY2  => [$this->hello(self::$SECONDARY2)],
+    ];
+    $protocol= $this->protocol($replicaSet, 'nearest')->connect();
+
+    // Simulate all connections are closed
+    foreach ($protocol->connections() as $connection) {
+      $connection->close();
+    }
+
+    // Calling read() will reconnect
+    $response= $protocol->read(null, [
+      'aggregate' => 'test.entries',
+      'pipeline'  => ['$count' => 'n'],
+      'cursor'    => (object)[],
+      '$db'       => 'test',
+    ]);
+    Assert::equals([['n' => 45]], $response['body']['cursor']['firstBatch']);
+  }
 }
