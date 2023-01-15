@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.9.2 / 2023-01-15
+
+* Added preliminary fix for #28 - addresses the symptoms, not the cause,
+  which I haven't been able to reproduce
+  (@thekid)
+
 ## 1.9.1 / 2022-12-23
 
 * Merged PR #27: Handle errors from `dns_get_record()` - @thekid
