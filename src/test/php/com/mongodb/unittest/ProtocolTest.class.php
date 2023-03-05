@@ -1,7 +1,8 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\ObjectId;
 use com\mongodb\io\{DNS, Protocol};
+use com\mongodb\{Error, ObjectId};
+use io\IOException;
 use lang\IllegalArgumentException;
 use test\{Assert, Expect, Test, Values};
 use util\{Bytes, Date};
@@ -77,5 +78,21 @@ class ProtocolTest {
     Assert::equals(['mongo01.example.com:27017', 'mongo02.example.com:27317'], array_keys($p->connections()));
     Assert::equals(['replicaSet' => 'mySet', 'ssl' => 'true'], $p->options()['params']);
     Assert::equals('mongodb+srv://example.com?ssl=true&replicaSet=mySet', $p->dsn());
+  }
+
+  #[Test, Expect(class: Error::class, message: 'DNS lookup failed for example.com')]
+  public function fails_when_dns_fails() {
+    new Protocol('mongodb+srv://example.com', [], null, new class() extends DNS {
+      public function members(string $srv) { throw new IOException('DNS server down'); }
+      public function params(string $srv) { return []; }
+    });
+  }
+
+  #[Test, Expect(class: Error::class, message: 'DNS does not contain MongoDB SRV records for example.com')]
+  public function fails_when_dns_does_not_contain_seed_list() {
+    new Protocol('mongodb+srv://example.com', [], null, new class() extends DNS {
+      public function members(string $srv) { return []; }
+      public function params(string $srv) { return []; }
+    });
   }
 }

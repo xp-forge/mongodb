@@ -1,6 +1,7 @@
 <?php namespace com\mongodb\io;
 
-use com\mongodb\{Authentication, NoSuitableCandidate};
+use com\mongodb\{Authentication, NoSuitableCandidate, CannotConnect};
+use io\IOException;
 use lang\{IllegalStateException, IllegalArgumentException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
 use util\Objects;
@@ -12,7 +13,8 @@ use util\Objects;
  * @test  com.mongodb.unittest.ReplicaSetTest
  */
 class Protocol {
-  private $options, $conn, $auth;
+  private $options, $auth;
+  private $conn= [];
   public $nodes= null;
   public $readPreference;
   public $socketCheckInterval= 5;
@@ -33,7 +35,6 @@ class Protocol {
 
     if (is_array($arg)) {
       $nodes= '';
-      $this->conn= [];
       foreach ($arg as $conn) {
         $nodes.= ','.$conn->address();
         $this->conn[$conn->address()]= $conn;
@@ -50,12 +51,20 @@ class Protocol {
       if ('mongodb+srv' === $m[1]) {
         $dns ?? $dns= new DNS();
 
-        foreach ($dns->members($m[5]) as $host => $port) {
-          $conn= new Connection($host, $port, $bson);
-          $this->conn[$conn->address()]= $conn;
+        try {
+          foreach ($dns->members($m[5]) as $host => $port) {
+            $conn= new Connection($host, $port, $bson);
+            $this->conn[$conn->address()]= $conn;
+          }
+          foreach ($dns->params($m[5]) as $param) {
+            $p.= '&'.$param;
+          }
+        } catch (IOException $e) {
+          throw new CannotConnect(231, 'DNSProtocolError', 'DNS lookup failed for '.$m[5], $e);
         }
-        foreach ($dns->params($m[5]) as $param) {
-          $p.= '&'.$param;
+
+        if (empty($this->conn)) {
+          throw new CannotConnect(230, 'DNSHostNotFound', 'DNS does not contain MongoDB SRV records for '.$m[5]);
         }
 
         // As per spec: Use of the +srv connection string modifier automatically sets the tls
