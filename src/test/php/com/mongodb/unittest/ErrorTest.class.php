@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\Error;
-use unittest\{Assert, Test};
+use test\{Assert, Test};
 
 class ErrorTest {
   const ARGS= [6100, 'MorePower', 'Too much power'];

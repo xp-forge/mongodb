@@ -2,7 +2,7 @@
 
 use com\mongodb\{Document, ObjectId};
 use lang\IndexOutOfBoundsException;
-use unittest\{Assert, Before, Expect, Test, Values};
+use test\{Assert, Before, Expect, Test, Values};
 
 class DocumentTest {
   const OID = '5f1dda9973edf2501751884b';
@@ -63,7 +63,7 @@ class DocumentTest {
     Assert::null($fixture['absent'] ?? null);
   }
 
-  #[Test, Values(['map' => ['exists' => true, 'absent' => false,]])]
+  #[Test, Values([['exists', true], ['absent', false]])]
   public function test_offset($key, $expected) {
     $fixture= new Document(['exists' => 'value']);
     Assert::equals($expected, isset($fixture[$key]));
@@ -83,7 +83,7 @@ class DocumentTest {
     Assert::false(isset($fixture['exists']));
   }
 
-  #[Test, Values('representations')]
+  #[Test, Values(from: 'representations')]
   public function string_representation($fields, $expected) {
     Assert::equals($expected, (new Document($fields))->toString());
   }

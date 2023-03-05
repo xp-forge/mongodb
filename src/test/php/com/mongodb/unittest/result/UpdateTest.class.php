@@ -2,7 +2,7 @@
 
 use com\mongodb\ObjectId;
 use com\mongodb\result\Update;
-use unittest\{Assert, Test};
+use test\{Assert, Test};
 
 class UpdateTest {
   const RESULT= ['n' => 1, 'nModified' => 0, 'ok' => 1];

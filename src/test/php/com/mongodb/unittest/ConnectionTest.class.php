@@ -2,7 +2,7 @@
 
 use com\mongodb\io\Connection;
 use peer\ConnectException;
-use unittest\{Assert, Expect, Test};
+use test\{Assert, Expect, Test};
 use util\Date;
 
 class ConnectionTest {
@@ -12,19 +12,19 @@ class ConnectionTest {
     new Connection(new TestingSocket([]));
   }
 
-  #[Test, Expect(class: ConnectException::class, withMessage: 'Cannot connect to localhost:27017 within 40 seconds')]
+  #[Test, Expect(class: ConnectException::class, message: 'Cannot connect to localhost:27017 within 40 seconds')]
   public function establish_throws_connect_exception_when_socket_connect_fails() {
     $c= new Connection(new TestingSocket(null));
     $c->establish();
   }
 
-  #[Test, Expect(class: ConnectException::class, withMessage: 'SSL handshake failed')]
+  #[Test, Expect(class: ConnectException::class, message: 'SSL handshake failed')]
   public function establish_throws_connect_exception_when_ssl_handshake_fails() {
     $c= new Connection(new TestingSocket([]));
     $c->establish(['params' => ['ssl' => 'true']]);
   }
 
-  #[Test, Expect(class: ConnectException::class, withMessage: 'Server handshake failed @ localhost:27017')]
+  #[Test, Expect(class: ConnectException::class, message: 'Server handshake failed @ localhost:27017')]
   public function establish_throws_connect_exception_when_server_sends_empty_reply() {
     $c= new Connection(new TestingSocket([]));
     $c->establish();

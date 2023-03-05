@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\AuthenticationFailed;
-use unittest\{Assert, Before, Test};
+use test\{Assert, Before, Test};
 use util\Secret;
 
 class AuthenticationFailedTest {

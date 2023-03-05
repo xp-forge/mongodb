@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Session, Int64};
-use unittest\{Assert, Before, Test};
+use com\mongodb\{Int64, Session};
+use test\{Assert, Before, Test};
 use util\UUID;
 
 class SessionsTest {

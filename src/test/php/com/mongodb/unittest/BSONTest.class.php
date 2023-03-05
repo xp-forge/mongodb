@@ -3,7 +3,7 @@
 use com\mongodb\io\BSON;
 use com\mongodb\{Code, Decimal128, Document, Int64, MaxKey, MinKey, ObjectId, Regex, Timestamp};
 use lang\{FormatException, IllegalArgumentException};
-use unittest\{Assert, Expect, Test, Values};
+use test\{Assert, Expect, Test, Values};
 use util\{Bytes, Date, UUID};
 
 class BSONTest {
@@ -67,12 +67,12 @@ class BSONTest {
     yield [new ObjectId('5f1dda9973edf2501751884b'), "\x07test\x00\x5f\x1d\xda\x99\x73\xed\xf2\x50\x17\x51\x88\x4b"];
   }
 
-  #[Test, Values('values')]
+  #[Test, Values(from: 'values')]
   public function encode($value, $bytes) {
     Assert::equals(new Bytes($bytes), new Bytes((new BSON())->bytes('test', $value)));
   }
 
-  #[Test, Values('values')]
+  #[Test, Values(from: 'values')]
   public function decode($value, $bytes) {
     $offset= 0;
     Assert::equals($value, (new BSON())->value('test', $bytes, $offset));
@@ -113,12 +113,12 @@ class BSONTest {
     );
   }
 
-  #[Test, Expect(['class'       => IllegalArgumentException::class, 'withMessage' => '/Cannot encode value test of type .+BSONTest/',])]
+  #[Test, Expect(class: IllegalArgumentException::class, message: '/Cannot encode value test of type .+BSONTest/')]
   public function encode_unknown() {
     (new BSON())->bytes('test', $this);
   }
 
-  #[Test, Expect(['class'       => FormatException::class, 'withMessage' => '/Unknown type 0x99: .+/',])]
+  #[Test, Expect(class: FormatException::class, message: '/Unknown type 0x99: .+/')]
   public function decode_unknown() {
     $offset= 0;
     (new BSON())->value('test', "\x99test\x00ABC", $offset);
