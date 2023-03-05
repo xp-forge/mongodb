@@ -4,7 +4,7 @@ use com\mongodb\io\Protocol;
 use com\mongodb\result\Cursor;
 use com\mongodb\{Document, Int64};
 use lang\IllegalStateException;
-use unittest\{Assert, Before, Test};
+use test\{Assert, Expect, Before, Test};
 
 class CursorTest {
   private $proto;
@@ -93,7 +93,7 @@ class CursorTest {
     Assert::null($fixture->first());
   }
 
-  #[Test, Expect(class: IllegalStateException::class, withMessage: '/Cursor has been forwarded/')]
+  #[Test, Expect(class: IllegalStateException::class, message: '/Cursor has been forwarded/')]
   public function first_after_iterating() {
     $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
     $fixture= new Cursor(
@@ -125,7 +125,7 @@ class CursorTest {
     Assert::equals([], $fixture->all());
   }
 
-  #[Test, Expect(class: IllegalStateException::class, withMessage: '/Cursor has been forwarded/')]
+  #[Test, Expect(class: IllegalStateException::class, message: '/Cursor has been forwarded/')]
   public function all_after_iterating() {
     $documents= [['_id' => 'one', 'qty'  => 1000], ['_id' => 'two', 'qty'  => 6100]];
     $fixture= new Cursor(

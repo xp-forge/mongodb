@@ -1,8 +1,8 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Database, Collection, Document, Timestamp, ObjectId};
-use unittest\{Assert, Test};
+use com\mongodb\{Collection, Database, Document, ObjectId, Timestamp};
+use test\{Assert, Test};
 use util\UUID;
 
 class DatabaseTest {

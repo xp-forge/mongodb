@@ -1,9 +1,9 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Session, Error};
+use com\mongodb\{Error, Session};
 use lang\IllegalStateException;
-use unittest\{Assert, Before, Test};
+use test\{Assert, Before, Expect, Test};
 use util\UUID;
 
 class SessionTest {

@@ -3,7 +3,7 @@
 use com\mongodb\io\Protocol;
 use com\mongodb\{Error, Int64, NoSuitableCandidate, ObjectId, Session, Timestamp};
 use peer\ConnectException;
-use unittest\{Assert, Values, Test};
+use test\{Assert, Expect, Test, Values};
 use util\{Date, UUID};
 
 class ReplicaSetTest {
@@ -66,12 +66,12 @@ class ReplicaSetTest {
     );
   }
 
-  #[Test, Expect(class: NoSuitableCandidate::class, withMessage: '/No suitable candidate eligible for initial connect/')]
+  #[Test, Expect(class: NoSuitableCandidate::class, message: '/No suitable candidate eligible for initial connect/')]
   public function throws_exception_if_none_of_the_nodes_are_reachable() {
     $this->protocol([self::$PRIMARY => null, self::$SECONDARY1 => null, self::$SECONDARY2 => null])->connect();
   }
 
-  #[Test, Expect(class: NoSuitableCandidate::class, withMessage: '/No suitable candidate eligible for initial connect/')]
+  #[Test, Expect(class: NoSuitableCandidate::class, message: '/No suitable candidate eligible for initial connect/')]
   public function throws_exception_if_none_of_the_nodes_respond() {
     $this->protocol([self::$PRIMARY => [], self::$SECONDARY1 => [], self::$SECONDARY2 => []])->connect();
   }
@@ -138,7 +138,7 @@ class ReplicaSetTest {
     );
   }
 
-  #[Test, Values(map: ['primary' => 45, 'primaryPreferred' => 45, 'secondary' => 44, 'secondaryPreferred' => 44, 'nearest' => 45])]
+  #[Test, Values([['primary', 45], ['primaryPreferred', 45], ['secondary', 44], ['secondaryPreferred', 44], ['nearest', 45]])]
   public function reading_with($readPreference, $result) {
     $replicaSet= [
       self::$PRIMARY     => [$this->hello(self::$PRIMARY), $this->cursor([['n' => 45]])],
@@ -189,7 +189,7 @@ class ReplicaSetTest {
     Assert::equals(1, $response['body']['n']);
   }
 
-  #[Test, Expect(class: NoSuitableCandidate::class, withMessage: '/No suitable candidate eligible for reading with secondary/')]
+  #[Test, Expect(class: NoSuitableCandidate::class, message: '/No suitable candidate eligible for reading with secondary/')]
   public function read_throws_if_no_secondaries_are_available() {
     $replicaSet= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
@@ -200,7 +200,7 @@ class ReplicaSetTest {
     $fixture->read(null, [/* anything */]);
   }
 
-  #[Test, Expect(class: NoSuitableCandidate::class, withMessage: '/No suitable candidate eligible for writing/')]
+  #[Test, Expect(class: NoSuitableCandidate::class, message: '/No suitable candidate eligible for writing/')]
   public function write_throws_if_no_primary_is_available() {
     $replicaSet= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],

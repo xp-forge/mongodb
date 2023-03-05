@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\Decimal128;
-use unittest\{Assert, Test, Values};
+use test\{Assert, Test, Values};
 
 class Decimal128Test {
 
@@ -24,32 +24,32 @@ class Decimal128Test {
     new Decimal128('0');
   }
 
-  #[Test, Values('numbers')]
+  #[Test, Values(from: 'numbers')]
   public function string_cast($n) {
     Assert::equals((string)$n, (string)new Decimal128($n));
   }
 
-  #[Test, Values(map: ['00' => '0', '01' => '1', '0000128' => '128'])]
+  #[Test, Values([['00', '0'], ['01', '1'], ['0000128', '128']])]
   public function trims_leading_zeroes($input, $expected) {
     Assert::equals($expected, (string)new Decimal128($input));
   }
 
-  #[Test, Values(map: ['+0' => '0', '+1' => '1', '+128' => '128'])]
+  #[Test, Values([['+0', '0'], ['+1', '1'], ['+128', '128']])]
   public function trims_leading_plus($input, $expected) {
     Assert::equals($expected, (string)new Decimal128($input));
   }
 
-  #[Test, Values(map: ['.5' => '0.5', '+.5' => '0.5', '-.5' => '-0.5'])]
+  #[Test, Values([['.5', '0.5'], ['+.5', '0.5'], ['-.5', '-0.5']])]
   public function leading_zero_for_fractions_without($input, $expected) {
     Assert::equals($expected, (string)new Decimal128($input));
   }
 
-  #[Test, Values('numbers')]
+  #[Test, Values(from: 'numbers')]
   public function string_representation($n) {
     Assert::equals("com.mongodb.Decimal128({$n})", (new Decimal128($n))->toString());
   }
 
-  #[Test, Values('numbers')]
+  #[Test, Values(from: 'numbers')]
   public function comparison($n) {
     $fixture= new Decimal128($n);
 

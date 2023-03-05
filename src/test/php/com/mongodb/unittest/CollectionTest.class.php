@@ -1,8 +1,8 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\Protocol;
-use com\mongodb\{Collection, Document, ObjectId, Int64};
-use unittest\{Assert, Before, Test};
+use com\mongodb\{Collection, Document, Int64, ObjectId};
+use test\{Assert, Before, Test, Values};
 
 class CollectionTest {
   private $protocol;
@@ -191,7 +191,7 @@ class CollectionTest {
     Assert::equals(['A', 'B', 'C'], $collection->distinct('name'));
   }
 
-  #[Test, Values('documents')]
+  #[Test, Values(from: 'documents')]
   public function find($documents) {
     $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
       'firstBatch' => $documents,
@@ -206,7 +206,7 @@ class CollectionTest {
     Assert::equals($documents, $results);
   }
 
-  #[Test, Values('documents')]
+  #[Test, Values(from: 'documents')]
   public function aggregate($documents) {
     $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
       'firstBatch' => $documents,
@@ -225,7 +225,7 @@ class CollectionTest {
     Assert::equals($documents, $results);
   }
 
-  #[Test, Values('documents')]
+  #[Test, Values(from: 'documents')]
   public function aggregate_using_empty_pipeline($documents) {
     $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
       'firstBatch' => $documents,
@@ -240,7 +240,7 @@ class CollectionTest {
     Assert::equals($documents, $results);
   }
 
-  #[Test, Values('documents')]
+  #[Test, Values(from: 'documents')]
   public function watch($documents) {
     $collection= $this->newFixture(['ok' => 1.0, 'cursor' => [
       'firstBatch' => $documents,

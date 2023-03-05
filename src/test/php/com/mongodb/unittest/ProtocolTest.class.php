@@ -1,9 +1,9 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\ObjectId;
-use com\mongodb\io\{Protocol, DNS};
+use com\mongodb\io\{DNS, Protocol};
 use lang\IllegalArgumentException;
-use unittest\{Assert, Expect, Test, Values};
+use test\{Assert, Expect, Test, Values};
 use util\{Bytes, Date};
 
 class ProtocolTest {
@@ -62,7 +62,7 @@ class ProtocolTest {
     );
   }
 
-  #[Test, Expect(class: IllegalArgumentException::class, withMessage: 'Unknown authentication mechanism UNKNOWN')]
+  #[Test, Expect(class: IllegalArgumentException::class, message: 'Unknown authentication mechanism UNKNOWN')]
   public function unknown_auth_mechanism() {
     new Protocol('mongodb://user:pass@localhost?authMechanism=UNKNOWN');
   }

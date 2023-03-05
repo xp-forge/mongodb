@@ -3,7 +3,7 @@
 use com\mongodb\Authentication;
 use com\mongodb\auth\Mechanism;
 use lang\IllegalArgumentException;
-use unittest\{Assert, Expect, Test};
+use test\{Assert, Expect, Test};
 
 class AuthenticationTest {
 
