@@ -3,7 +3,7 @@
 use lang\Throwable;
 
 /** @test com.mongodb.unittest.NoSuitableCandidateTest */
-class NoSuitableCandidate extends Error {
+class NoSuitableCandidate extends CannotConnect {
   private $candidates;
 
   public function __construct(string $intent, array $candidates, Throwable $cause= null) {

@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use com\mongodb\{Authentication, NoSuitableCandidate, Error};
+use com\mongodb\{Authentication, NoSuitableCandidate, CannotConnect};
 use io\IOException;
 use lang\{IllegalStateException, IllegalArgumentException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
@@ -60,11 +60,11 @@ class Protocol {
             $p.= '&'.$param;
           }
         } catch (IOException $e) {
-          throw new Error(231, 'DNSProtocolError', 'DNS lookup failed for '.$m[5], $e);
+          throw new CannotConnect(231, 'DNSProtocolError', 'DNS lookup failed for '.$m[5], $e);
         }
 
         if (empty($this->conn)) {
-          throw new Error(230, 'DNSHostNotFound', 'DNS does not contain MongoDB SRV records for '.$m[5]);
+          throw new CannotConnect(230, 'DNSHostNotFound', 'DNS does not contain MongoDB SRV records for '.$m[5]);
         }
 
         // As per spec: Use of the +srv connection string modifier automatically sets the tls
