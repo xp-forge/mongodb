@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.10.0 / 2023-03-05
+
+* Introduced new base class `com.mongodb.CannotConnect` - @thekid
+* Merged PR #32: Fix DNS errors, fixing issue #31 - @thekid
 * Merged PR #30: Migrate to new testing library - @thekid
 
 ## 1.9.2 / 2023-01-15
