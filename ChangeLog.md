@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #30: Migrate to new testing library - @thekid
+
 ## 1.9.2 / 2023-01-15
 
 * Added fix for #28 - reconnecting when using readPreference *nearest*
