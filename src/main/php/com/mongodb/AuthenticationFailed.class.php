@@ -4,7 +4,7 @@ use lang\Throwable;
 use util\Secret;
 
 /** @test com.mongodb.unittest.AuthenticationFailedTest */
-class AuthenticationFailed extends Error {
+class AuthenticationFailed extends CannotConnect {
   private $user, $secret;
 
   public function __construct(string $message, string $user, Secret $secret, Throwable $cause= null) {
