@@ -201,19 +201,20 @@ $session->close();
 
 Handling errors
 ---------------
-All operations raise instances of the `com.mongodb.Error` class. Connection and authentication errors can be handled by checking for the specific subclasses:
+All operations raise instances of the `com.mongodb.Error` class. Connection and authentication errors can be handled by checking for *CannotConnect*:
 
 ```php
-use com\mongodb\{MongoConnection, Error, AuthenticationFailed, NoSuitableCandidate};
+use com\mongodb\{MongoConnection, Error, CannotConnect};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb+srv://user:pass@mongo.example.com');
 try {
   $c->connect();
-} catch (NoSuitableCandidate $e) {
-  // None of the replica set members is reachable
-} catch (AuthenticationFailed $e) {
-  // Error during authentication phase
+} catch (CannotConnect $e) {
+  // Error during authentication phase, e.g.:
+  // - DNS errors
+  // - None of the replica set members is reachable
+  // - Authentication failed
 } catch (Error $e) {
   // Any other error
 }
