@@ -61,6 +61,26 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
     unset($this->properties[$name]);
   }
 
+  /**
+   * Merge a given property with a given list or map
+   *
+   * @see    https://www.php.net/array_merge
+   * @param  string $name
+   * @param  iterable $from
+   * @return self
+   */
+  public function merge($name, $from) {
+    $prop= &$this->properties[$name];
+    if (empty($prop)) {
+      $prop= is_array($from) ? $from : iterator_to_array($from);
+    } else if (0 === key($prop)) {
+      foreach ($from as $value) $prop[]= $value;
+    } else {
+      foreach ($from as $key => $value) $prop[$key]= $value;
+    }
+    return $this;
+  }
+
   /** Iterator over all properties */
   public function getIterator(): Traversable { yield from $this->properties; }
 

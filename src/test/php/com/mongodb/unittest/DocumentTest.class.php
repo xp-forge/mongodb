@@ -83,6 +83,32 @@ class DocumentTest {
     Assert::false(isset($fixture['exists']));
   }
 
+  #[Test, Values([[null, [3]], [[], [3]], [[1, 2], [1, 2, 3]]])]
+  public function merge_list($initial, $expected) {
+    $fixture= (new Document(['list' => $initial]))->merge('list', [3]);
+    Assert::equals($expected, $fixture['list']);
+  }
+
+  #[Test, Values([[null, ['two' => 2]], [[], ['two' => 2]], [['one' => 1], ['one' => 1, 'two' => 2]]])]
+  public function merge_map($initial, $expected) {
+    $fixture= (new Document(['map' => $initial]))->merge('map', ['two' => 2]);
+    Assert::equals($expected, $fixture['map']);
+  }
+
+  #[Test, Values([[null, [3]], [[], [3]], [[1, 2], [1, 2, 3]]])]
+  public function merge_iterable($initial, $expected) {
+    $f= function() { yield 3; };
+    $fixture= (new Document(['list' => $initial]))->merge('list', $f());
+    Assert::equals($expected, $fixture['list']);
+  }
+
+  #[Test, Values([[null, ['two' => 2]], [[], ['two' => 2]], [['one' => 1], ['one' => 1, 'two' => 2]]])]
+  public function merge_iterable_with_key($initial, $expected) {
+    $f= function() { yield 'two' => 2; };
+    $fixture= (new Document(['map' => $initial]))->merge('map', $f());
+    Assert::equals($expected, $fixture['map']);
+  }
+
   #[Test, Values(from: 'representations')]
   public function string_representation($fields, $expected) {
     Assert::equals($expected, (new Document($fields))->toString());
