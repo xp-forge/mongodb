@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\{Document, ObjectId};
-use lang\IndexOutOfBoundsException;
+use lang\{IndexOutOfBoundsException, IllegalArgumentException};
 use test\{Assert, Before, Expect, Test, Values};
 
 class DocumentTest {
@@ -107,6 +107,22 @@ class DocumentTest {
     $f= function() { yield 'two' => 2; };
     $fixture= (new Document(['map' => $initial]))->merge('map', $f());
     Assert::equals($expected, $fixture['map']);
+  }
+
+  #[Test, Values([[[], ['two' => 2]], [['one' => 1], ['one' => 1, 'two' => 2]]])]
+  public function merge_object($initial, $expected) {
+    $fixture= (new Document(['map' => (object)$initial]))->merge('map', ['two' => 2]);
+    Assert::equals($expected, $fixture['map']);
+  }
+
+  #[Test, Expect(IllegalArgumentException::class)]
+  public function merge_scalar() {
+    (new Document(['item' => 1]))->merge('item', [2]);
+  }
+
+  #[Test, Expect(IllegalArgumentException::class)]
+  public function merge_object_id() {
+    (new Document(['_id' => ObjectId::create()]))->merge('_id', [2]);
   }
 
   #[Test, Values(from: 'representations')]

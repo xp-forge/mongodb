@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use ArrayAccess, Traversable, IteratorAggregate, ReturnTypeWillChange;
-use lang\Value;
+use lang\{Value, IllegalArgumentException};
 use util\Objects;
 
 class Document implements Value, ArrayAccess, IteratorAggregate {
@@ -31,7 +31,7 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
    * Read access overloading
    *
    * @param  string $name
-   * @return bool
+   * @return var
    */
   #[ReturnTypeWillChange]
   public function offsetGet($name) {
@@ -68,11 +68,17 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
    * @param  string $name
    * @param  iterable $from
    * @return self
+   * @throws lang.IllegalArgumentException
    */
   public function merge($name, $from) {
     $prop= &$this->properties[$name];
     if (empty($prop)) {
       $prop= is_array($from) ? $from : iterator_to_array($from);
+    } else if ($prop instanceof \StdClass) {
+      $prop= (array)$prop;
+      foreach ($from as $key => $value) $prop[$key]= $value;
+    } else if (!is_array($prop)) {
+      throw new IllegalArgumentException('Cannot merge scalar property '.$name);
     } else if (0 === key($prop)) {
       foreach ($from as $value) $prop[]= $value;
     } else {
