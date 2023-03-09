@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use ArrayAccess, Traversable, IteratorAggregate, ReturnTypeWillChange;
+use ArrayAccess, Traversable, IteratorAggregate, ReturnTypeWillChange, StdClass;
 use lang\{Value, IllegalArgumentException};
 use util\Objects;
 
@@ -74,9 +74,8 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
     $prop= &$this->properties[$name];
     if (empty($prop)) {
       $prop= is_array($from) ? $from : iterator_to_array($from);
-    } else if ($prop instanceof \StdClass) {
-      $prop= (array)$prop;
-      foreach ($from as $key => $value) $prop[$key]= $value;
+    } else if ($prop instanceof StdClass) {
+      foreach ($from as $key => $value) $prop->{$key}= $value;
     } else if (!is_array($prop)) {
       throw new IllegalArgumentException('Cannot merge scalar property '.$name);
     } else if (0 === key($prop)) {

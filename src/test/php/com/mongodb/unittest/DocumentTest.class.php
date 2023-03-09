@@ -112,7 +112,7 @@ class DocumentTest {
   #[Test, Values([[[], ['two' => 2]], [['one' => 1], ['one' => 1, 'two' => 2]]])]
   public function merge_object($initial, $expected) {
     $fixture= (new Document(['map' => (object)$initial]))->merge('map', ['two' => 2]);
-    Assert::equals($expected, $fixture['map']);
+    Assert::equals((object)$expected, $fixture['map']);
   }
 
   #[Test, Expect(IllegalArgumentException::class)]
