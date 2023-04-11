@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.11.0 / 2023-04-11
+
+* Merged PR #34: Make it possible to omit regex modifiers - @thekid
+
 ## 1.10.0 / 2023-03-05
 
 * Introduced new base class `com.mongodb.CannotConnect` - @thekid
