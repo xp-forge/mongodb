@@ -39,7 +39,7 @@ class ObjectIdTest {
 
   #[Test]
   public function create() {
-    Assert::equals(1, preg_match('/^[0-9a-f]{24}$/', ObjectId::create()));
+    Assert::matches('/^[0-9a-f]{24}$/', ObjectId::create());
   }
 
   #[Test]
