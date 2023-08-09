@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.12.0 / 2023-08-09
+
+* Merged PR #35: Return document properties by reference - @thekid
+
 ## 1.11.0 / 2023-04-11
 
 * Merged PR #34: Make it possible to omit regex modifiers - @thekid
