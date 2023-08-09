@@ -36,11 +36,13 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
    */
   #[ReturnTypeWillChange]
   public function &offsetGet($name) {
+
+    // Double-check with array_key_exists() should the property be null.
     if (isset($this->properties[$name]) || array_key_exists($name, $this->properties)) {
       return $this->properties[$name];
     }
 
-    throw new IndexOutOfBoundsException($name);
+    throw new IndexOutOfBoundsException('Undefined property "'.$name.'"');
   }
 
   /**

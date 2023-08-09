@@ -51,7 +51,7 @@ class DocumentTest {
     Assert::equals('value', $fixture['exists']);
   }
 
-  #[Test, Expect(IndexOutOfBoundsException::class)]
+  #[Test, Expect(class: IndexOutOfBoundsException::class, message: 'Undefined property "absent"')]
   public function read_non_existant_offset() {
     $fixture= new Document(['exists' => 'value']);
     $r= $fixture['absent'];
