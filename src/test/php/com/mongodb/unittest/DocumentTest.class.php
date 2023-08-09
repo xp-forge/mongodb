@@ -107,4 +107,11 @@ class DocumentTest {
     $fixture['list'][]= 4;
     Assert::equals([1, 2, 3, 4], $fixture['list']);
   }
+
+  #[Test]
+  public function set_offset_array_key() {
+    $fixture= new Document(['properties' => ['color' => 'green']]);
+    $fixture['properties']['price']= 12.99;
+    Assert::equals(['color' => 'green', 'price' => 12.99], $fixture['properties']);
+  }
 }
