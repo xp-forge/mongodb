@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use ArrayAccess, Traversable, IteratorAggregate, ReturnTypeWillChange;
-use lang\Value;
+use lang\{Value, IndexOutOfBoundsException};
 use util\Objects;
 
 class Document implements Value, ArrayAccess, IteratorAggregate {
@@ -28,14 +28,19 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
   }
 
   /**
-   * Read access overloading
+   * Read access overloading. Returns a reference!
    *
    * @param  string $name
-   * @return bool
+   * @return var
+   * @throws lang.IndexOutOfBoundsException
    */
   #[ReturnTypeWillChange]
-  public function offsetGet($name) {
-    return $this->properties[$name];
+  public function &offsetGet($name) {
+    if (isset($this->properties[$name]) || array_key_exists($name, $this->properties)) {
+      return $this->properties[$name];
+    }
+
+    throw new IndexOutOfBoundsException($name);
   }
 
   /**

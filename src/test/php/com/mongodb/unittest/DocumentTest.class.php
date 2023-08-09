@@ -52,7 +52,7 @@ class DocumentTest {
   }
 
   #[Test, Expect(IndexOutOfBoundsException::class)]
-  public function read_non_exstant_offset() {
+  public function read_non_existant_offset() {
     $fixture= new Document(['exists' => 'value']);
     $r= $fixture['absent'];
   }
@@ -86,5 +86,19 @@ class DocumentTest {
   #[Test, Values(from: 'representations')]
   public function string_representation($fields, $expected) {
     Assert::equals($expected, (new Document($fields))->toString());
+  }
+
+  #[Test]
+  public function sort_offset_array() {
+    $fixture= new Document(['list' => [1, 3, 2]]);
+    sort($fixture['list']);
+    Assert::equals([1, 2, 3], $fixture['list']);
+  }
+
+  #[Test]
+  public function append_to_offset_array() {
+    $fixture= new Document(['list' => [1, 2, 3]]);
+    $fixture['list'][]= 4;
+    Assert::equals([1, 2, 3, 4], $fixture['list']);
   }
 }
