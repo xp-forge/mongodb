@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\Protocol;
+use com\mongodb\io\{Connection, Protocol};
 use com\mongodb\{Collection, Document, Int64, ObjectId};
 use test\{Assert, Before, Test, Values};
 
@@ -15,15 +15,36 @@ class CollectionTest {
 
   #[Before]
   public function protocol() {
-    $this->protocol= newinstance(Protocol::class, ['mongodb://test'], [
-      'responses' => [],
-      'options'   => ['scheme' => 'mongodb', 'nodes' => 'test'],
-      'returning' => function($response) { $this->responses[]= $response; return $this; },
-      'connect'   => function() { },
-      'close'     => function() { /** NOOP */ },
-      'read'      => function($session, $sections) { return ['body' => array_shift($this->responses)]; },
-      'write'     => function($session, $sections) { return ['body' => array_shift($this->responses)]; },
-    ]);
+    $conn= new class() extends Connection {
+      public $responses= [];
+
+      public function __construct() { }
+
+      public function address() { return 'test'; }
+
+      public function establish($options= [], $auth= null) {
+        $this->server= ['$kind' => Connection::RSPrimary, 'primary' => 'test', 'secondary' => []];
+      }
+
+      public function send($operation, $header, $sections) {
+        if ($response= array_shift($this->responses)) {
+          return ['body' => ['ok' => 1] + $response];
+        } else {
+          return ['body' => ['ok' => 0, 'code' => -1, 'codeName' => '<EOF>', 'errmsg' => '']];
+        }
+      }
+    };
+
+    $this->protocol= new class([$conn]) extends Protocol {
+
+      public function returning($response) {
+        $conn= $this->conn[key($this->conn)];
+        $conn->responses[]= $response;
+        $conn->lastUsed= time();
+        return $this;
+      }
+    };
+    $this->protocol->connect();
   }
 
   /**
@@ -51,7 +72,7 @@ class CollectionTest {
   public function command() {
     $result= $this->newFixture(['text' => 'PONG'])->command('ping');
 
-    Assert::equals(['text' => 'PONG'], $result);
+    Assert::equals(['ok' => 1, 'text' => 'PONG'], $result);
   }
 
   #[Test]
@@ -59,7 +80,7 @@ class CollectionTest {
     $result= $this->newFixture(['text' => 'PONG'])->run('ping');
 
     Assert::false($result->isCursor());
-    Assert::equals(['text' => 'PONG'], $result->value());
+    Assert::equals(['ok' => 1, 'text' => 'PONG'], $result->value());
   }
 
   #[Test]

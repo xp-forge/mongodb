@@ -14,7 +14,7 @@ use util\Objects;
  */
 class Protocol {
   private $options, $auth;
-  private $conn= [];
+  protected $conn= [];
   public $nodes= null;
   public $readPreference;
   public $socketCheckInterval= 5;
@@ -130,21 +130,54 @@ class Protocol {
    * @throws com.mongodb.Error
    */
   public function connect() {
-    $this->nodes || $this->send(array_keys($this->conn), null, 'initial connect');
+    $this->nodes || $this->establish(array_keys($this->conn), 'initial connect');
     return $this;
   }
 
   /**
-   * Select a connection, then send message
+   * Returns candidates for connecting to based on a given read preference.
    *
-   * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#checking-an-idle-socket-after-socketcheckintervalms
-   * @param  string[] $candidates
-   * @param  [:var] $sections
-   * @param  string $intent used within potential error messages
-   * @return var
-   * @throws com.mongodb.Error
+   * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#read-preference
+   * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
+   * @param  string $rp
+   * @return string[]
+   * @throws lang.IllegalArgumentException
    */
-  private function send($candidates, $sections, $intent) {
+  public function candidates($rp) {
+    if ('primary' === $rp) {
+      return [$this->nodes['primary']];
+    } else if ('secondary' === $rp) {
+      return $this->nodes['secondary'];
+    } else if ('primaryPreferred' === $rp) {
+      return array_merge([$this->nodes['primary']], $this->nodes['secondary']);
+    } else if ('secondaryPreferred' === $rp) {
+      return array_merge($this->nodes['secondary'], [$this->nodes['primary']]);
+    } else if ('nearest' === $rp) {  // Prefer to stay on already open connections
+      $connected= null;
+      foreach ($this->conn as $id => $conn) {
+        if (null === $conn->server) continue;
+        $connected= $id;
+        break;
+      }
+      return array_unique(array_merge(
+        (array)$connected,
+        [$this->nodes['primary']],
+        $this->nodes['secondary']
+      ));
+    }
+
+    throw new IllegalArgumentException('Unknown readPreference '.$rp);
+  }
+
+  /**
+   * Establish a connection for a list of given candidates
+   *
+   * @param  string[] $candidates
+   * @param  string $intent
+   * @return com.mongodb.io.Connection
+   * @throws com.mongodb.NoSuitableCandidate
+   */
+  public function establish($candidates, $intent) {
     $time= time();
     $cause= null;
     foreach ($candidates as $candidate) {
@@ -169,7 +202,7 @@ class Protocol {
           }
         }
 
-        return null === $sections ? null : $conn->message($sections, $this->readPreference);
+        return $conn;
       } catch (SocketException $e) {
         $conn->close();
         $cause ? $cause->setCause($e) : $cause= $e;
@@ -180,10 +213,9 @@ class Protocol {
   }
 
   /**
-   * Perform a read operation
+   * Perform a read operation, which selecting a suitable node based on the
+   * `readPreference` serting.
    *
-   * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#read-preference
-   * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
    * @param  ?com.mongodb.Session $session
    * @param  [:var] $sections
    * @return var
@@ -193,33 +225,13 @@ class Protocol {
     $session && $sections+= $session->send($this);
     $rp= $this->readPreference['mode'];
 
-    if ('primary' === $rp) {
-      $candidates= [$this->nodes['primary']];
-    } else if ('secondary' === $rp) {
-      $candidates= $this->nodes['secondary'];
-    } else if ('primaryPreferred' === $rp) {
-      $candidates= array_merge([$this->nodes['primary']], $this->nodes['secondary']);
-    } else if ('secondaryPreferred' === $rp) {
-      $candidates= array_merge($this->nodes['secondary'], [$this->nodes['primary']]);
-    } else if ('nearest' === $rp) {  // Prefer to stay on already open connections
-      $connected= null;
-      foreach ($this->conn as $id => $conn) {
-        if (null === $conn->server) continue;
-        $connected= $id;
-        break;
-      }
-      $candidates= array_unique(array_merge(
-        (array)$connected,
-        [$this->nodes['primary']],
-        $this->nodes['secondary']
-      ));
-    }
-
-    return $this->send($candidates, $sections, 'reading with '.$rp);
+    return $this->establish($this->candidates($rp), 'reading with '.$rp)
+      ->message($sections, $this->readPreference)
+    ;
   }
 
   /**
-   * Perform a write operation
+   * Perform a write operation, which always uses the primary node.
    *
    * @param  ?com.mongodb.Session $session
    * @param  [:var] $sections
@@ -229,7 +241,9 @@ class Protocol {
   public function write($session, $sections) {
     $session && $sections+= $session->send($this);
 
-    return $this->send([$this->nodes['primary']], $sections, 'writing');
+    return $this->establish([$this->nodes['primary']], 'writing')
+      ->message($sections, $this->readPreference)
+    ;
   }
 
   /** @return void */
