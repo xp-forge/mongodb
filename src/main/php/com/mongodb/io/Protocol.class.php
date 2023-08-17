@@ -166,7 +166,7 @@ class Protocol {
       ));
     }
 
-    throw new IllegalArgumentException('Unknown readPreference '.$rp);
+    throw new IllegalArgumentException('Unknown read preference "'.$rp.'"');
   }
 
   /**
