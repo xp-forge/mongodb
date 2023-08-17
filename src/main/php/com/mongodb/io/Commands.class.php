@@ -30,7 +30,7 @@ class Commands {
 
   /**
    * Sends a message
-   * 
+   *
    * @param  ?com.mongodb.Session $session
    * @param  [:var] $sections
    * @return var
