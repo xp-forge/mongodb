@@ -246,7 +246,7 @@ class CollectionTest {
   #[Test]
   public function string_representation() {
     Assert::equals(
-      'com.mongodb.Collection<testing.tests@mongodb://shard2.test:27017>',
+      'com.mongodb.Collection<testing.tests@mongodb://'.self::$PRIMARY.'>',
       $this->newFixture([])->toString()
     );
   }
