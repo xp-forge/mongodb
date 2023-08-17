@@ -51,7 +51,7 @@ class Collection implements Value {
    * @throws com.mongodb.Error
    */
   public function run($name, array $params= [], $semantics= 'write', Session $session= null) {
-    $commands= new Commands($this->proto, $semantics);
+    $commands= Commands::using($this->proto, $semantics);
     return new Run(
       $commands,
       $session,
@@ -162,7 +162,7 @@ class Collection implements Value {
    * @throws com.mongodb.Error
    */
   public function find($query= [], Session $session= null): Cursor {
-    $commands= new Commands($this->proto, 'read');
+    $commands= Commands::reading($this->proto);
     $result= $commands->send($session, [
       'find'   => $this->name,
       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
@@ -234,9 +234,9 @@ class Collection implements Value {
     // https://docs.mongodb.com/manual/reference/operator/aggregation/merge/ 
     $last= $pipeline ? key($pipeline[sizeof($pipeline) - 1]) : null;
     if ('$out' === $last || '$merge' === $last) {
-      $commands= new Commands($this->proto, 'write');
+      $commands= Commands::writing($this->proto);
     } else {
-      $commands= new Commands($this->proto, 'read');
+      $commands= Commands::reading($this->proto);
     }
 
     $result= $commands->send($session, $sections);
@@ -255,7 +255,7 @@ class Collection implements Value {
   public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
     array_unshift($pipeline, ['$changeStream' => (object)$options]);
 
-    $commands= new Commands($this->proto, 'read');
+    $commands= Commands::reading($this->proto);
     $result= $commands->send($session, [
       'aggregate' => $this->name,
       'pipeline'  => $pipeline,

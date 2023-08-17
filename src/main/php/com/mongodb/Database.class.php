@@ -35,7 +35,7 @@ class Database implements Value {
    * @throws com.mongodb.Error
    */
   public function collections(Session $session= null) {
-    $commands= new Commands($this->proto, 'read');
+    $commands= Commands::reading($this->proto);
     $result= $commands->send($session, [
       'listCollections' => (object)[],
       '$db'             => $this->name
@@ -55,7 +55,7 @@ class Database implements Value {
   public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
     array_unshift($pipeline, ['$changeStream' => (object)$options]);
 
-    $commands= new Commands($this->proto, 'read');
+    $commands= Commands::reading($this->proto);
     $result= $commands->send($session, [
       'aggregate' => 1,
       'pipeline'  => $pipeline,

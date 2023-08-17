@@ -62,7 +62,7 @@ class MongoConnection implements Value {
   public function run($name, array $arguments= [], $semantics= 'write', Session $session= null) {
     $this->proto->connect();
 
-    $commands= new Commands($this->proto, $semantics);
+    $commands= Commands::using($this->proto, $semantics);
     return new Run(
       $commands,
       $session,
@@ -160,7 +160,7 @@ class MongoConnection implements Value {
 
     array_unshift($pipeline, ['$changeStream' => ['allChangesForCluster' => true] + $options]);
 
-    $commands= new Commands($this->proto, 'read');
+    $commands= Commands::reading($this->proto);
     $result= $commands->send($session, [
       'aggregate' => 1,
       'pipeline'  => $pipeline,
