@@ -12,8 +12,8 @@ use util\Bytes;
  * @see   https://docs.mongodb.com/manual/core/security-scram/
  */
 class ScramSHA1 implements Mechanism {
-  const MIN_ITERATIONS = 4096;
-  const HASH_ALGORITHM = 'sha1';
+  const MIN_ITERATIONS= 4096;
+  const HASH_ALGORITHM= 'sha1';
 
   private $nonce= null;
 
@@ -76,7 +76,7 @@ class ScramSHA1 implements Mechanism {
     $salted= hash_pbkdf2(self::HASH_ALGORITHM, md5($username.':mongo:'.$password), base64_decode($pairs['s']), (int)$pairs['i'], 0, true);
     $client= hash_hmac(self::HASH_ALGORITHM, 'Client Key', $salted, true);
     $server= hash_hmac(self::HASH_ALGORITHM, 'Server Key', $salted, true);
-    $signature= hash_hmac(self::HASH_ALGORITHM, $message, sha1($client, true), true);
+    $signature= hash_hmac(self::HASH_ALGORITHM, $message, hash(self::HASH_ALGORITHM, $client, true), true);
 
     $next= yield [
       'saslContinue'   => 1,
@@ -86,7 +86,7 @@ class ScramSHA1 implements Mechanism {
     ];
 
     $pairs= $this->pairs($next['payload']);
-    $signature= hash_hmac('sha1', $message, $server, true);
+    $signature= hash_hmac(self::HASH_ALGORITHM, $message, $server, true);
     if (base64_decode($pairs['v']) !== $signature) {
       throw new IllegalStateException('Server validation failed '.base64_encode($signature).' ('.$pairs['v'].')');
     }
