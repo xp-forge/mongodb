@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.14.0 / 2023-08-17
+
+* Merged PR #37: Implement SCRAM-SHA-256 authentication. Implements #8
+  (@thekid)
+
 ## 1.13.0 / 2023-08-17
 
 * Merged PR #36: Introduce Commands class which keeps all messages on the
