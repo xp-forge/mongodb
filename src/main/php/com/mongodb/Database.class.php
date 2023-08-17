@@ -35,11 +35,12 @@ class Database implements Value {
    * @throws com.mongodb.Error
    */
   public function collections($session= null) {
-    $result= $this->proto->read($session, [
+    $commands= new Commands($this->proto, 'read');
+    $result= $commands->send($session, [
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);
-    return new Cursor($this->proto, $session, $result['body']['cursor']);
+    return new Cursor($commands, $session, $result['body']['cursor']);
   }
 
   /**
