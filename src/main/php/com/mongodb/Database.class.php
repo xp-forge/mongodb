@@ -34,7 +34,7 @@ class Database implements Value {
    * @return [:var][]
    * @throws com.mongodb.Error
    */
-  public function collections($session= null) {
+  public function collections(Session $session= null) {
     $commands= new Commands($this->proto, 'read');
     $result= $commands->send($session, [
       'listCollections' => (object)[],
