@@ -7,17 +7,17 @@ use util\Objects;
 
 /** @test com.mongodb.unittest.result.CursorTest */
 class Cursor implements Value, IteratorAggregate {
-  protected $proto, $session, $current;
+  protected $commands, $session, $current;
 
   /**
    * Creates a new cursor
    *
-   * @param  com.mongodb.io.Protocol $proto
+   * @param  com.mongodb.io.Commands $commands
    * @param  ?com.mongodb.Session $session
    * @param  [:var] $current
    */
-  public function __construct($proto, $session, $current) {
-    $this->proto= $proto;
+  public function __construct($commands, $session, $current) {
+    $this->commands= $commands;
     $this->session= $session;
     $this->current= $current;
   }
@@ -34,7 +34,7 @@ class Cursor implements Value, IteratorAggregate {
     // Fetch subsequent batches
     sscanf($this->current['ns'], "%[^.].%[^\r]", $database, $collection);
     while ($this->current['id']->number() > 0) {
-      $result= $this->proto->read($this->session, [
+      $result= $this->commands->send($this->session, [
         'getMore'    => $this->current['id'],
         'collection' => $collection,
         '$db'        => $database,
@@ -93,7 +93,7 @@ class Cursor implements Value, IteratorAggregate {
     if (0 === $this->current['id']->number()) return;
 
     sscanf($this->current['ns'], "%[^.].%[^\r]", $database, $collection);
-    $this->proto->read($this->session, [
+    $this->commands->send($this->session, [
       'killCursors' => $collection,
       'cursors'     => [$this->current['id']],
       '$db'         => $database,
@@ -117,7 +117,7 @@ class Cursor implements Value, IteratorAggregate {
 
   /** @return string */
   public function hashCode() {
-    return 'C'.spl_object_hash($this->proto).Objects::hashOf($this->current);
+    return 'C'.spl_object_hash($this->commands).Objects::hashOf($this->current);
   }
 
   /**
@@ -127,7 +127,7 @@ class Cursor implements Value, IteratorAggregate {
    * @return int
    */
   public function compareTo($value) {
-    return $value instanceof self && $this->proto === $value->proto
+    return $value instanceof self && $this->commands === $value->commands
       ? Objects::compare($this->current, $value->current)
       : 1
     ;

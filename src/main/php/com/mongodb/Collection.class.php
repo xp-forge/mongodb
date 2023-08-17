@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use com\mongodb\io\Protocol;
+use com\mongodb\io\{Commands, Protocol};
 use com\mongodb\result\{Insert, Update, Delete, Cursor, Run, ChangeStream};
 use lang\Value;
 use util\Objects;
@@ -45,16 +45,17 @@ class Collection implements Value {
    *
    * @param  string $name
    * @param  [:var] $params
-   * @param  string $method one of `read` or `write`
+   * @param  string $semantics one of `read` or `write`
    * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $params= [], $method= 'write', Session $session= null) {
+  public function run($name, array $params= [], $semantics= 'write', Session $session= null) {
+    $commands= Commands::using($this->proto, $semantics);
     return new Run(
-      $this->proto,
+      $commands,
       $session,
-      $this->proto->{$method}($session, [$name => $this->name] + $params + ['$db' => $this->database])
+      $commands->send($session, [$name => $this->name] + $params + ['$db' => $this->database])
     );
   }
 
@@ -161,12 +162,13 @@ class Collection implements Value {
    * @throws com.mongodb.Error
    */
   public function find($query= [], Session $session= null): Cursor {
-    $result= $this->proto->read($session, [
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($session, [
       'find'   => $this->name,
       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
       '$db'    => $this->database,
     ]);
-    return new Cursor($this->proto, $session, $result['body']['cursor']);
+    return new Cursor($commands, $session, $result['body']['cursor']);
   }
 
   /**
@@ -232,12 +234,13 @@ class Collection implements Value {
     // https://docs.mongodb.com/manual/reference/operator/aggregation/merge/ 
     $last= $pipeline ? key($pipeline[sizeof($pipeline) - 1]) : null;
     if ('$out' === $last || '$merge' === $last) {
-      $result= $this->proto->write($session, $sections);
+      $commands= Commands::writing($this->proto);
     } else {
-      $result= $this->proto->read($session, $sections);
+      $commands= Commands::reading($this->proto);
     }
 
-    return new Cursor($this->proto, $session, $result['body']['cursor']);
+    $result= $commands->send($session, $sections);
+    return new Cursor($commands, $session, $result['body']['cursor']);
   }
 
   /**
@@ -251,13 +254,15 @@ class Collection implements Value {
    */
   public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
     array_unshift($pipeline, ['$changeStream' => (object)$options]);
-    $result= $this->proto->read($session, [
+
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($session, [
       'aggregate' => $this->name,
       'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => $this->database,
     ]);
-    return new ChangeStream($this->proto, $session, $result['body']['cursor']);
+    return new ChangeStream($commands, $session, $result['body']['cursor']);
   }
 
   /** @return string */

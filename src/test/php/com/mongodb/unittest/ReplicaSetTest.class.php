@@ -81,7 +81,7 @@ class ReplicaSetTest {
     $replicaSet= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
       self::$SECONDARY1 => [$this->hello(self::$SECONDARY1), $this->ok()],
-      self::$SECONDARY2 => [$this->hello(self::$SECONDARY2)],
+      self::$SECONDARY2 => [],
     ];
     $fixture= $this->protocol($replicaSet, $readPreference)->connect();
     $fixture->read(null, [/* anything */]);
@@ -126,7 +126,7 @@ class ReplicaSetTest {
   public function reads_from_another_secondary($readPreference) {
     $replicaSet= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
-      self::$SECONDARY1 => [$this->hello(self::$SECONDARY1)],
+      self::$SECONDARY1 => [],
       self::$SECONDARY2 => [$this->hello(self::$SECONDARY2), $this->ok()],
     ];
     $fixture= $this->protocol($replicaSet, $readPreference)->connect();
@@ -193,8 +193,8 @@ class ReplicaSetTest {
   public function read_throws_if_no_secondaries_are_available() {
     $replicaSet= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
-      self::$SECONDARY1 => [$this->hello(self::$SECONDARY1)],
-      self::$SECONDARY2 => [$this->hello(self::$SECONDARY2)],
+      self::$SECONDARY1 => [],
+      self::$SECONDARY2 => [],
     ];
     $fixture= $this->protocol($replicaSet, 'secondary')->connect();
     $fixture->read(null, [/* anything */]);
@@ -203,7 +203,7 @@ class ReplicaSetTest {
   #[Test, Expect(class: NoSuitableCandidate::class, message: '/No suitable candidate eligible for writing/')]
   public function write_throws_if_no_primary_is_available() {
     $replicaSet= [
-      self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
+      self::$PRIMARY    => [],
       self::$SECONDARY1 => [$this->hello(self::$SECONDARY1)],
       self::$SECONDARY2 => [$this->hello(self::$SECONDARY2)],
     ];

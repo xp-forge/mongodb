@@ -1,29 +1,15 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\Protocol;
 use com\mongodb\{Collection, Document, Int64, ObjectId};
-use test\{Assert, Before, Test, Values};
+use test\{Assert, Test, Values};
 
 class CollectionTest {
-  private $protocol;
+  use WireTesting;
 
   /** @return iterable */
   private function documents() {
     yield [[]];
     yield [[['_id' => 'one', 'name' => 'A'], ['_id' => 'two', 'name' => 'B']]];
-  }
-
-  #[Before]
-  public function protocol() {
-    $this->protocol= newinstance(Protocol::class, ['mongodb://test'], [
-      'responses' => [],
-      'options'   => ['scheme' => 'mongodb', 'nodes' => 'test'],
-      'returning' => function($response) { $this->responses[]= $response; return $this; },
-      'connect'   => function() { },
-      'close'     => function() { /** NOOP */ },
-      'read'      => function($session, $sections) { return ['body' => array_shift($this->responses)]; },
-      'write'     => function($session, $sections) { return ['body' => array_shift($this->responses)]; },
-    ]);
   }
 
   /**
@@ -33,17 +19,19 @@ class CollectionTest {
    * @return com.mongodb.Collection
    */
   private function newFixture($response) {
-    return new Collection($this->protocol->returning($response), 'testing', 'tests');
+    $responses= [$this->hello(self::$PRIMARY), ['body' => ['ok' => 1] + $response]];
+    $protocol= $this->protocol([self::$PRIMARY => $responses], 'primary');
+    return new Collection($protocol->connect(), 'testing', 'tests');
   }
 
   #[Test]
   public function name() {
-    Assert::equals('tests', (new Collection($this->protocol, 'testing', 'tests'))->name());
+    Assert::equals('tests', $this->newFixture([])->name());
   }
 
   #[Test]
   public function namespace() {
-    Assert::equals('testing.tests', (new Collection($this->protocol, 'testing', 'tests'))->namespace());
+    Assert::equals('testing.tests', $this->newFixture([])->namespace());
   }
 
   /** @deprecated */
@@ -51,7 +39,7 @@ class CollectionTest {
   public function command() {
     $result= $this->newFixture(['text' => 'PONG'])->command('ping');
 
-    Assert::equals(['text' => 'PONG'], $result);
+    Assert::equals(['ok' => 1, 'text' => 'PONG'], $result);
   }
 
   #[Test]
@@ -59,7 +47,7 @@ class CollectionTest {
     $result= $this->newFixture(['text' => 'PONG'])->run('ping');
 
     Assert::false($result->isCursor());
-    Assert::equals(['text' => 'PONG'], $result->value());
+    Assert::equals(['ok' => 1, 'text' => 'PONG'], $result->value());
   }
 
   #[Test]
@@ -258,8 +246,8 @@ class CollectionTest {
   #[Test]
   public function string_representation() {
     Assert::equals(
-      'com.mongodb.Collection<testing.tests@mongodb://test>',
-      (new Collection($this->protocol, 'testing', 'tests'))->toString()
+      'com.mongodb.Collection<testing.tests@mongodb://'.self::$PRIMARY.'>',
+      $this->newFixture([])->toString()
     );
   }
 }

@@ -1,19 +1,19 @@
 <?php namespace com\mongodb\result;
 
 class Run extends Result {
-  private $proto, $session;
+  private $commands, $session;
   private $cursor= null;
 
   /**
    * Creates a new run result
    *
    * @see    com.mongodb.Collection::run()
-   * @param  com.mongodb.io.Protocol $proto
+   * @param  com.mongodb.io.Commands $commands
    * @param  ?com.mongodb.Session $session
    * @param  [:var] $result
    */
-  public function __construct($proto, $session, $result) {
-    $this->proto= $proto;
+  public function __construct($commands, $session, $result) {
+    $this->commands= $commands;
     $this->session= $session;
     parent::__construct($result);
   }
@@ -32,7 +32,7 @@ class Run extends Result {
    */
   public function cursor() {
     return $this->cursor ?? (isset($this->result['body']['cursor'])
-      ? $this->cursor= new Cursor($this->proto, $this->session, $this->result['body']['cursor'])
+      ? $this->cursor= new Cursor($this->commands, $this->session, $this->result['body']['cursor'])
       : null
     );
   }
@@ -48,7 +48,7 @@ class Run extends Result {
       // If cursor was previously fetched using cursor(), any remaining elements will
       // be discarded by that Cursor instance. Otherwise, do this ourselves.
       sscanf($this->result['body']['cursor']['ns'], "%[^.].%[^\r]", $database, $collection);
-      $this->proto->read($this->session, [
+      $this->commands->send($this->session, [
         'killCursors' => $collection,
         'cursors'     => [$this->result['body']['cursor']['id']],
         '$db'         => $database,

@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use com\mongodb\io\Protocol;
+use com\mongodb\io\{Commands, Protocol};
 use com\mongodb\result\{Cursor, ChangeStream};
 use lang\Value;
 use util\Objects;
@@ -34,12 +34,13 @@ class Database implements Value {
    * @return [:var][]
    * @throws com.mongodb.Error
    */
-  public function collections($session= null) {
-    $result= $this->proto->read($session, [
+  public function collections(Session $session= null) {
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($session, [
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);
-    return new Cursor($this->proto, $session, $result['body']['cursor']);
+    return new Cursor($commands, $session, $result['body']['cursor']);
   }
 
   /**
@@ -53,13 +54,15 @@ class Database implements Value {
    */
   public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
     array_unshift($pipeline, ['$changeStream' => (object)$options]);
-    $result= $this->proto->read($session, [
+
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($session, [
       'aggregate' => 1,
       'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => $this->name,
     ]);
-    return new ChangeStream($this->proto, $session, $result['body']['cursor']);
+    return new ChangeStream($commands, $session, $result['body']['cursor']);
   }
 
   /** @return string */

@@ -1,6 +1,6 @@
 <?php namespace com\mongodb;
 
-use com\mongodb\io\Protocol;
+use com\mongodb\io\{Commands, Protocol};
 use com\mongodb\result\{ChangeStream, Run};
 use lang\{IllegalArgumentException, Value};
 use peer\AuthenticationException;
@@ -54,18 +54,19 @@ class MongoConnection implements Value {
    *
    * @param  string $name
    * @param  [:var] $arguments
-   * @param  string $method one of `read` or `write`
+   * @param  string $semantics one of `read` or `write`
    * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $arguments= [], $method= 'write', Session $session= null) {
+  public function run($name, array $arguments= [], $semantics= 'write', Session $session= null) {
     $this->proto->connect();
 
+    $commands= Commands::using($this->proto, $semantics);
     return new Run(
-      $this->proto,
+      $commands,
       $session,
-      $this->proto->{$method}($session, [$name => 1] + $arguments + ['$db' => 'admin'])
+      $commands->send($session, [$name => 1] + $params + ['$db' => 'admin'])
     );
   }
 
@@ -158,13 +159,15 @@ class MongoConnection implements Value {
     $this->proto->connect();
 
     array_unshift($pipeline, ['$changeStream' => ['allChangesForCluster' => true] + $options]);
-    $result= $this->proto->read($session, [
+
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($session, [
       'aggregate' => 1,
       'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => 'admin',
     ]);
-    return new ChangeStream($this->proto, $session, $result['body']['cursor']);
+    return new ChangeStream($commands, $session, $result['body']['cursor']);
   }
 
   /** @return string */
