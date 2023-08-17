@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.13.0 / 2023-08-17
+
+* Merged PR #36: Introduce Commands class which keeps all messages on the
+  same connection, fixing #29 (*Error: cursor id "..." not found*). Note:
+  This changes the low-level internal API inside the `io` package!
+  (@thekid)
+
 ## 1.12.0 / 2023-08-09
 
 * Merged PR #35: Return document properties by reference - @thekid
