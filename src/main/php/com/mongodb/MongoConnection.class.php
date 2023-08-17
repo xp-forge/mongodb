@@ -54,15 +54,15 @@ class MongoConnection implements Value {
    *
    * @param  string $name
    * @param  [:var] $arguments
-   * @param  string $method one of `read` or `write`
+   * @param  string $semantics one of `read` or `write`
    * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $arguments= [], $method= 'write', Session $session= null) {
+  public function run($name, array $arguments= [], $semantics= 'write', Session $session= null) {
     $this->proto->connect();
 
-    $commands= new Commands($this->proto, $method);
+    $commands= new Commands($this->proto, $semantics);
     return new Run(
       $commands,
       $session,

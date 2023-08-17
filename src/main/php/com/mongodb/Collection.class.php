@@ -45,13 +45,13 @@ class Collection implements Value {
    *
    * @param  string $name
    * @param  [:var] $params
-   * @param  string $method one of `read` or `write`
+   * @param  string $semantics one of `read` or `write`
    * @param  ?com.mongodb.Session $session
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $params= [], $method= 'write', Session $session= null) {
-    $commands= new Commands($this->proto, $method);
+  public function run($name, array $params= [], $semantics= 'write', Session $session= null) {
+    $commands= new Commands($this->proto, $semantics);
     return new Run(
       $commands,
       $session,
