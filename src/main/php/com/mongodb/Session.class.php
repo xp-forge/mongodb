@@ -13,7 +13,7 @@ use util\{UUID, Objects};
  * @test  com.mongodb.unittest.SessionTest
  * @test  com.mongodb.unittest.SessionsTest
  */
-class Session implements Value, Closeable {
+class Session extends Options implements Value, Closeable {
   private $proto, $id;
   private $closed= false;
   private $transaction= ['n' => 0];

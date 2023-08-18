@@ -54,13 +54,15 @@ class Commands {
   /**
    * Sends a message
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function send($session, $sections) {
-    $session && $sections+= $session->send($this->proto);
+  public function send($options, $sections) {
+    foreach ($options as $option) {
+      $sections+= $option->send($this->proto);
+    }
     return $this->conn->message($sections, $this->proto->readPreference);
   }
 }
