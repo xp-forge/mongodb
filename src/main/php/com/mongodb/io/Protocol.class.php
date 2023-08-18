@@ -13,7 +13,8 @@ use util\Objects;
  * @test  com.mongodb.unittest.ReplicaSetTest
  */
 class Protocol {
-  private $options, $auth;
+  private $options;
+  protected $auth= null;
   protected $conn= [];
   public $nodes= null;
   public $readPreference;
@@ -91,10 +92,11 @@ class Protocol {
     }
 
     $this->readPreference= ['mode' => $this->options['params']['readPreference'] ?? 'primary'];
-    $this->auth= isset($this->options['user'])
-      ? Authentication::mechanism($this->options['params']['authMechanism'] ?? 'SCRAM-SHA-1')
-      : null
-    ;
+
+    // Check if an authentication mechanism was explicitely selected
+    if ($mechanism= $this->options['params']['authMechanism'] ?? null) {
+      $this->auth= Authentication::mechanism($mechanism);
+    }
   }
 
   /** @return [:var] */

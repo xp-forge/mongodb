@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use com\mongodb\{AuthenticationFailed, Error};
+use com\mongodb\{Authentication, AuthenticationFailed, Error};
 use lang\Throwable;
 use peer\{Socket, ProtocolException, ConnectException};
 use util\Secret;
@@ -93,19 +93,32 @@ class Connection {
     }
 
     // Send hello package and determine connection kind
-    // https://docs.mongodb.com/v4.4/reference/command/hello/
+    // https://www.mongodb.com/docs/manual/reference/command/hello/
+    $hello= [
+      'hello'    => 1,
+      'client'   => [
+        'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
+        'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
+        'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
+      ]
+    ];
+
+    // If the optional field saslSupportedMechs is specified, the command also returns
+    // an array of SASL mechanisms used to create the specified user's credentials.
+    if (isset($options['user'])) {
+      $user= urldecode($options['user']);
+      $pass= urldecode($options['pass']);
+      $authSource= $options['params']['authSource'] ?? (isset($options['path']) ? ltrim($options['path'], '/') : 'admin');
+      $hello['saslSupportedMechs']= "{$authSource}.{$user}";
+    } else {
+      $authSource= null;
+    }
+
     try {
       $reply= $this->send(
         self::OP_QUERY,
         "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
-        [
-          'hello'    => 1,
-          'client'   => [
-            'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
-            'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
-            'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
-          ]
-        ]
+        $hello
       );
     } catch (ProtocolException $e) {
       throw new ConnectException('Server handshake failed @ '.$this->address(), $e);
@@ -134,15 +147,18 @@ class Connection {
     $this->server= ['$kind' => $kind] + $document;
 
     // Optionally, perform authentication
-    if (null === $auth) return;
+    if (null === $authSource) return;
 
     try {
-      $conversation= $auth->conversation(
-        urldecode($options['user']),
-        urldecode($options['pass']),
-        $options['params']['authSource'] ?? (isset($options['path']) ? ltrim($options['path'], '/') : 'admin')
-      );
+      if ($auth) {
+        // Use this explicitely specified mechanism
+      } else if ($supported= $document['saslSupportedMechs'] ?? null) {
+        $auth= Authentication::negotiate($supported);
+      } else {
+        $auth= Authentication::mechanism(Authentication::MECHANISMS[0]);
+      }
 
+      $conversation= $auth->conversation($user, $pass, $authSource);
       do {
         $result= $this->message($conversation->current(), null);
         if (0 === (int)$result['body']['ok']) {
