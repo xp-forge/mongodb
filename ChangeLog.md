@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 1.15.0 / 2023-08-18
+
+* Merged PR #37: Support authentication mechanism negotiation. This way,
+  we default to using SCRAM-SHA-256 if the server supports it as mandated
+  by the specification.
+  (@thekid)
+
 ## 1.14.0 / 2023-08-17
 
 * Merged PR #37: Implement SCRAM-SHA-256 authentication. Implements #8

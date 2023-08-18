@@ -111,7 +111,7 @@ Authentication
 --------------
 To authenticate, pass username and password via the connection string, e.g. `mongodb://user:pass@localhost`. The authentication source defaults to *admin* but can be set by supplying a path, e.g. `mongodb://user:pass@localhost/test`.
 
-Both *SCRAM-SHA-256* and *SCRAM-SHA-1* are supported as authentication mechanisms. By default, sha1 is used, as this is compatible with both local MongoDB installations as well as MongoDB Atlas. To change the mechanism, pass it as part of the connection string, e.g. `mongodb://user:pass@localhost?authMechanism=SCRAM-SHA-256`.
+Both *SCRAM-SHA-256* and *SCRAM-SHA-1* are supported as authentication mechanisms. Which one is used is negotiated upon connecting with the server / cluster. To explicitely select the authentication mechanism, pass it as part of the connection string, e.g. `mongodb://user:pass@localhost?authMechanism=SCRAM-SHA-256`.
 
 SSL / TLS
 ---------
