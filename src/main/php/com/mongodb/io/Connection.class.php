@@ -150,14 +150,7 @@ class Connection {
     if (null === $authSource) return;
 
     try {
-      if ($auth) {
-        // Use this explicitely specified mechanism
-      } else if ($supported= $document['saslSupportedMechs'] ?? null) {
-        $auth= Authentication::negotiate($supported);
-      } else {
-        $auth= Authentication::mechanism(Authentication::MECHANISMS[0]);
-      }
-
+      $auth ?? $auth= Authentication::negotiate($document['saslSupportedMechs'] ?? []);
       $conversation= $auth->conversation($user, $pass, $authSource);
       do {
         $result= $this->message($conversation->current(), null);
