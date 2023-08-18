@@ -111,7 +111,7 @@ Authentication
 --------------
 To authenticate, pass username and password via the connection string, e.g. `mongodb://user:pass@localhost`. The authentication source defaults to *admin* but can be set by supplying a path, e.g. `mongodb://user:pass@localhost/test`.
 
-Currently, *SCRAM-SHA-1* is the only supported authentication mechanism.
+Both *SCRAM-SHA-256* and *SCRAM-SHA-1* are supported as authentication mechanisms.
 
 SSL / TLS
 ---------
