@@ -17,6 +17,9 @@ abstract class Scram implements Mechanism {
     $this->nonce= function() { return base64_encode(random_bytes(24)); };
   }
 
+  /** @return string */
+  public function name() { return static::MECHANISM; }
+
   /**
    * Use the given function to generate nonce values
    *
