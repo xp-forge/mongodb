@@ -7,18 +7,18 @@ use util\Objects;
 
 /** @test com.mongodb.unittest.result.CursorTest */
 class Cursor implements Value, IteratorAggregate {
-  protected $commands, $session, $current;
+  protected $commands, $options, $current;
 
   /**
    * Creates a new cursor
    *
    * @param  com.mongodb.io.Commands $commands
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $current
    */
-  public function __construct($commands, $session, $current) {
+  public function __construct($commands, $options, $current) {
     $this->commands= $commands;
-    $this->session= $session;
+    $this->options= $options;
     $this->current= $current;
   }
 
@@ -34,7 +34,7 @@ class Cursor implements Value, IteratorAggregate {
     // Fetch subsequent batches
     sscanf($this->current['ns'], "%[^.].%[^\r]", $database, $collection);
     while ($this->current['id']->number() > 0) {
-      $result= $this->commands->send($this->session, [
+      $result= $this->commands->send($this->options, [
         'getMore'    => $this->current['id'],
         'collection' => $collection,
         '$db'        => $database,
@@ -93,7 +93,7 @@ class Cursor implements Value, IteratorAggregate {
     if (0 === $this->current['id']->number()) return;
 
     sscanf($this->current['ns'], "%[^.].%[^\r]", $database, $collection);
-    $this->commands->send($this->session, [
+    $this->commands->send($this->options, [
       'killCursors' => $collection,
       'cursors'     => [$this->current['id']],
       '$db'         => $database,

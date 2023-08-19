@@ -55,18 +55,18 @@ class MongoConnection implements Value {
    * @param  string $name
    * @param  [:var] $arguments
    * @param  string $semantics one of `read` or `write`
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $arguments= [], $semantics= 'write', Session $session= null) {
+  public function run($name, array $arguments= [], $semantics= 'write', Options... $options) {
     $this->proto->connect();
 
     $commands= Commands::using($this->proto, $semantics);
     return new Run(
       $commands,
-      $session,
-      $commands->send($session, [$name => 1] + $params + ['$db' => 'admin'])
+      $options,
+      $commands->send($options, [$name => 1] + $params + ['$db' => 'admin'])
     );
   }
 
@@ -120,11 +120,11 @@ class MongoConnection implements Value {
    *
    * @see    https://docs.mongodb.com/manual/reference/command/listDatabases/
    * @param  ?string|com.mongodb.Regex|[:string|com.mongodb.Regex] $filter
-   * @return ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return iterable
    * @throws com.mongodb.Error
    */
-  public function databases($filter= null, $session= null) {
+  public function databases($filter= null, Options... $options) {
     $this->proto->connect();
 
     $request= ['listDatabases' => 1, '$db' => 'admin'];
@@ -136,7 +136,7 @@ class MongoConnection implements Value {
       $request+= ['filter' => ['name' => $filter]];
     }
 
-    foreach ($this->proto->read($session, $request)['body']['databases'] as $d) {
+    foreach ($this->proto->read($options, $request)['body']['databases'] as $d) {
       yield $d['name'] => [
         'name'       => $d['name'],
         'sizeOnDisk' => $d['sizeOnDisk'] instanceof Int64 ? $d['sizeOnDisk'] : new Int64($d['sizeOnDisk']),
@@ -150,24 +150,24 @@ class MongoConnection implements Value {
    * Watch for changes in all databases.
    *
    * @param  [:var][] $pipeline
-   * @param  [:var] $options
-   * @param  ?com.mongodb.Session $session
+   * @param  [:var] $params
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.ChangeStream
    * @throws com.mongodb.Error
    */
-  public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
+  public function watch(array $pipeline= [], array $params= [], Options... $options): ChangeStream {
     $this->proto->connect();
 
-    array_unshift($pipeline, ['$changeStream' => ['allChangesForCluster' => true] + $options]);
+    array_unshift($pipeline, ['$changeStream' => ['allChangesForCluster' => true] + $params]);
 
     $commands= Commands::reading($this->proto);
-    $result= $commands->send($session, [
+    $result= $commands->send($options, [
       'aggregate' => 1,
       'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => 'admin',
     ]);
-    return new ChangeStream($commands, $session, $result['body']['cursor']);
+    return new ChangeStream($commands, $options, $result['body']['cursor']);
   }
 
   /** @return string */

@@ -15,7 +15,7 @@ class SessionTest {
   public function protocol() {
     $this->protocol= new class('mongo://localhost') extends Protocol {
       public $sent= [];
-      public function write($session, $sections) { return ['ok' => 1]; }
+      public function write(array $options, $sections) { return ['ok' => 1]; }
     };
   }
 
@@ -83,7 +83,7 @@ class SessionTest {
   #[Test]
   public function closes_even_when_endSessions_raises_an_exception() {
     $protocol= new class('mongo://localhost') extends Protocol {
-      public function write($session, $sections) {
+      public function write(array $options, $sections) {
         throw new Error(6100, 'MorePower', 'Closing failed');
       }
     };
@@ -121,5 +121,25 @@ class SessionTest {
   #[Test, Expect(IllegalStateException::class)]
   public function send_with_different_protocol() {
     (new Session($this->protocol, self::ID))->send(new Protocol('mongo://test'));
+  }
+
+  #[Test]
+  public function send() {
+    $id= new UUID(self::ID);
+    $session= new Session($this->protocol, $id);
+
+    Assert::equals(['lsid' => ['id' => $id]], $session->send($this->protocol));
+  }
+
+  #[Test]
+  public function send_read_preference() {
+    $id= new UUID(self::ID);
+    $session= new Session($this->protocol, $id);
+    $session->readPreference('secondary');
+
+    Assert::equals(
+      ['lsid' => ['id' => $id], '$readPreference' => ['mode' => 'secondary']],
+      $session->send($this->protocol)
+    );
   }
 }

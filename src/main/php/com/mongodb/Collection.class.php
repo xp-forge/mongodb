@@ -32,12 +32,12 @@ class Collection implements Value {
    * @deprecated Use `run()` instead!
    * @param  string $name
    * @param  [:var] $params
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return var
    * @throws com.mongodb.Error
    */
-  public function command($name, array $params= [], Session $session= null) {
-    return $this->proto->write($session, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
+  public function command($name, array $params= [], Options... $options) {
+    return $this->proto->write($options, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
   }
 
   /**
@@ -46,16 +46,16 @@ class Collection implements Value {
    * @param  string $name
    * @param  [:var] $params
    * @param  string $semantics one of `read` or `write`
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $params= [], $semantics= 'write', Session $session= null) {
+  public function run($name, array $params= [], $semantics= 'write', Options... $options) {
     $commands= Commands::using($this->proto, $semantics);
     return new Run(
       $commands,
-      $session,
-      $commands->send($session, [$name => $this->name] + $params + ['$db' => $this->database])
+      $options,
+      $commands->send($options, [$name => $this->name] + $params + ['$db' => $this->database])
     );
   }
 
@@ -64,11 +64,11 @@ class Collection implements Value {
    * passed documents.
    *
    * @param  com.mongodb.Document|com.mongodb.Document[] $arg
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Insert
    * @throws com.mongodb.Error
    */
-  public function insert($arg, Session $session= null): Insert {
+  public function insert($arg, Options... $options): Insert {
     $documents= is_array($arg) ? $arg : [$arg];
 
     // See https://docs.mongodb.com/manual/reference/method/db.collection.insert/#id-field:
@@ -78,7 +78,7 @@ class Collection implements Value {
       $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
     }
 
-    $result= $this->proto->write($session, [
+    $result= $this->proto->write($options, [
       'insert'    => $this->name,
       'documents' => $documents,
       'ordered'   => true,
@@ -92,12 +92,12 @@ class Collection implements Value {
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Update
    * @throws com.mongodb.Error
    */
-  public function upsert($query, $arg, Session $session= null): Update {
-    $result= $this->proto->write($session, [
+  public function upsert($query, $arg, Options... $options): Update {
+    $result= $this->proto->write($options, [
       'update'    => $this->name,
       'updates'   => [[
         'q'      => $query instanceof ObjectId ? ['_id' => $query] : $query,
@@ -115,12 +115,12 @@ class Collection implements Value {
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var] $statements Update operator expressions
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Update
    * @throws com.mongodb.Error
    */
-  public function update($query, $statements, Session $session= null): Update {
-    $result= $this->proto->write($session, [
+  public function update($query, $statements, Options... $options): Update {
+    $result= $this->proto->write($options, [
       'update'    => $this->name,
       'updates'   => [['u' => $statements] + (is_array($query)
         ? ['q' => $query, 'multi' => true]
@@ -136,12 +136,12 @@ class Collection implements Value {
    * Delete documents
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Delete
    * @throws com.mongodb.Error
    */
-  public function delete($query, Session $session= null): Delete {
-    $result= $this->proto->write($session, [
+  public function delete($query, Options... $options): Delete {
+    $result= $this->proto->write($options, [
       'delete'    => $this->name,
       'deletes'   => [is_array($query)
         ? ['q' => $query, 'limit' => 0]
@@ -157,31 +157,31 @@ class Collection implements Value {
    * Find documents in this collection
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Cursor
    * @throws com.mongodb.Error
    */
-  public function find($query= [], Session $session= null): Cursor {
+  public function find($query= [], Options... $options): Cursor {
     $commands= Commands::reading($this->proto);
-    $result= $commands->send($session, [
+    $result= $commands->send($options, [
       'find'   => $this->name,
       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
       '$db'    => $this->database,
     ]);
-    return new Cursor($commands, $session, $result['body']['cursor']);
+    return new Cursor($commands, $options, $result['body']['cursor']);
   }
 
   /**
    * Count documents in this collection
    *
    * @param  [:var] $filter
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return int
    * @throws com.mongodb.Error
    */
-  public function count($filter= [], Session $session= null): int {
+  public function count($filter= [], Options... $options): int {
     $count= ['$count' => 'n'];
-    $result= $this->proto->read($session, [
+    $result= $this->proto->read($options, [
       'aggregate' => $this->name,
       'pipeline'  => $filter ? [['$match' => $filter], $count] : [$count],
       'cursor'    => (object)[],
@@ -195,13 +195,13 @@ class Collection implements Value {
    *
    * @param  string $key
    * @param  [:var] $filter
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return var[]
    * @throws com.mongodb.Error
    */
-  public function distinct($key, $filter= [], Session $session= null): array {
+  public function distinct($key, $filter= [], Options... $options): array {
     $distinct= ['$group' => ['_id' => 1, 'values' => ['$addToSet' => '$'.$key]]];
-    $result= $this->proto->read($session, [
+    $result= $this->proto->read($options, [
       'aggregate' => $this->name,
       'pipeline'  => $filter ? [['$match' => $filter], $distinct] : [$distinct],
       'cursor'    => (object)[],
@@ -214,11 +214,11 @@ class Collection implements Value {
    * Perfom aggregation over documents this collection
    *
    * @param  [:var][] $pipeline
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Cursor
    * @throws com.mongodb.Error
    */
-  public function aggregate(array $pipeline= [], Session $session= null): Cursor {
+  public function aggregate(array $pipeline= [], Options... $options): Cursor {
     $sections= [
       'aggregate' => $this->name,
       'pipeline'  => $pipeline,
@@ -239,30 +239,30 @@ class Collection implements Value {
       $commands= Commands::reading($this->proto);
     }
 
-    $result= $commands->send($session, $sections);
-    return new Cursor($commands, $session, $result['body']['cursor']);
+    $result= $commands->send($options, $sections);
+    return new Cursor($commands, $options, $result['body']['cursor']);
   }
 
   /**
    * Watch for changes in this collection
    *
    * @param  [:var][] $pipeline
-   * @param  [:var] $options
-   * @param  ?com.mongodb.Session $session
+   * @param  [:var] $params
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.ChangeStream
    * @throws com.mongodb.Error
    */
-  public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
-    array_unshift($pipeline, ['$changeStream' => (object)$options]);
+  public function watch(array $pipeline= [], array $params= [], Options... $options): ChangeStream {
+    array_unshift($pipeline, ['$changeStream' => (object)$params]);
 
     $commands= Commands::reading($this->proto);
-    $result= $commands->send($session, [
+    $result= $commands->send($options, [
       'aggregate' => $this->name,
       'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => $this->database,
     ]);
-    return new ChangeStream($commands, $session, $result['body']['cursor']);
+    return new ChangeStream($commands, $options, $result['body']['cursor']);
   }
 
   /** @return string */

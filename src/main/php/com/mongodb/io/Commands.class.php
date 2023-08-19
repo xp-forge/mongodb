@@ -23,7 +23,7 @@ class Commands {
   /** Creates an instance for reading */
   public static function reading(Protocol $proto): self {
     return new self($proto, $proto->establish(
-      $proto->candidates($proto->readPreference['mode']),
+      $proto->candidates($proto->readPreference),
       'reading with '.$proto->readPreference['mode']
     ));
   }
@@ -54,13 +54,17 @@ class Commands {
   /**
    * Sends a message
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function send($session, $sections) {
-    $session && $sections+= $session->send($this->proto);
-    return $this->conn->message($sections, $this->proto->readPreference);
+  public function send($options, $sections) {
+    foreach ($options as $option) {
+      $sections+= $option->send($this->proto);
+    }
+
+    $rp= $section['$readPreference'] ?? $this->proto->readPreference;
+    return $this->conn->message($sections, $rp);
   }
 }

@@ -1,10 +1,13 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Collection, Document, Int64, ObjectId};
-use test\{Assert, Test, Values};
+use com\mongodb\{Collection, Document, Int64, ObjectId, Options, Session};
+use test\{Assert, Before, Test, Values};
+use util\UUID;
 
 class CollectionTest {
   use WireTesting;
+
+  private $sessionId;
 
   /** @return iterable */
   private function documents() {
@@ -22,6 +25,11 @@ class CollectionTest {
     $responses= [$this->hello(self::$PRIMARY), ['body' => ['ok' => 1] + $response]];
     $protocol= $this->protocol([self::$PRIMARY => $responses], 'primary');
     return new Collection($protocol->connect(), 'testing', 'tests');
+  }
+
+  #[Before]
+  public function sessionId() {
+    $this->sessionId= new UUID('5f375bfe-af78-4af8-bb03-5d441a66a5fb');
   }
 
   #[Test]
@@ -249,5 +257,63 @@ class CollectionTest {
       'com.mongodb.Collection<testing.tests@mongodb://'.self::$PRIMARY.'>',
       $this->newFixture([])->toString()
     );
+  }
+
+  #[Test]
+  public function find_with_session() {
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([]), $this->ok()]];
+    $proto= $this->protocol($replies, 'primary')->connect();
+
+    $session= new Session($proto, $this->sessionId);
+    try {
+      $coll= new Collection($proto, 'test', 'tests');
+      $coll->find([], $session);
+    } finally {
+      $session->close();
+    }
+
+    $find= [
+      'find'            => 'tests',
+      'filter'          => (object)[],
+      '$db'             => 'test',
+      'lsid'            => ['id' => $this->sessionId],
+      '$readPreference' => ['mode' => 'primary']
+    ];
+    Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-2));
+  }
+
+  #[Test]
+  public function find_with_options() {
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([])]];
+    $proto= $this->protocol($replies, 'primary')->connect();
+
+    $coll= new Collection($proto, 'test', 'tests');
+    $coll->find([], new Options(['sort' => ['name' => -1]]));
+
+    $find= [
+      'find'            => 'tests',
+      'filter'          => (object)[],
+      '$db'             => 'test',
+      'sort'            => ['name' => -1],
+      '$readPreference' => ['mode' => 'primary']
+    ];
+    Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
+  }
+
+  #[Test]
+  public function find_with_read_preference() {
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([])]];
+    $proto= $this->protocol($replies, 'primary')->connect();
+
+    $coll= new Collection($proto, 'test', 'tests');
+    $coll->find([], (new Options())->readPreference('secondaryPreferred'));
+
+    $find= [
+      'find'            => 'tests',
+      'filter'          => (object)[],
+      '$db'             => 'test',
+      '$readPreference' => ['mode' => 'secondaryPreferred']
+    ];
+    Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
   }
 }

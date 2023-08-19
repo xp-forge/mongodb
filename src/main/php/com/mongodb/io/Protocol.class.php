@@ -141,20 +141,20 @@ class Protocol {
    *
    * @see    https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#read-preference
    * @see    https://docs.mongodb.com/manual/core/read-preference-mechanics/
-   * @param  string $rp
+   * @param  [:var] $rp
    * @return string[]
    * @throws lang.IllegalArgumentException
    */
   public function candidates($rp) {
-    if ('primary' === $rp) {
+    if ('primary' === $rp['mode']) {
       return [$this->nodes['primary']];
-    } else if ('secondary' === $rp) {
+    } else if ('secondary' === $rp['mode']) {
       return $this->nodes['secondary'];
-    } else if ('primaryPreferred' === $rp) {
+    } else if ('primaryPreferred' === $rp['mode']) {
       return array_merge([$this->nodes['primary']], $this->nodes['secondary']);
-    } else if ('secondaryPreferred' === $rp) {
+    } else if ('secondaryPreferred' === $rp['mode']) {
       return array_merge($this->nodes['secondary'], [$this->nodes['primary']]);
-    } else if ('nearest' === $rp) {  // Prefer to stay on already open connections
+    } else if ('nearest' === $rp['mode']) {  // Prefer to stay on already open connections
       $connected= null;
       foreach ($this->conn as $id => $conn) {
         if (null === $conn->server) continue;
@@ -218,33 +218,38 @@ class Protocol {
    * Perform a read operation, which selecting a suitable node based on the
    * `readPreference` serting.
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function read($session, $sections) {
-    $session && $sections+= $session->send($this);
-    $rp= $this->readPreference['mode'];
+  public function read(array $options, $sections) {
+    foreach ($options as $option) {
+      $sections+= $option->send($this);
+    }
 
-    return $this->establish($this->candidates($rp), 'reading with '.$rp)
-      ->message($sections, $this->readPreference)
+    $rp= $sections['$readPreference'] ?? $this->readPreference;
+    return $this->establish($this->candidates($rp), 'reading with '.$rp['mode'])
+      ->message($sections, $rp)
     ;
   }
 
   /**
    * Perform a write operation, which always uses the primary node.
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function write($session, $sections) {
-    $session && $sections+= $session->send($this);
+  public function write(array $options, $sections) {
+    foreach ($options as $option) {
+      $sections+= $option->send($this);
+    }
 
+    $rp= $sections['$readPreference'] ?? $this->readPreference;
     return $this->establish([$this->nodes['primary']], 'writing')
-      ->message($sections, $this->readPreference)
+      ->message($sections, $rp)
     ;
   }
 

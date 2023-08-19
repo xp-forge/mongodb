@@ -30,39 +30,39 @@ class Database implements Value {
   /**
    * Returns a list of database information objects
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options... $options
    * @return [:var][]
    * @throws com.mongodb.Error
    */
-  public function collections(Session $session= null) {
+  public function collections(Options... $options) {
     $commands= Commands::reading($this->proto);
-    $result= $commands->send($session, [
+    $result= $commands->send($options, [
       'listCollections' => (object)[],
       '$db'             => $this->name
     ]);
-    return new Cursor($commands, $session, $result['body']['cursor']);
+    return new Cursor($commands, $options, $result['body']['cursor']);
   }
 
   /**
    * Watch for changes in this database
    *
    * @param  [:var][] $pipeline
-   * @param  [:var] $options
-   * @param  ?com.mongodb.Session $session
+   * @param  [:var] $params
+   * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.ChangeStream
    * @throws com.mongodb.Error
    */
-  public function watch(array $pipeline= [], array $options= [], Session $session= null): ChangeStream {
-    array_unshift($pipeline, ['$changeStream' => (object)$options]);
+  public function watch(array $pipeline= [], array $params= [], Options... $options): ChangeStream {
+    array_unshift($pipeline, ['$changeStream' => (object)$params]);
 
     $commands= Commands::reading($this->proto);
-    $result= $commands->send($session, [
+    $result= $commands->send($options, [
       'aggregate' => 1,
       'pipeline'  => $pipeline,
       'cursor'    => (object)[],
       '$db'       => $this->name,
     ]);
-    return new ChangeStream($commands, $session, $result['body']['cursor']);
+    return new ChangeStream($commands, $options, $result['body']['cursor']);
   }
 
   /** @return string */
