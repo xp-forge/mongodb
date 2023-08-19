@@ -23,7 +23,7 @@ class Commands {
   /** Creates an instance for reading */
   public static function reading(Protocol $proto): self {
     return new self($proto, $proto->establish(
-      $proto->candidates($proto->readPreference['mode']),
+      $proto->candidates($proto->readPreference),
       'reading with '.$proto->readPreference['mode']
     ));
   }
