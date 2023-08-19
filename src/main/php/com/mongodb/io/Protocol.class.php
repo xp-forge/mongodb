@@ -227,10 +227,10 @@ class Protocol {
     foreach ($options as $option) {
       $sections+= $option->send($this);
     }
-    $rp= $sections['$readPreference'] ?? $this->readPreference['mode'];
 
-    return $this->establish($this->candidates($rp), 'reading with '.$rp)
-      ->message($sections, $this->readPreference)
+    $rp= $sections['$readPreference'] ?? $this->readPreference;
+    return $this->establish($this->candidates($rp['mode']), 'reading with '.$rp['mode'])
+      ->message($sections, $rp)
     ;
   }
 
@@ -246,10 +246,10 @@ class Protocol {
     foreach ($options as $option) {
       $sections+= $option->send($this);
     }
-    $rp= $sections['$readPreference'] ?? $this->readPreference['mode'];
 
+    $rp= $sections['$readPreference'] ?? $this->readPreference;
     return $this->establish([$this->nodes['primary']], 'writing')
-      ->message($sections, $this->readPreference)
+      ->message($sections, $rp)
     ;
   }
 

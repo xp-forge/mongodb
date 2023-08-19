@@ -63,6 +63,8 @@ class Commands {
     foreach ($options as $option) {
       $sections+= $option->send($this->proto);
     }
-    return $this->conn->message($sections, $this->proto->readPreference);
+
+    $rp= $section['$readPreference'] ?? $this->proto->readPreference;
+    return $this->conn->message($sections, $rp);
   }
 }
