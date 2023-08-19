@@ -3,7 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
-## 2.0.0 / ????-??-??
+## 2.0.0 / 2023-08-19
+
+The second major release adds the possibility to pass additional options
+to all commands, including read preference as well as read and write
+concerns.
 
 * Merged PR #40: Implement read and write concerns, implementing #11.
   See https://www.mongodb.com/docs/manual/reference/read-concern/ and
