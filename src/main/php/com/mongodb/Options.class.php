@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 class Options {
-  private $pairs;
+  protected $pairs;
 
   /** @param [:var] */
   public function __construct(array $pairs= []) {

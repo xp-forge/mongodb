@@ -122,4 +122,24 @@ class SessionTest {
   public function send_with_different_protocol() {
     (new Session($this->protocol, self::ID))->send(new Protocol('mongo://test'));
   }
+
+  #[Test]
+  public function send() {
+    $id= new UUID(self::ID);
+    $session= new Session($this->protocol, $id);
+
+    Assert::equals(['lsid' => ['id' => $id]], $session->send($this->protocol));
+  }
+
+  #[Test]
+  public function send_read_preference() {
+    $id= new UUID(self::ID);
+    $session= new Session($this->protocol, $id);
+    $session->readPreference('secondary');
+
+    Assert::equals(
+      ['lsid' => ['id' => $id], '$readPreference' => ['mode' => 'secondary']],
+      $session->send($this->protocol)
+    );
+  }
 }

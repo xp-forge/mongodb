@@ -25,6 +25,7 @@ class Session extends Options implements Value, Closeable {
    * @param  string|util.UUID $id
    */
   public function __construct(Protocol $proto, $id) {
+    parent::__construct([]);
     $this->proto= $proto;
     $this->id= $id instanceof UUID ? $id : new UUID($id);
   }
@@ -124,7 +125,7 @@ class Session extends Options implements Value, Closeable {
     // add the lsid, txnNumber, startTransaction, and autocommit fields. When 
     // constructing any other command within a transaction, drivers MUST add
     // the lsid, txnNumber, and autocommit fields.
-    $fields= ['lsid' => ['id' => $this->id]];
+    $fields= ['lsid' => ['id' => $this->id]] + $this->pairs;
     if (isset($this->transaction['context'])) {
       $fields+= $this->transaction['context'];
       unset($this->transaction['context']['startTransaction']);
