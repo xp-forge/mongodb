@@ -120,11 +120,11 @@ class MongoConnection implements Value {
    *
    * @see    https://docs.mongodb.com/manual/reference/command/listDatabases/
    * @param  ?string|com.mongodb.Regex|[:string|com.mongodb.Regex] $filter
-   * @return com.mongodb.Options... $options
+   * @param  com.mongodb.Options... $options
    * @return iterable
    * @throws com.mongodb.Error
    */
-  public function databases($filter= null, $options= null) {
+  public function databases($filter= null, Options... $options) {
     $this->proto->connect();
 
     $request= ['listDatabases' => 1, '$db' => 'admin'];
