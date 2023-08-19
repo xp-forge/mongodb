@@ -299,4 +299,21 @@ class CollectionTest {
     ];
     Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
   }
+
+  #[Test]
+  public function find_with_read_preference() {
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([])]];
+    $proto= $this->protocol($replies, 'primary')->connect();
+
+    $coll= new Collection($proto, 'test', 'tests');
+    $coll->find([], new Options(['$readPreference' => ['mode' => 'secondaryPreferred']]));
+
+    $find= [
+      'find'            => 'tests',
+      'filter'          => (object)[],
+      '$db'             => 'test',
+      '$readPreference' => ['mode' => 'secondaryPreferred']
+    ];
+    Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
+  }
 }
