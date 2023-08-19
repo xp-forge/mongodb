@@ -54,7 +54,7 @@ class Commands {
   /**
    * Sends a message
    *
-   * @param  com.mongodb.Options $options
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
