@@ -36,10 +36,14 @@ class Options {
    *
    * @see    https://www.mongodb.com/docs/manual/reference/write-concern/
    * @param  string|int $w
+   * @param  ?int $wtimeout
+   * @param  ?bool $journal
    * @return self
    */
-  public function writeConcern($w) {
+  public function writeConcern($w, $wtimeout= null, $journal= null) {
     $this->pairs['writeConcern']= ['w' => $w];
+    null === $wtimeout || $this->pairs['writeConcern']['wtimeout']= (int)$wtimeout;
+    null === $journal || $this->pairs['writeConcern']['j']= (bool)$journal;
     return $this;
   }
 
