@@ -29,20 +29,6 @@ class Collection implements Value {
   /**
    * Runs a command in this database
    *
-   * @deprecated Use `run()` instead!
-   * @param  string $name
-   * @param  [:var] $params
-   * @param  com.mongodb.Options... $options
-   * @return var
-   * @throws com.mongodb.Error
-   */
-  public function command($name, array $params= [], Options... $options) {
-    return $this->proto->write($options, [$name => $this->name] + $params + ['$db' => $this->database])['body'];
-  }
-
-  /**
-   * Runs a command in this database
-   *
    * @param  string $name
    * @param  [:var] $params
    * @param  string $semantics one of `read` or `write`

@@ -5,6 +5,9 @@ MongoDB for XP Framework ChangeLog
 
 ## 2.0.0 / ????-??-??
 
+* Merged PR #41: Remove deprecated Collection::command(), superseded in
+  1.4.0 with the new `run()` method, see #21.
+  (@thekid)
 * Merged PR #39: Refactor all methods to receive options varargs. Passing
   additional options to methods such as *find* can be accomplished by
   creating `Options` instances.
