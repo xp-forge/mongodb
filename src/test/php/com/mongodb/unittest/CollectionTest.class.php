@@ -316,4 +316,41 @@ class CollectionTest {
     ];
     Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
   }
+
+  #[Test, Values(['local', 'majority'])]
+  public function find_with_read_concern($level) {
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([])]];
+    $proto= $this->protocol($replies, 'primary')->connect();
+
+    $coll= new Collection($proto, 'test', 'tests');
+    $coll->find([], (new Options())->readConcern($level));
+
+    $find= [
+      'find'            => 'tests',
+      'filter'          => (object)[],
+      '$db'             => 'test',
+      'readConcern'     => ['level' => $level],
+      '$readPreference' => ['mode' => 'primary']
+    ];
+    Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
+  }
+
+  #[Test, Values([1, 'majority'])]
+  public function update_with_write_concern($w) {
+    $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->ok()]];
+    $proto= $this->protocol($replies, 'primary')->connect();
+
+    $coll= new Collection($proto, 'test', 'tests');
+    $coll->update([], [], (new Options())->writeConcern($w));
+
+    $find= [
+      'update'          => 'tests',
+      'updates'         => [['u' => [], 'q' => [], 'multi' => true]],
+      'ordered'         => true,
+      '$db'             => 'test',
+      'writeConcern'    => ['w' => $w],
+      '$readPreference' => ['mode' => 'primary']
+    ];
+    Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
+  }
 }
