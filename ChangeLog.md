@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.0.0 / ????-??-??
+
+* Merged PR #39: Refactor all methods to receive options varargs. Passing
+  additional options to methods such as *find* can be accomplished by
+  creating `Options` instances.
+  (@thekid)
+
 ## 1.15.0 / 2023-08-18
 
 * Merged PR #38: Support authentication mechanism negotiation. This way,
