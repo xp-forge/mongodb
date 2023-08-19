@@ -306,7 +306,7 @@ class CollectionTest {
     $proto= $this->protocol($replies, 'primary')->connect();
 
     $coll= new Collection($proto, 'test', 'tests');
-    $coll->find([], new Options(['$readPreference' => ['mode' => 'secondaryPreferred']]));
+    $coll->find([], (new Options())->readPreference('secondaryPreferred'));
 
     $find= [
       'find'            => 'tests',
