@@ -1,5 +1,6 @@
 <?php namespace com\mongodb;
 
+/** @test com.mongodb.unittest.OptionsTest */
 class Options {
   protected $pairs;
 
