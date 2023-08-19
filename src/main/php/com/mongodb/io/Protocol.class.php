@@ -168,7 +168,7 @@ class Protocol {
       ));
     }
 
-    throw new IllegalArgumentException('Unknown read preference "'.$rp.'"');
+    throw new IllegalArgumentException('Unknown read preference '.Objects::stringOf($rp));
   }
 
   /**
