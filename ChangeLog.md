@@ -5,6 +5,10 @@ MongoDB for XP Framework ChangeLog
 
 ## 2.0.0 / ????-??-??
 
+* Merged PR #40: Implement read and write concerns, implementing #11.
+  See https://www.mongodb.com/docs/manual/reference/read-concern/ and
+  https://www.mongodb.com/docs/manual/reference/write-concern/
+  (@thekid)
 * Merged PR #41: Remove deprecated Collection::command(), superseded in
   1.4.0 with the new `run()` method, see #21.
   (@thekid)
