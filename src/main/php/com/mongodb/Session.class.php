@@ -80,7 +80,7 @@ class Session extends Options implements Value, Closeable {
 
     try {
       if (!isset($this->transaction['context']['startTransaction'])) {
-        $this->proto->write($this, ['commitTransaction' => 1, '$db' => 'admin'] + $this->transaction['t'] + $this->transaction['context']);
+        $this->proto->write([$this], ['commitTransaction' => 1, '$db' => 'admin'] + $this->transaction['t'] + $this->transaction['context']);
       }
     } finally {
       unset($this->transaction['context']);
@@ -101,7 +101,7 @@ class Session extends Options implements Value, Closeable {
 
     try {
       if (!isset($this->transaction['context']['startTransaction'])) {
-        $this->proto->write($this, ['abortTransaction' => 1, '$db' => 'admin'] + $this->transaction['context']);
+        $this->proto->write([$this], ['abortTransaction' => 1, '$db' => 'admin'] + $this->transaction['context']);
       }
     } finally {
       unset($this->transaction['context']);
@@ -139,7 +139,7 @@ class Session extends Options implements Value, Closeable {
     // Should there be an active running transaction, abort it.
     if (isset($this->transaction['context'])) {
       try {
-        $this->proto->write($this, ['abortTransaction' => 1, '$db' => 'admin'] + $this->transaction['context']);
+        $this->proto->write([$this], ['abortTransaction' => 1, '$db' => 'admin'] + $this->transaction['context']);
       } catch (Throwable $ignored) {
         // NOOP
       }
@@ -149,7 +149,7 @@ class Session extends Options implements Value, Closeable {
     // Fire and forget: If the user has no session that match, the endSessions call has
     // no effect, see https://docs.mongodb.com/manual/reference/command/endSessions/
     try {
-      $this->proto->write($this, ['endSessions' => [['id' => $this->id]], '$db' => 'admin']);
+      $this->proto->write([$this], ['endSessions' => [['id' => $this->id]], '$db' => 'admin']);
     } catch (Throwable $ignored) {
       // NOOP
     }

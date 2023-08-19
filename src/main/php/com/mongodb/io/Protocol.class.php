@@ -218,14 +218,16 @@ class Protocol {
    * Perform a read operation, which selecting a suitable node based on the
    * `readPreference` serting.
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function read($session, $sections) {
-    $session && $sections+= $session->send($this);
-    $rp= $this->readPreference['mode'];
+  public function read(array $options, $sections) {
+    foreach ($options as $option) {
+      $sections+= $option->send($this);
+    }
+    $rp= $sections['$readPreference'] ?? $this->readPreference['mode'];
 
     return $this->establish($this->candidates($rp), 'reading with '.$rp)
       ->message($sections, $this->readPreference)
@@ -235,13 +237,16 @@ class Protocol {
   /**
    * Perform a write operation, which always uses the primary node.
    *
-   * @param  ?com.mongodb.Session $session
+   * @param  com.mongodb.Options[] $options
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
    */
-  public function write($session, $sections) {
-    $session && $sections+= $session->send($this);
+  public function write(array $options, $sections) {
+    foreach ($options as $option) {
+      $sections+= $option->send($this);
+    }
+    $rp= $sections['$readPreference'] ?? $this->readPreference['mode'];
 
     return $this->establish([$this->nodes['primary']], 'writing')
       ->message($sections, $this->readPreference)

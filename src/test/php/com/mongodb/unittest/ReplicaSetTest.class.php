@@ -58,7 +58,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [],
     ];
     $fixture= $this->protocol($replicaSet, 'secondaryPreferred')->connect();
-    $fixture->read(null, [/* anything */]);
+    $fixture->read([], [/* anything */]);
 
     Assert::equals(
       [self::$PRIMARY => TestingConnection::RSPrimary, self::$SECONDARY1 => null, self::$SECONDARY2 => null],
@@ -84,7 +84,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [],
     ];
     $fixture= $this->protocol($replicaSet, $readPreference)->connect();
-    $fixture->read(null, [/* anything */]);
+    $fixture->read([], [/* anything */]);
 
     Assert::equals(
       [self::$PRIMARY => TestingConnection::RSPrimary, self::$SECONDARY1 => TestingConnection::RSSecondary, self::$SECONDARY2 => null],
@@ -100,7 +100,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [$this->hello(self::$SECONDARY2), $this->ok()],
     ];
     $fixture= $this->protocol($replicaSet, $readPreference)->connect();
-    $fixture->read(null, [/* anything */]);
+    $fixture->read([], [/* anything */]);
 
     Assert::equals(
       [self::$PRIMARY => TestingConnection::RSPrimary, self::$SECONDARY1 => null, self::$SECONDARY2 => TestingConnection::RSSecondary],
@@ -116,7 +116,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [$this->hello(self::$SECONDARY2), $this->ok()],
     ];
     $fixture= $this->protocol($replicaSet, $readPreference)->connect();
-    $fixture->read(null, [/* anything */]);
+    $fixture->read([], [/* anything */]);
 
     $connected= $this->connected($fixture);
     Assert::equals(TestingConnection::RSSecondary, $connected[self::$SECONDARY1] ?? $connected[self::$SECONDARY2]);
@@ -130,7 +130,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [$this->hello(self::$SECONDARY2), $this->ok()],
     ];
     $fixture= $this->protocol($replicaSet, $readPreference)->connect();
-    $fixture->read(null, [/* anything */]);
+    $fixture->read([], [/* anything */]);
 
     Assert::equals(
       [self::$PRIMARY => TestingConnection::RSPrimary, self::$SECONDARY1 => null, self::$SECONDARY2 => TestingConnection::RSSecondary],
@@ -145,7 +145,7 @@ class ReplicaSetTest {
       self::$SECONDARY1  => [$this->hello(self::$SECONDARY1), $this->cursor([['n' => 44]])],
       self::$SECONDARY2  => [$this->hello(self::$SECONDARY1), $this->cursor([['n' => 44]])],
     ];
-    $response= $this->protocol($replicaSet, $readPreference)->connect()->read(null, [
+    $response= $this->protocol($replicaSet, $readPreference)->connect()->read([], [
       'aggregate' => 'test.entries',
       'pipeline'  => ['$count' => 'n'],
       'cursor'    => (object)[],
@@ -179,7 +179,7 @@ class ReplicaSetTest {
       ]],
       self::$SECONDARY2  => [],
     ];
-    $response= $this->protocol($replicaSet)->connect()->write(null, [
+    $response= $this->protocol($replicaSet)->connect()->write([], [
       'delete'    => 'test',
       'deletes'   => [['q' => ['_id' => new ObjectId('622b53218e7205b37f8f8774')], 'limit' => 1]],
       'ordered'   => true,
@@ -197,7 +197,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [],
     ];
     $fixture= $this->protocol($replicaSet, 'secondary')->connect();
-    $fixture->read(null, [/* anything */]);
+    $fixture->read([], [/* anything */]);
   }
 
   #[Test, Expect(class: NoSuitableCandidate::class, message: '/No suitable candidate eligible for writing/')]
@@ -208,7 +208,7 @@ class ReplicaSetTest {
       self::$SECONDARY2 => [$this->hello(self::$SECONDARY2)],
     ];
     $fixture= $this->protocol($replicaSet, 'primary')->connect();
-    $fixture->write(null, [/* anything */]);
+    $fixture->write([], [/* anything */]);
   }
 
   #[Test]
@@ -222,7 +222,7 @@ class ReplicaSetTest {
     $fixture->socketCheckInterval= 0;
 
     // This will connect and then read from secondary #1 successfully.
-    $fixture->read(null, [
+    $fixture->read([], [
       'aggregate' => 'test.entries',
       'pipeline'  => ['$count' => 'n'],
       'cursor'    => (object)[],
@@ -231,7 +231,7 @@ class ReplicaSetTest {
 
     // This will first run into an error while pinging secondary #1, closing the
     // connection, subsequently reconnecting and then fetching the new count.
-    $response= $fixture->read(null, [
+    $response= $fixture->read([], [
       'aggregate' => 'test.entries',
       'pipeline'  => ['$count' => 'n'],
       'cursor'    => (object)[],
@@ -260,7 +260,7 @@ class ReplicaSetTest {
     $fixture= $this->protocol($replicaSet, 'primary')->connect();
 
     Assert::throws(Error::class, function() use($fixture) {
-      $fixture->read(null, [/* anything */]);
+      $fixture->read([], [/* anything */]);
     });
     Assert::equals(
       [self::$PRIMARY => TestingConnection::RSPrimary, self::$SECONDARY1 => null, self::$SECONDARY2 => null],
@@ -283,7 +283,7 @@ class ReplicaSetTest {
     }
 
     // Calling read() will reconnect
-    $response= $protocol->read(null, [
+    $response= $protocol->read([], [
       'aggregate' => 'test.entries',
       'pipeline'  => ['$count' => 'n'],
       'cursor'    => (object)[],

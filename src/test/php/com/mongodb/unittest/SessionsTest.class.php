@@ -37,8 +37,8 @@ class SessionsTest {
   private function transaction($replies, $command, $options= null) {
     return $this->session($replies, function($proto, $session) use($command, $options) {
       $transaction= $session->transaction($options);
-      $proto->write($transaction, $command);
-      $proto->write($transaction, $command);
+      $proto->write([$transaction], $command);
+      $proto->write([$transaction], $command);
       $transaction->commit();
     });
   }
@@ -53,7 +53,7 @@ class SessionsTest {
     $replies= [self::$PRIMARY => [$this->hello(self::$PRIMARY), $this->cursor([['n' => 45]]), $this->ok()]];
     $count= ['count' => 'entries', '$db' => 'test'];
     $fixture= $this->session($replies, function($proto, $session) use($count) {
-      $proto->read($session, $count);
+      $proto->read([$session], $count);
     });
 
     $conn= $fixture->connections()[self::$PRIMARY];
