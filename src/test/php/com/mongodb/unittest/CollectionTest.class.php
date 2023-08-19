@@ -42,14 +42,6 @@ class CollectionTest {
     Assert::equals('testing.tests', $this->newFixture([])->namespace());
   }
 
-  /** @deprecated */
-  #[Test]
-  public function command() {
-    $result= $this->newFixture(['text' => 'PONG'])->command('ping');
-
-    Assert::equals(['ok' => 1, 'text' => 'PONG'], $result);
-  }
-
   #[Test]
   public function run_command() {
     $result= $this->newFixture(['text' => 'PONG'])->run('ping');
