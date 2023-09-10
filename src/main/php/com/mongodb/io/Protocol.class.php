@@ -268,7 +268,7 @@ class Protocol {
     if (1 === (int)$r['body']['ok']) return $r;
 
     // Check for "NotWritablePrimary" error, which indicates our view of the cluster
-    // may be outdated, see https://github.com/xp-forge/mongodb/issues/42. Refresh
+    // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
     // view using the "hello" command, then retry the command once.
     if ($retry && isset($NOT_PRIMARY[$r['body']['code']])) {
       $this->useCluster($conn->hello());
