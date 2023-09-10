@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\{Collection, Document, Int64, ObjectId, Options, Session};
-use test\{Assert, Before, Test, Values};
+use com\mongodb\{Collection, Document, Int64, ObjectId, Options, Session, Error};
+use test\{Assert, Before, Expect, Test, Values};
 use util\UUID;
 
 class CollectionTest {
@@ -22,7 +22,7 @@ class CollectionTest {
    * @return com.mongodb.Collection
    */
   private function newFixture($response) {
-    $responses= [$this->hello(self::$PRIMARY), ['body' => ['ok' => 1] + $response]];
+    $responses= [$this->hello(self::$PRIMARY), ['body' => $response + ['ok' => 1]]];
     $protocol= $this->protocol([self::$PRIMARY => $responses], 'primary');
     return new Collection($protocol->connect(), 'testing', 'tests');
   }
@@ -344,5 +344,11 @@ class CollectionTest {
       '$readPreference' => ['mode' => 'primary']
     ];
     Assert::equals($find, $proto->connections()[self::$PRIMARY]->command(-1));
+  }
+
+  #[Test, Expect(class: Error::class, message: 'Test')]
+  public function error_raised() {
+    $error= ['code' => 6100, 'codeName' => 'TestingError', 'errmsg' => 'Test'];
+    $this->newFixture(['ok' => 0] + $error)->update('6100', ['$inc' => ['qty' => 1]]);
   }
 }
