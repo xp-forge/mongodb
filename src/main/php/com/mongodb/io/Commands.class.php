@@ -77,7 +77,7 @@ class Commands {
     }
 
     // Retry "NotWritablePrimary" errors, replacing the connection
-    if ($this->retry-- && isset(Protocol::NOT_PRIMARY[$r['body']['code']])) {
+    if ($this->retry-- && isset(Error::NOT_PRIMARY[$r['body']['code']])) {
       $this->proto->useCluster($this->conn->hello());
       $this->conn= $this->proto->establish([$this->proto->nodes['primary']], 'writing');
       goto retry;

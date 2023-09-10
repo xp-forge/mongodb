@@ -13,8 +13,6 @@ use util\Objects;
  * @test  com.mongodb.unittest.ReplicaSetTest
  */
 class Protocol {
-  const NOT_PRIMARY= [10107 => 1, 11602 => 1, 13435 => 1, 13436 => 1];
-
   private $options;
   protected $auth= null;
   protected $conn= [];
@@ -270,7 +268,7 @@ class Protocol {
     // Check for "NotWritablePrimary" error, which indicates our view of the cluster
     // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
     // view using the "hello" command, then retry the command once.
-    if ($retry-- && isset(self::NOT_PRIMARY[$r['body']['code']])) {
+    if ($retry-- && isset(Error::NOT_PRIMARY[$r['body']['code']])) {
       $this->useCluster($conn->hello());
       goto retry;
     }
