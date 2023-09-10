@@ -9,6 +9,8 @@ use lang\XPException;
  * @see   https://raw.githubusercontent.com/mongodb/mongo/master/src/mongo/base/error_codes.yml
  */
 class Error extends XPException {
+  const NOT_PRIMARY= [10107 => 1, 11602 => 1, 13435 => 1, 13436 => 1];
+
   private $kind;
   
   /**

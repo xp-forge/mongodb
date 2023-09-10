@@ -77,7 +77,7 @@ class Connection {
    *
    * @param  [:var] $options
    * @param  ?com.mongodb.auth.Mechanism $auth
-   * @return void
+   * @return [:var]
    * @throws com.mongodb.AuthenticationFailed
    * @throws peer.ConnectException
    */
@@ -92,10 +92,7 @@ class Connection {
       }
     }
 
-    // Send hello package and determine connection kind
-    // https://www.mongodb.com/docs/manual/reference/command/hello/
-    $hello= [
-      'hello'    => 1,
+    $params= [
       'client'   => [
         'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
         'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
@@ -109,20 +106,53 @@ class Connection {
       $user= urldecode($options['user']);
       $pass= urldecode($options['pass']);
       $authSource= $options['params']['authSource'] ?? (isset($options['path']) ? ltrim($options['path'], '/') : 'admin');
-      $hello['saslSupportedMechs']= "{$authSource}.{$user}";
+      $params['saslSupportedMechs']= "{$authSource}.{$user}";
     } else {
       $authSource= null;
     }
 
     try {
-      $reply= $this->send(
-        self::OP_QUERY,
-        "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
-        $hello
-      );
+      $this->server= $this->hello($params);
     } catch (ProtocolException $e) {
       throw new ConnectException('Server handshake failed @ '.$this->address(), $e);
     }
+
+    // Optionally, perform authentication
+    if (null === $authSource) return $this->server;
+
+    try {
+      $auth ?? $auth= Authentication::negotiate($document['saslSupportedMechs'] ?? []);
+      $conversation= $auth->conversation($user, $pass, $authSource);
+      do {
+        $result= $this->send(self::OP_MSG, "\x00\x00\x00\x00\x00", $conversation->current());
+        if (0 === (int)$result['body']['ok']) {
+          throw Error::newInstance($result['body']);
+        }
+
+        $conversation->send($result['body']);
+      } while ($conversation->valid());
+
+      return $this->server;
+    } catch (Throwable $t) {
+      throw new AuthenticationFailed($t->getMessage(), $options['user'], new Secret($options['pass']), $t);
+    }
+  }
+
+  /**
+   * Sends "hello" command and returns result to determine the state of the
+   * replica set members and to discover additional members of a replica set.
+   *
+   * @see    https://www.mongodb.com/docs/current/reference/command/hello/
+   * @param  [:var] $command
+   * @return [:var]
+   * @throws peer.ProtocolException
+   */
+  public function hello($command= []) {
+    $reply= $this->send(
+      self::OP_QUERY,
+      "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
+      ['hello' => 1] + $command
+    );
 
     // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
     $document= &$reply['documents'][0];
@@ -144,25 +174,8 @@ class Connection {
     } else if ('isdbgrid' === ($document['msg'] ?? '')) {
       $kind= self::Mongos;
     }
-    $this->server= ['$kind' => $kind] + $document;
 
-    // Optionally, perform authentication
-    if (null === $authSource) return;
-
-    try {
-      $auth ?? $auth= Authentication::negotiate($document['saslSupportedMechs'] ?? []);
-      $conversation= $auth->conversation($user, $pass, $authSource);
-      do {
-        $result= $this->message($conversation->current(), null);
-        if (0 === (int)$result['body']['ok']) {
-          throw Error::newInstance($result['body']);
-        }
-
-        $conversation->send($result['body']);
-      } while ($conversation->valid());
-    } catch (Throwable $t) {
-      throw new AuthenticationFailed($t->getMessage(), $options['user'], new Secret($options['pass']), $t);
-    }
+    return ['$kind' => $kind] + $document;
   }
 
   /**
@@ -187,35 +200,20 @@ class Connection {
   }
 
   /**
-   * Sends a message
-   * 
-   * @param  [:var] $sections
-   * @param  ?string $readPreference
-   * @return var
-   * @throws com.mongodb.Error
-   */
-  public function message($sections, $readPreference) {
-    if (null !== $readPreference && self::Standalone !== $this->server['$kind']) {
-      $sections+= ['$readPreference' => $readPreference];
-    }
-
-    // flags(V)= 0, kind(c)= 0
-    $r= $this->send(self::OP_MSG, "\x00\x00\x00\x00\x00", $sections);
-    if (1 === (int)$r['body']['ok']) return $r;
-
-    throw Error::newInstance($r['body']);
-  }
-
-  /**
    * Sends a command to the server and returns its result
    *
    * @param  int $operation One of the OP_* constants
    * @param  string $header
    * @param  [:var] $sections
+   * @param  ?string $readPreference
    * @return var
    * @throws peer.ProtocolException
    */
-  public function send($operation, $header, $sections) {
+  public function send($operation, $header, $sections, $readPreference= null) {
+    if (null !== $readPreference && self::Standalone !== $this->server['$kind']) {
+      $sections+= ['$readPreference' => $readPreference];
+    }
+
     $this->packet > 2147483647 ? $this->packet= 1 : $this->packet++;
     $body= $header.$this->bson->sections($sections);
     $payload= pack('VVVV', strlen($body) + 16, $this->packet, 0, $operation).$body;
@@ -225,6 +223,7 @@ class Connection {
     $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
 
+    // TODO: Use unpack(..., offset: X) instead of substr() when we drop PHP 7.0 support
     switch ($meta['opCode']) {
       case self::OP_MSG:
         $flags= unpack('V', substr($response, 0, 4))[1];

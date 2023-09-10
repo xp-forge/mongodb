@@ -26,10 +26,14 @@ class TestingConnection extends Connection {
    * @param  int $operation One of the OP_* constants
    * @param  string $header
    * @param  [:var] $sections
+   * @param  ?string $readPreference
    * @return var
    * @throws peer.ProtocolException
    */
-  public function send($operation, $header, $sections) {
+  public function send($operation, $header, $sections, $readPreference= null) {
+    if (null !== $readPreference && self::Standalone !== $this->server['$kind']) {
+      $sections+= ['$readPreference' => $readPreference];
+    }
     $this->sent[]= $sections;
 
     $reply= $this->replies ? array_shift($this->replies) : null;

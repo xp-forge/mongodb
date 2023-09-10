@@ -15,6 +15,21 @@ class CollectionTest {
     yield [[['_id' => 'one', 'name' => 'A'], ['_id' => 'two', 'name' => 'B']]];
   }
 
+  /** @return iterable */
+  private function writes() {
+    yield ['update', function($fixture) {
+      $fixture->update('6100', ['$inc' => ['qty' => 1]]);
+    }];
+    yield ['command', function($fixture) {
+      $fixture->run('findAndModify', [
+        'query'  => ['id' => '6100'],
+        'update' => ['$inc' => ['qty' => 1]],
+        'new'    => true,  // Return modified document
+        'upsert' => true,
+      ]);
+    }];
+  }
+
   /**
    * Returns a new fixture
    *
@@ -311,5 +326,23 @@ class CollectionTest {
   public function error_raised() {
     $fixture= $this->newFixture($this->error(6100, 'TestingError', 'Test'));
     $fixture->update('6100', ['$inc' => ['qty' => 1]]);
+  }
+
+  #[Test, Values(from: 'writes')]
+  public function not_writable_primary_retried($kind, $command) {
+    $command($this->newFixture(
+      $this->error(10107, 'NotWritablePrimary'),
+      $this->hello(self::$PRIMARY),
+      $this->ok(['n' => 1, 'nModified' => 1])
+    ));
+  }
+
+  #[Test, Expect(class: Error::class, message: 'Second occurrence'), Values(from: 'writes')]
+  public function not_writable_primary_not_retried_more_than_once($kind, $command) {
+    $command($this->newFixture(
+      $this->error(10107, 'NotWritablePrimary', 'First occurrence'),
+      $this->hello(self::$PRIMARY),
+      $this->error(10107, 'NotWritablePrimary', 'Second occurrence')
+    ));
   }
 }
