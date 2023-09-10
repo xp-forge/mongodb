@@ -10,6 +10,7 @@ use com\mongodb\Error;
  */
 class Commands {
   private $proto, $conn;
+  private $retry= 1;
 
   /**
    * Creates an instance using a protocol and connection instance.
@@ -66,16 +67,17 @@ class Commands {
       $sections+= $option->send($this->proto);
     }
 
-    $retry= 1;
     $rp= $section['$readPreference'] ?? $this->proto->readPreference;
 
+    // Only retry the very first command in this sequence!
     retry: $r= $this->conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
-    if (1 === (int)$r['body']['ok']) return $r;
+    if (1 === (int)$r['body']['ok']) {
+      $this->retry--;
+      return $r;
+    }
 
-    // Check for "NotWritablePrimary" error, which indicates our view of the cluster
-    // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
-    // view using the "hello" command, then retry the command once.
-    if ($retry-- && isset(Protocol::NOT_PRIMARY[$r['body']['code']])) {
+    // Retry "NotWritablePrimary" errors, replacing the connection
+    if ($this->retry-- && isset(Protocol::NOT_PRIMARY[$r['body']['code']])) {
       $this->proto->useCluster($this->conn->hello());
       $this->conn= $this->proto->establish([$this->proto->nodes['primary']], 'writing');
       goto retry;
