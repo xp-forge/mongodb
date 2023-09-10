@@ -270,9 +270,8 @@ class Protocol {
     // Check for "NotWritablePrimary" error, which indicates our view of the cluster
     // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
     // view using the "hello" command, then retry the command once.
-    if ($retry && isset($NOT_PRIMARY[$r['body']['code']])) {
+    if ($retry-- && isset($NOT_PRIMARY[$r['body']['code']])) {
       $this->useCluster($conn->hello());
-      $retry--;
       goto retry;
     }
 
