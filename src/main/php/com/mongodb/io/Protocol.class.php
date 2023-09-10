@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use com\mongodb\{Authentication, NoSuitableCandidate, CannotConnect};
+use com\mongodb\{Authentication, NoSuitableCandidate, CannotConnect, Error};
 use io\IOException;
 use lang\{IllegalStateException, IllegalArgumentException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
@@ -172,6 +172,20 @@ class Protocol {
   }
 
   /**
+   * Refresh view of cluster with provided information by server
+   *
+   * @param  [:var] $server
+   * @return void
+   */
+  private function useCluster($server) {
+    $this->nodes= ['primary' => $server['primary'] ?? $candidate, 'secondary' => []];
+    foreach ($server['hosts'] ?? [] as $host) {
+      if ($server['primary'] !== $host) $this->nodes['secondary'][]= $host;
+    }
+    shuffle($this->nodes['secondary']);
+  }
+
+  /**
    * Establish a connection for a list of given candidates
    *
    * @param  string[] $candidates
@@ -189,12 +203,7 @@ class Protocol {
         // Refresh view into cluster every time we succesfully connect to a node. For sockets that
         // have not been used for socketCheckInterval, issue the ping command to check liveness.
         if (null === $conn->server) {
-          connect: $conn->establish($this->options, $this->auth);
-          $this->nodes= ['primary' => $conn->server['primary'] ?? $candidate, 'secondary' => []];
-          foreach ($conn->server['hosts'] ?? [] as $host) {
-            if ($conn->server['primary'] !== $host) $this->nodes['secondary'][]= $host;
-          }
-          shuffle($this->nodes['secondary']);
+          connect: $this->useCluster($conn->establish($this->options, $this->auth));
         } else if ($time - $conn->lastUsed >= $this->socketCheckInterval) {
           try {
             $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
@@ -241,16 +250,33 @@ class Protocol {
    * @param  [:var] $sections
    * @return var
    * @throws com.mongodb.Error
+   * @see    https://github.com/mongodb/mongo/blob/master/src/mongo/base/error_codes.yml
    */
   public function write(array $options, $sections) {
+    static $NOT_PRIMARY= [10107 => 1, 11602 => 1, 13435 => 1, 13436 => 1];
+
     foreach ($options as $option) {
       $sections+= $option->send($this);
     }
 
     $rp= $sections['$readPreference'] ?? $this->readPreference;
-    return $this->establish([$this->nodes['primary']], 'writing')
-      ->message($sections, $rp)
-    ;
+    $retry= 1;
+
+    // Use send() API to prevent using exceptions for flow control
+    retry: $conn= $this->establish([$this->nodes['primary']], 'writing');
+    $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
+    if (1 === (int)$r['body']['ok']) return $r;
+
+    // Check for "NotWritablePrimary" error, which indicates our view of the cluster
+    // may be outdated, see https://github.com/xp-forge/mongodb/issues/42. Refresh
+    // view using the "hello" command, then retry the command once.
+    if ($retry && isset($NOT_PRIMARY[$r['body']['code']])) {
+      $this->useCluster($conn->hello());
+      $retry--;
+      goto retry;
+    }
+
+    throw Error::newInstance($r['body']);
   }
 
   /** @return void */

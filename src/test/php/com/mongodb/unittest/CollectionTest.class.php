@@ -312,4 +312,24 @@ class CollectionTest {
     $fixture= $this->newFixture($this->error(6100, 'TestingError', 'Test'));
     $fixture->update('6100', ['$inc' => ['qty' => 1]]);
   }
+
+  #[Test]
+  public function not_writable_primary_retried() {
+    $fixture= $this->newFixture(
+      $this->error(10107, 'NotWritablePrimary'),
+      $this->hello(self::$PRIMARY),
+      $this->ok(['n' => 1, 'nModified' => 1])
+    );
+    $fixture->update('6100', ['$inc' => ['qty' => 1]]);
+  }
+
+  #[Test, Expect(class: Error::class, message: 'Second occurrance')]
+  public function not_writable_primary_not_retried_more_than_once() {
+    $fixture= $this->newFixture(
+      $this->error(10107, 'NotWritablePrimary', 'First occurrance'),
+      $this->hello(self::$PRIMARY),
+      $this->error(10107, 'NotWritablePrimary', 'Second occurrance')
+    );
+    $fixture->update('6100', ['$inc' => ['qty' => 1]]);
+  }
 }
