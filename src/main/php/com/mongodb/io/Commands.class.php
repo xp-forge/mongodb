@@ -1,5 +1,7 @@
 <?php namespace com\mongodb\io;
 
+use com\mongodb\Error;
+
 /**
  * Ensures all message sent using this instance are executed against
  * the same socket connection, e.g. for cursors.
@@ -64,7 +66,21 @@ class Commands {
       $sections+= $option->send($this->proto);
     }
 
+    $retry= 1;
     $rp= $section['$readPreference'] ?? $this->proto->readPreference;
-    return $this->conn->message($sections, $rp);
+
+    retry: $r= $this->conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
+    if (1 === (int)$r['body']['ok']) return $r;
+
+    // Check for "NotWritablePrimary" error, which indicates our view of the cluster
+    // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
+    // view using the "hello" command, then retry the command once.
+    if ($retry-- && isset(Protocol::NOT_PRIMARY[$r['body']['code']])) {
+      $this->proto->useCluster($this->conn->hello());
+      $this->conn= $this->proto->establish([$this->proto->nodes['primary']], 'writing');
+      goto retry;
+    }
+
+    throw Error::newInstance($r['body']);
   }
 }

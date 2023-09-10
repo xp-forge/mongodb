@@ -13,6 +13,8 @@ use util\Objects;
  * @test  com.mongodb.unittest.ReplicaSetTest
  */
 class Protocol {
+  const NOT_PRIMARY= [10107 => 1, 11602 => 1, 13435 => 1, 13436 => 1];
+
   private $options;
   protected $auth= null;
   protected $conn= [];
@@ -177,7 +179,7 @@ class Protocol {
    * @param  [:var] $server
    * @return void
    */
-  private function useCluster($server) {
+  public function useCluster($server) {
     $this->nodes= ['primary' => $server['primary'] ?? key($this->conn), 'secondary' => []];
     foreach ($server['hosts'] ?? [] as $host) {
       if ($server['primary'] !== $host) $this->nodes['secondary'][]= $host;
@@ -253,8 +255,6 @@ class Protocol {
    * @see    https://github.com/mongodb/mongo/blob/master/src/mongo/base/error_codes.yml
    */
   public function write(array $options, $sections) {
-    static $NOT_PRIMARY= [10107 => 1, 11602 => 1, 13435 => 1, 13436 => 1];
-
     foreach ($options as $option) {
       $sections+= $option->send($this);
     }
@@ -270,7 +270,7 @@ class Protocol {
     // Check for "NotWritablePrimary" error, which indicates our view of the cluster
     // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
     // view using the "hello" command, then retry the command once.
-    if ($retry-- && isset($NOT_PRIMARY[$r['body']['code']])) {
+    if ($retry-- && isset(self::NOT_PRIMARY[$r['body']['code']])) {
       $this->useCluster($conn->hello());
       goto retry;
     }
