@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.1.0 / 2023-09-10
+
+* Merged PR #43: Retry "Exception: not primary" when writing (fixes #42)
+  (@thekid)
+
 ## 2.0.0 / 2023-08-19
 
 The second major release adds the possibility to pass additional options
