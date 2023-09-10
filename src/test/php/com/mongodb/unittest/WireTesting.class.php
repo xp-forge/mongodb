@@ -79,10 +79,23 @@ trait WireTesting {
   /**
    * Creates an OK reply
    *
+   * @param  [:var] $body
    * @return [:var]
    */
-  private function ok() {
-    return ['flags' => 0, 'body' => ['ok' => 1]];
+  private function ok($body= []) {
+    return ['flags' => 0, 'body' => ['ok' => 1] + $body];
+  }
+
+  /**
+   * Creates an error reply
+   *
+   * @param  int $code
+   * @param  string $name
+   * @param  string $message
+   * @return [:var]
+   */
+  private function error($code, $name, $message= 'Test') {
+    return ['flags' => 0, 'body' => ['ok' => 0, 'code' => $code, 'codeName' => $name, 'errmsg' => $message]];
   }
 
   /**
