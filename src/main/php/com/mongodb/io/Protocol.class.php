@@ -238,9 +238,11 @@ class Protocol {
     }
 
     $rp= $sections['$readPreference'] ?? $this->readPreference;
-    return $this->establish($this->candidates($rp), 'reading with '.$rp['mode'])
-      ->message($sections, $rp)
-    ;
+    $conn= $this->establish($this->candidates($rp), 'reading with '.$rp['mode']);
+    $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
+    if (1 === (int)$r['body']['ok']) return $r;
+
+    throw Error::newInstance($r['body']);
   }
 
   /**

@@ -124,7 +124,7 @@ class Connection {
       $auth ?? $auth= Authentication::negotiate($document['saslSupportedMechs'] ?? []);
       $conversation= $auth->conversation($user, $pass, $authSource);
       do {
-        $result= $this->message($conversation->current(), null);
+        $result= $this->send(self::OP_MSG, "\x00\x00\x00\x00\x00", $conversation->current());
         if (0 === (int)$result['body']['ok']) {
           throw Error::newInstance($result['body']);
         }
@@ -197,23 +197,6 @@ class Connection {
       $n-= strlen($chunk);
     } while ($n > 0);
     return $b;
-  }
-
-  /**
-   * Sends a message, raising errors for non-OK responses.
-   * 
-   * @param  [:var] $sections
-   * @param  ?string $readPreference
-   * @return var
-   * @throws com.mongodb.Error
-   */
-  public function message($sections, $readPreference) {
-
-    // flags(V)= 0, kind(c)= 0
-    $r= $this->send(self::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $readPreference);
-    if (1 === (int)$r['body']['ok']) return $r;
-
-    throw Error::newInstance($r['body']);
   }
 
   /**
