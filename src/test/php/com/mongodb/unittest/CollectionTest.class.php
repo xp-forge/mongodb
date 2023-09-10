@@ -22,7 +22,7 @@ class CollectionTest {
    * @return com.mongodb.Collection
    */
   private function newFixture(... $messages) {
-    $responses= [$this->hello(self::$PRIMARY), ...$messages];
+    $responses= array_merge([$this->hello(self::$PRIMARY)], $messages);
     $protocol= $this->protocol([self::$PRIMARY => $responses], 'primary');
     return new Collection($protocol->connect(), 'testing', 'tests');
   }
