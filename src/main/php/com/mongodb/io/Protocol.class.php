@@ -178,7 +178,7 @@ class Protocol {
    * @return void
    */
   private function useCluster($server) {
-    $this->nodes= ['primary' => $server['primary'] ?? $candidate, 'secondary' => []];
+    $this->nodes= ['primary' => $server['primary'] ?? key($this->conn), 'secondary' => []];
     foreach ($server['hosts'] ?? [] as $host) {
       if ($server['primary'] !== $host) $this->nodes['secondary'][]= $host;
     }
