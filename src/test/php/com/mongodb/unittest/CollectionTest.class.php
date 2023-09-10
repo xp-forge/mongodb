@@ -328,7 +328,7 @@ class CollectionTest {
     $fixture->update('6100', ['$inc' => ['qty' => 1]]);
   }
 
-  #[Test, Values('writes')]
+  #[Test, Values(from: 'writes')]
   public function not_writable_primary_retried($kind, $command) {
     $command($this->newFixture(
       $this->error(10107, 'NotWritablePrimary'),
@@ -337,7 +337,7 @@ class CollectionTest {
     ));
   }
 
-  #[Test, Expect(class: Error::class, message: 'Second occurrence'), Values('writes')]
+  #[Test, Expect(class: Error::class, message: 'Second occurrence'), Values(from: 'writes')]
   public function not_writable_primary_not_retried_more_than_once($kind, $command) {
     $command($this->newFixture(
       $this->error(10107, 'NotWritablePrimary', 'First occurrence'),
