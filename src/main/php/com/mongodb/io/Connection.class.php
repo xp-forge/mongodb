@@ -223,6 +223,7 @@ class Connection {
     $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
 
+    // TODO: Use unpack(..., offset: X) instead of substr() when we drop PHP 7.0 support
     switch ($meta['opCode']) {
       case self::OP_MSG:
         $flags= unpack('V', substr($response, 0, 4))[1];
