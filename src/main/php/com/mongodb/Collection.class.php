@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\{Commands, Protocol};
-use com\mongodb\result\{Insert, Update, Delete, Cursor, Run, ChangeStream};
+use com\mongodb\result\{Insert, Update, Delete, Modification, Cursor, Run, ChangeStream};
 use lang\Value;
 use util\Objects;
 
@@ -97,7 +97,7 @@ class Collection implements Value {
   }
 
   /**
-   * Updates collection with given modifications.
+   * Updates collection with given statements.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var] $statements Update operator expressions
@@ -116,6 +116,29 @@ class Collection implements Value {
       '$db'       => $this->database,
     ]);
     return new Update($result['body']);
+  }
+
+  /**
+   * Modifies collection with given statements and returns a `Modification`
+   * instance with the modified document.
+   *
+   * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  [:var] $statements Update operator expressions
+   * @param  bool $upsert
+   * @param  com.mongodb.Options... $options
+   * @return com.mongodb.result.Modification
+   * @throws com.mongodb.Error
+   */
+  public function modify($query, $statements, $upsert= false, Options... $options): Modification {
+    $result= $this->proto->write($options, [
+      'findAndModify' => $this->name,
+      'query'         => is_array($query) ? $query : ['_id' => $query],
+      'update'        => $statements,
+      'new'           => true,
+      'upsert'        => $upsert,
+      '$db'           => $this->database,
+    ]);
+    return new Modification($result['body']);
   }
 
   /**
