@@ -89,7 +89,7 @@ class Collection implements Value {
         'q'      => is_array($query) ? $query : ['_id' => $query],
         'u'      => $arg,
         'upsert' => true,
-        'multi'  => false
+        'multi'  => false,
       ]],
       '$db'       => $this->database,
     ]);
