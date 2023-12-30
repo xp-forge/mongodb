@@ -2,7 +2,14 @@
 
 use com\mongodb\Document;
 
-/** @test com.mongodb.unittest.result.ModificationTest */
+/**
+ * The result of a `findAndModify` operation
+ *
+ * @see  com.mongodb.Collection::modify
+ * @see  com.mongodb.Collection::remove
+ * @see  https://www.mongodb.com/docs/manual/reference/command/findAndModify/
+ * @test com.mongodb.unittest.result.ModificationTest
+ */
 class Modification extends Result {
   const REMOVED= 'removed';
   const CREATED= 'created';
