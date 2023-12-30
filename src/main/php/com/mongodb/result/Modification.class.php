@@ -32,7 +32,7 @@ class Modification extends Result {
   /**
    * Returns the upserted ID, if any
    *
-   * @return ?com.mongodb.ObjectId
+   * @return ?(string|com.mongodb.ObjectId)
    */
   public function upserted() {
     return $this->result['lastErrorObject']['upserted'] ?? null;
