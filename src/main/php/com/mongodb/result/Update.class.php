@@ -12,7 +12,7 @@ class Update extends Result {
   /**
    * Returns IDs from an upsert, or an empty array if no upsers were performed.
    *
-   * @return (string|com.mongodb.ObjectId)[]
+   * @return com.mongodb.ObjectId[]
    */
   public function upserted(): array {
     $r= [];
