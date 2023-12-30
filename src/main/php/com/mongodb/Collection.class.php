@@ -119,6 +119,27 @@ class Collection implements Value {
   }
 
   /**
+   * Modifies document using `findAndModify`
+   *
+   * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
+   * @param  bool $upsert
+   * @param  com.mongodb.Options... $options
+   * @return com.mongodb.result.Modification
+   * @throws com.mongodb.Error
+   */
+  public function modify($query, $update, $upsert= true, Options... $options) {
+    $result= $this->proto->write($options, [
+      'findAndModify' => $this->name,
+      'query'         => is_array($query) ? $query : ['_id' => $query],
+      'update'        => $update,
+      'upsert'        => $upsert,
+      'new'           => true,  // Return modified document
+    ]);
+    return new Modification($result['body']);
+  }
+
+  /**
    * Delete documents
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query

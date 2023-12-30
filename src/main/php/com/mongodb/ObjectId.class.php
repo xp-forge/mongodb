@@ -67,4 +67,14 @@ class ObjectId implements Value {
   public function compareTo($value) {
     return $value instanceof self ? $this->string <=> $value->string : 1;
   }
+
+  /**
+   * Test for equality
+   *
+   * @param  var $value
+   * @return bool
+   */
+  public function equals($value) {
+    return $value instanceof self ? 0 === ($this->string <=> $value->string) : false;
+  }
 }

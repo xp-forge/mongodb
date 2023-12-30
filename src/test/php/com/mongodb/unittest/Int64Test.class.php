@@ -46,4 +46,12 @@ class Int64Test {
     Assert::equals(new Int64($n), $fixture);
     Assert::notEquals(new Int64(6100), $fixture);
   }
+
+  #[Test, Values(from: 'numbers')]
+  public function equals($n) {
+    $fixture= new Int64($n);
+
+    Assert::true((new Int64($n))->equals($fixture));
+    Assert::false((new Int64(6100))->equals($fixture));
+  }
 }
