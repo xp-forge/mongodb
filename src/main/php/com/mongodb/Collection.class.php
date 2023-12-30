@@ -163,6 +163,27 @@ class Collection implements Value {
   }
 
   /**
+   * Modifies collection and returns a `Modification` instance with the removed
+   * document.
+   *
+   * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
+   * @param  bool $upsert
+   * @param  com.mongodb.Options... $options
+   * @return com.mongodb.result.Modification
+   * @throws com.mongodb.Error
+   */
+  public function remove($query, Options... $options): Modification {
+    $result= $this->proto->write($options, [
+      'findAndModify' => $this->name,
+      'query'         => is_array($query) ? $query : ['_id' => $query],
+      'remove'        => true,
+      '$db'           => $this->database,
+    ]);
+    return new Modification($result['body']);
+  }
+
+  /**
    * Find documents in this collection
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query

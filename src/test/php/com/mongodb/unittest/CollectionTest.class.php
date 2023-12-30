@@ -1,5 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
+use com\mongodb\result\Modification;
 use com\mongodb\{Collection, Document, Int64, ObjectId, Options, Session, Error};
 use test\{Assert, Before, Expect, Test, Values};
 use util\UUID;
@@ -147,7 +148,7 @@ class CollectionTest {
     ]);
     $result= $this->newFixture($body)->modify(ObjectId::create(), ['$set' => ['test' => true]]);
 
-    Assert::equals([false, 0], [$result->updatedExisting(), $result->modified()]);
+    Assert::equals([Modification::UPDATED, 0], [$result->kind(), $result->modified()]);
     Assert::null($result->upserted());
     Assert::null($result->document());
   }
@@ -161,7 +162,7 @@ class CollectionTest {
     ]);
     $result= $this->newFixture($body)->modify($doc->id(), ['$set' => ['test' => true]]);
 
-    Assert::equals([true, 1], [$result->updatedExisting(), $result->modified()]);
+    Assert::equals([Modification::UPDATED, 1], [$result->kind(), $result->modified()]);
     Assert::null($result->upserted());
     Assert::equals($doc, $result->document());
   }
@@ -175,7 +176,7 @@ class CollectionTest {
     ]);
     $result= $this->newFixture($body)->modify($doc->id(), ['$set' => ['test' => true]]);
 
-    Assert::equals([false, 1], [$result->updatedExisting(), $result->modified()]);
+    Assert::equals([Modification::CREATED, 1], [$result->kind(), $result->modified()]);
     Assert::equals($doc->id(), $result->upserted());
     Assert::equals($doc, $result->document());
   }
@@ -192,6 +193,33 @@ class CollectionTest {
     $result= $this->newFixture($this->ok(['n' => 2]))->delete(['name' => 'Test']);
 
     Assert::equals(2, $result->deleted());
+  }
+
+  #[Test]
+  public function remove() {
+    $doc= new Document(['_id' => ObjectId::create(), 'test' => true]);
+    $body= $this->ok([
+      'lastErrorObject' => ['n' => 1],
+      'value'           => $doc->properties(),
+    ]);
+    $result= $this->newFixture($body)->remove($doc->id());
+
+    Assert::equals([Modification::REMOVED, 1], [$result->kind(), $result->modified()]);
+    Assert::null($result->upserted());
+    Assert::equals($doc, $result->document());
+  }
+
+  #[Test]
+  public function not_removed() {
+    $body= $this->ok([
+      'lastErrorObject' => ['n' => 0],
+      'value'           => null,
+    ]);
+    $result= $this->newFixture($body)->remove(ObjectId::create());
+
+    Assert::equals([Modification::REMOVED, 0], [$result->kind(), $result->modified()]);
+    Assert::null($result->upserted());
+    Assert::null($result->document());
   }
 
   #[Test]
