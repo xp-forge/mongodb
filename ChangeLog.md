@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.2.0 / 2023-12-30
+
+* Merged PR #44: Add `equals()` methods for wrapper classes - @thekid
 * Merged PR #45: Implement Collection `modify()` and `remove()` via
   https://www.mongodb.com/docs/manual/reference/command/findAndModify/
   (@thekid)
