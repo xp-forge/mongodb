@@ -86,7 +86,7 @@ class Collection implements Value {
     $result= $this->proto->write($options, [
       'update'    => $this->name,
       'updates'   => [[
-        'q'      => $query instanceof ObjectId ? ['_id' => $query] : $query,
+        'q'      => is_array($query) ? $query : ['_id' => $query],
         'u'      => $arg,
         'upsert' => true,
         'multi'  => false

@@ -99,10 +99,10 @@ class CollectionTest {
     Assert::equals([2, ['one', 'two']], [$result->inserted(), $result->ids()]);
   }
 
-  #[Test]
-  public function upsert_when_updating() {
+  #[Test, Values([[['_id' => 'one']], ['one']])]
+  public function upsert_when_updating($query) {
     $result= $this->newFixture($this->ok(['n' => 1, 'nModified' => 1]))->upsert(
-      ['_id' => 'one'],
+      $query,
       new Document(['_id' => 'one', 'name' => 'A'])
     );
 
