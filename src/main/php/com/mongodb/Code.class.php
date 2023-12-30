@@ -35,4 +35,14 @@ class Code implements Value {
   public function compareTo($value) {
     return $value instanceof self ? $this->source <=> $value->source : 1;
   }
+
+  /**
+   * Test for equality
+   *
+   * @param  var $value
+   * @return bool
+   */
+  public function equals($value) {
+    return $value instanceof self ? 0 === ($this->source <=> $value->source) : false;
+  }
 }

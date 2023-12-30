@@ -38,6 +38,12 @@ class ObjectIdTest {
   }
 
   #[Test]
+  public function equals() {
+    Assert::true((new ObjectId(self::ID))->equals(new ObjectId(self::ID)));
+    Assert::false((new ObjectId(self::ID))->equals(new ObjectId('4f1dda9973edf2501751884b')));
+  }
+
+  #[Test]
   public function create() {
     Assert::matches('/^[0-9a-f]{24}$/', ObjectId::create());
   }

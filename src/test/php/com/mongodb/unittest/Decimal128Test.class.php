@@ -56,4 +56,12 @@ class Decimal128Test {
     Assert::equals(new Decimal128($n), $fixture);
     Assert::notEquals(new Decimal128(6100), $fixture);
   }
+
+  #[Test, Values(from: 'numbers')]
+  public function equals($n) {
+    $fixture= new Decimal128($n);
+
+    Assert::true((new Decimal128($n))->equals($fixture));
+    Assert::false((new Decimal128(6100))->equals($fixture));
+  }
 }

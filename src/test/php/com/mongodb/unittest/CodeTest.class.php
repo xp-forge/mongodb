@@ -41,4 +41,10 @@ class CodeTest {
     Assert::equals(0, (new Code(self::SOURCE))->compareTo(new Code(self::SOURCE)));
     Assert::equals(1, (new Code(self::SOURCE))->compareTo(new Code('')));
   }
+
+  #[Test]
+  public function equals() {
+    Assert::true((new Code(self::SOURCE))->equals(new Code(self::SOURCE)));
+    Assert::false((new Code(self::SOURCE))->equals(new Code('')));
+  }
 }
