@@ -1,7 +1,7 @@
 <?php namespace com\mongodb;
 
 use com\mongodb\io\{Commands, Protocol};
-use com\mongodb\result\{Insert, Update, Delete, Cursor, Run, ChangeStream};
+use com\mongodb\result\{Insert, Update, Delete, Modification, Cursor, Run, ChangeStream};
 use lang\Value;
 use util\Objects;
 
@@ -86,10 +86,10 @@ class Collection implements Value {
     $result= $this->proto->write($options, [
       'update'    => $this->name,
       'updates'   => [[
-        'q'      => $query instanceof ObjectId ? ['_id' => $query] : $query,
+        'q'      => is_array($query) ? $query : ['_id' => $query],
         'u'      => $arg,
         'upsert' => true,
-        'multi'  => false
+        'multi'  => false,
       ]],
       '$db'       => $this->database,
     ]);
@@ -97,7 +97,7 @@ class Collection implements Value {
   }
 
   /**
-   * Updates collection with given modifications.
+   * Updates collection with given statements.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var] $statements Update operator expressions
@@ -119,7 +119,8 @@ class Collection implements Value {
   }
 
   /**
-   * Modifies document using `findAndModify`
+   * Modifies collection and returns a `Modification` instance with the modified
+   * document.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
    * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
@@ -128,13 +129,14 @@ class Collection implements Value {
    * @return com.mongodb.result.Modification
    * @throws com.mongodb.Error
    */
-  public function modify($query, $update, $upsert= true, Options... $options) {
+  public function modify($query, $arg, $upsert= false, Options... $options): Modification {
     $result= $this->proto->write($options, [
       'findAndModify' => $this->name,
       'query'         => is_array($query) ? $query : ['_id' => $query],
-      'update'        => $update,
+      'update'        => $arg,
+      'new'           => true,
       'upsert'        => $upsert,
-      'new'           => true,  // Return modified document
+      '$db'           => $this->database,
     ]);
     return new Modification($result['body']);
   }
@@ -158,6 +160,27 @@ class Collection implements Value {
       '$db'       => $this->database,
     ]);
     return new Delete($result['body']);
+  }
+
+  /**
+   * Modifies collection and returns a `Modification` instance with the removed
+   * document.
+   *
+   * @param  string|com.mongodb.ObjectId|[:var] $query
+   * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
+   * @param  bool $upsert
+   * @param  com.mongodb.Options... $options
+   * @return com.mongodb.result.Modification
+   * @throws com.mongodb.Error
+   */
+  public function remove($query, Options... $options): Modification {
+    $result= $this->proto->write($options, [
+      'findAndModify' => $this->name,
+      'query'         => is_array($query) ? $query : ['_id' => $query],
+      'remove'        => true,
+      '$db'           => $this->database,
+    ]);
+    return new Modification($result['body']);
   }
 
   /**

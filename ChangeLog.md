@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #45: Implement Collection `modify()` and `remove()` via
+  https://www.mongodb.com/docs/manual/reference/command/findAndModify/
+  (@thekid)
+* Fixed `upsert()` inconsistency with `update()` and `delete()` in how
+  it handles the *query* parameter
+  (@thekid)
+
 ## 2.1.0 / 2023-09-10
 
 * Merged PR #43: Retry "Exception: not primary" when writing (fixes #42)
