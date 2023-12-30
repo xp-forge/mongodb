@@ -119,21 +119,21 @@ class Collection implements Value {
   }
 
   /**
-   * Modifies collection with given statements and returns a `Modification`
-   * instance with the modified document.
+   * Modifies collection and returns a `Modification` instance with the modified
+   * document.
    *
    * @param  string|com.mongodb.ObjectId|[:var] $query
-   * @param  [:var] $statements Update operator expressions
+   * @param  [:var]|com.mongodb.Document $arg Update operator expressions or document
    * @param  bool $upsert
    * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Modification
    * @throws com.mongodb.Error
    */
-  public function modify($query, $statements, $upsert= false, Options... $options): Modification {
+  public function modify($query, $arg, $upsert= false, Options... $options): Modification {
     $result= $this->proto->write($options, [
       'findAndModify' => $this->name,
       'query'         => is_array($query) ? $query : ['_id' => $query],
-      'update'        => $statements,
+      'update'        => $arg,
       'new'           => true,
       'upsert'        => $upsert,
       '$db'           => $this->database,
