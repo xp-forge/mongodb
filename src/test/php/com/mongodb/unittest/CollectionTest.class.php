@@ -140,6 +140,47 @@ class CollectionTest {
   }
 
   #[Test]
+  public function modify_none() {
+    $body= $this->ok([
+      'lastErrorObject' => ['n' => 0, 'updatedExisting' => false],
+      'value'           => null,
+    ]);
+    $result= $this->newFixture($body)->modify(ObjectId::create(), ['$set' => ['test' => true]]);
+
+    Assert::equals([false, 0], [$result->updatedExisting(), $result->modified()]);
+    Assert::null($result->upserted());
+    Assert::null($result->document());
+  }
+
+  #[Test]
+  public function modify_existing() {
+    $doc= new Document(['_id' => ObjectId::create(), 'test' => true]);
+    $body= $this->ok([
+      'lastErrorObject' => ['n' => 1, 'updatedExisting' => true],
+      'value'           => $doc->properties(),
+    ]);
+    $result= $this->newFixture($body)->modify($doc->id(), ['$set' => ['test' => true]]);
+
+    Assert::equals([true, 1], [$result->updatedExisting(), $result->modified()]);
+    Assert::null($result->upserted());
+    Assert::equals($doc, $result->document());
+  }
+
+  #[Test]
+  public function create_new() {
+    $doc= new Document(['_id' => ObjectId::create(), 'test' => true]);
+    $body= $this->ok([
+      'lastErrorObject' => ['n' => 1, 'updatedExisting' => false, 'upserted' => $doc->id()],
+      'value'           => $doc->properties(),
+    ]);
+    $result= $this->newFixture($body)->modify($doc->id(), ['$set' => ['test' => true]]);
+
+    Assert::equals([false, 1], [$result->updatedExisting(), $result->modified()]);
+    Assert::equals($doc->id(), $result->upserted());
+    Assert::equals($doc, $result->document());
+  }
+
+  #[Test]
   public function delete_one() {
     $result= $this->newFixture($this->ok(['n' => 1]))->delete('6100');
 
