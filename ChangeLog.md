@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.3.0 / 2024-03-24
+
+* Made compatible with XP 12 - @thekid
+
 ## 2.2.0 / 2023-12-30
 
 * Merged PR #44: Add `equals()` methods for wrapper classes - @thekid
