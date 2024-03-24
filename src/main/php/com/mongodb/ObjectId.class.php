@@ -32,9 +32,11 @@ class ObjectId implements Value {
    * - a 5-byte random value
    * - a 3-byte incrementing counter, initialized to a random value
    *
-   * @see  https://docs.mongodb.com/manual/reference/method/ObjectId/
+   * @param  ?int $timestamp
+   * @return self
+   * @see    https://docs.mongodb.com/manual/reference/method/ObjectId/
    */
-  public static function create(int $timestamp= null): self {
+  public static function create($timestamp= null): self {
     $uint32= self::$counter > 4294967294 ? self::$counter= 0 : ++self::$counter;
     return new self(bin2hex(pack(
       'Na5aaa',

@@ -7,7 +7,7 @@ use util\Secret;
 class AuthenticationFailed extends CannotConnect {
   private $user, $secret;
 
-  public function __construct(string $message, string $user, Secret $secret, Throwable $cause= null) {
+  public function __construct(string $message, string $user, Secret $secret, $cause= null) {
     parent::__construct(18, 'AuthenticationFailed', $message, $cause);
     $this->user= $user;
     $this->secret= $secret;
