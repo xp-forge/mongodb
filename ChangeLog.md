@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.3.1 / 2024-04-02
+
+* Fixed "undefined index primary" when no primary is available - @thekid
+
 ## 2.3.0 / 2024-03-24
 
 * Made compatible with XP 12 - @thekid
