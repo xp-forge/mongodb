@@ -178,9 +178,10 @@ class Protocol {
    * @return void
    */
   public function useCluster($server) {
-    $this->nodes= ['primary' => $server['primary'] ?? key($this->conn), 'secondary' => []];
+    $primary= $server['primary'] ?? key($this->conn);
+    $this->nodes= ['primary' => $primary, 'secondary' => []];
     foreach ($server['hosts'] ?? [] as $host) {
-      if ($server['primary'] !== $host) $this->nodes['secondary'][]= $host;
+      if ($primary !== $host) $this->nodes['secondary'][]= $host;
     }
     shuffle($this->nodes['secondary']);
   }
