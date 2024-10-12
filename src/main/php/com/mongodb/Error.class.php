@@ -31,10 +31,15 @@ class Error extends XPException {
    * Creates an error from a given error document
    *
    * @param  [:var] $document
+   * @param  int|bool $retried
    * @return self
    */
-  public static function newInstance($document) {
-    return new self($document['code'], $document['codeName'], $document['errmsg']);
+  public static function newInstance($document, $retried= 0) {
+    return new self(
+      $document['code'],
+      $document['codeName'],
+      $document['errmsg'].($retried ? " - retried {$retried} time(s)" : '')
+    );
   }
 
   /** @return string */

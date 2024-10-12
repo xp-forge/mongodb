@@ -82,7 +82,7 @@ class Commands {
         goto retry;
       }
 
-      throw Error::newInstance($r['body']);
+      throw Error::newInstance($r['body'], !$this->retry);
     } finally {
       $this->retry= false;
     }
