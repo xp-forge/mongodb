@@ -406,12 +406,20 @@ class CollectionTest {
     ));
   }
 
-  #[Test, Expect(class: Error::class, message: 'Second occurrence'), Values(from: 'writes')]
+  #[Test, Expect(class: Error::class, message: 'Second occurrence - retried 1 time(s)'), Values(from: 'writes')]
   public function not_writable_primary_not_retried_more_than_once($kind, $command) {
     $command($this->newFixture(
       $this->error(10107, 'NotWritablePrimary', 'First occurrence'),
       $this->hello(self::$PRIMARY),
       $this->error(10107, 'NotWritablePrimary', 'Second occurrence')
+    ));
+  }
+
+  #[Test, Expect(class: Error::class, message: 'Test message'), Values(from: 'writes')]
+  public function other_errors_not_retried($kind, $command) {
+    $command($this->newFixture(
+      $this->error(6100, 'FailedOnce', 'Test message'),
+      $this->error(6101, 'FailedAgain', 'The previous error should have thrown')
     ));
   }
 }

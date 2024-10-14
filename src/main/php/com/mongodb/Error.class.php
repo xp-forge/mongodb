@@ -11,7 +11,7 @@ use lang\XPException;
 class Error extends XPException {
   const NOT_PRIMARY= [10107 => 1, 11602 => 1, 13435 => 1, 13436 => 1];
 
-  private $kind;
+  private $kind, $retried;
   
   /**
    * Creates a new error
@@ -20,21 +20,33 @@ class Error extends XPException {
    * @param  string $kind
    * @param  string $message
    * @param  ?lang.Throwable $cause
+   * @param  int|bool $retried
    */
-  public function __construct($code, $kind, $message, $cause= null) {
-    parent::__construct($message, $cause);
+  public function __construct($code, $kind, $message, $cause= null, $retried= 0) {
+    parent::__construct($message.($retried ? " - retried {$retried} time(s)" : ''), $cause);
     $this->code= $code;
     $this->kind= $kind;
+    $this->retried= (int)$retried;
   }
+
+  /** @return int */
+  public function retried() { return $this->retried; }
 
   /**
    * Creates an error from a given error document
    *
    * @param  [:var] $document
+   * @param  int|bool $retried
    * @return self
    */
-  public static function newInstance($document) {
-    return new self($document['code'], $document['codeName'], $document['errmsg']);
+  public static function newInstance($document, $retried= 0) {
+    return new self(
+      $document['code'],
+      $document['codeName'],
+      $document['errmsg'],
+      null,
+      $retried
+    );
   }
 
   /** @return string */
