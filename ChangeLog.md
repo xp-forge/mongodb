@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.4.0 / 2024-10-14
+
+* Merged PR #48: Extend error handling to include if a write was retried
+  (@thekid)
+
 ## 2.3.1 / 2024-04-02
 
 * Fixed "undefined index primary" when no primary is available - @thekid
