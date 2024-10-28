@@ -207,11 +207,14 @@ class Protocol {
           connect: $this->useCluster($conn->establish($this->options, $this->auth));
         } else if ($time - $conn->lastUsed >= $this->socketCheckInterval) {
           try {
-            $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
+            $conn->timeout(1)->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
           } catch (SocketException $e) {
             $conn->close();
             goto connect;
           }
+
+          // Reset timeout to defaults after ping
+          $conn->timeout(($this->options['params']['socketTimeoutMS'] ?? 60000) / 1000);
         }
 
         return $conn;

@@ -199,6 +199,12 @@ class Connection {
     return $b;
   }
 
+  /** Sets socket timeout */
+  public function timeout(float $timeout): self {
+    $this->socket->setTimeout($timeout);
+    return $this;
+  }
+
   /**
    * Sends a command to the server and returns its result
    *
