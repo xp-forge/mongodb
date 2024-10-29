@@ -30,6 +30,9 @@ class Connection {
   const Mongos          = 'Mongos';
   const Standalone      = 'Standalone';
 
+  const CONNECT_TIMEOUT = 40000;
+  const READ_TIMEOUT    = 60000;
+
   private $socket, $bson;
   private $packet= 1;
   public $server= null;
@@ -82,8 +85,8 @@ class Connection {
    * @throws peer.ConnectException
    */
   public function establish($options= [], $auth= null) {
-    $this->socket->setTimeout(($options['params']['socketTimeoutMS'] ?? 60000) / 1000);
-    $this->socket->connect(($options['params']['connectTimeoutMS'] ?? 40000) / 1000);
+    $this->socket->setTimeout(($options['params']['socketTimeoutMS'] ?? self::READ_TIMEOUT) / 1000);
+    $this->socket->connect(($options['params']['connectTimeoutMS'] ?? self::CONNECT_TIMEOUT) / 1000);
     if ('true' === ($options['params']['ssl'] ?? $options['params']['tls'] ?? null)) {
       if (!stream_socket_enable_crypto($this->socket->getHandle(), true, STREAM_CRYPTO_METHOD_ANY_CLIENT)) {
         $e= new ConnectException('SSL handshake failed');

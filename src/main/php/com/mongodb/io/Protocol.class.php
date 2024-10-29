@@ -214,7 +214,7 @@ class Protocol {
           }
 
           // Reset timeout to defaults after ping
-          $conn->timeout(($this->options['params']['socketTimeoutMS'] ?? 60000) / 1000);
+          $conn->timeout(($this->options['params']['socketTimeoutMS'] ?? Connection::READ_TIMEOUT) / 1000);
         }
 
         return $conn;
