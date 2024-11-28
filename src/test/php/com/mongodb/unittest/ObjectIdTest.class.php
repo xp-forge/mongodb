@@ -49,12 +49,13 @@ class ObjectIdTest {
   }
 
   #[Test]
-  public function create_generates_unique_ids() {
-    Assert::notEquals(ObjectId::create(), ObjectId::create());
+  public function create_with_same_timestamp_generates_unique_ids() {
+    $ts= time();
+    Assert::notEquals(ObjectId::create($ts), ObjectId::create($ts));
   }
 
   #[Test]
-  public function create_from_timestamp() {
+  public function create_from_timestamp_is_monotonic() {
     $t= time();
     $oid= ObjectId::create($t);
     Assert::equals(dechex($t), substr($oid, 0, 8));

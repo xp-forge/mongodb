@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.4.1 / 2024-11-27
+
+* Fixed possible collisions in `ObjectId::create()` when used within a
+  forked subprocess by including the process ID in the random value's
+  calculation.
+  (@thekid)
+
 ## 2.4.0 / 2024-10-14
 
 * Merged PR #48: Extend error handling to include if a write was retried
