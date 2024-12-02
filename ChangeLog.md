@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.5.0 / 2024-12-02
+
+* Merged PR #49: Set a timeout of 1 second when issuing a ping - @thekid
+
 ## 2.4.1 / 2024-11-27
 
 * Fixed possible collisions in `ObjectId::create()` when used within a
