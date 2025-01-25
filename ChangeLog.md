@@ -3,7 +3,7 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
-## 3.0.0 / ????-??-??
+## 3.0.0 / 2025-01-25
 
 * **Heads up:** Dropped support for PHP < 7.4 as well as XP Core <= 9.
   See xp-framework/rfc#343
