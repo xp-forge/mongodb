@@ -67,6 +67,10 @@ $result= $c->collection('test.products')->update($id, ['$inc' => ['qty' => 1]]);
 $result= $c->collection('test.products')->update(['name' => 'Test'], ['$inc' => ['qty' => 1]]);
 
 Console::writeLine('>> ', $result);
+
+// Return document after modification
+$result= $c->collection('test.products')->modify($id, ['$inc' => ['qty' => 1]]);
+Console::writeLine('>> ', $result->kind(), ' ', $result->document());
 ```
 
 [Upserting](https://www.mongodb.com/docs/manual/reference/command/update/#std-label-update-command-upsert) documents:
@@ -103,6 +107,10 @@ $result= $c->collection('test.products')->delete($id);
 $result= $c->collection('test.products')->delete(['name' => 'Test']);
 
 Console::writeLine('>> ', $result);
+
+// Return deleted document
+$result= $c->collection('test.products')->remove($id);
+Console::writeLine('>> ', $result->kind(), ' ', $result->document());
 ```
 
 *Note: All of the above have used the `collection()` shortcut which is equivalent to chaining `database('test')->collection('products')`.*
