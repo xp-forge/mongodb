@@ -18,17 +18,13 @@ class CollectionTest {
 
   /** @return iterable */
   private function writes() {
-    yield ['update', function($fixture) {
-      $fixture->update('6100', ['$inc' => ['qty' => 1]]);
-    }];
-    yield ['command', function($fixture) {
-      $fixture->run('findAndModify', [
-        'query'  => ['id' => '6100'],
-        'update' => ['$inc' => ['qty' => 1]],
-        'new'    => true,  // Return modified document
-        'upsert' => true,
-      ]);
-    }];
+    yield ['update', fn($fixture) => $fixture->update('6100', ['$inc' => ['qty' => 1]])];
+    yield ['command', fn($fixture) => $fixture->run('findAndModify', [
+      'query'  => ['id' => '6100'],
+      'update' => ['$inc' => ['qty' => 1]],
+      'new'    => true,  // Return modified document
+      'upsert' => true,
+    ])];
   }
 
   /**

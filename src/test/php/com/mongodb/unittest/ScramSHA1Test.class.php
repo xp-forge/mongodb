@@ -15,7 +15,7 @@ class ScramSHA1Test {
   /** @return com.mongodb.auth.ScramSHA1 */
   private function newFixture() {
     return (new ScramSHA1())
-      ->nonce(function() { return self::CLIENT_NONCE; })
+      ->nonce(fn() => self::CLIENT_NONCE)
       ->conversation('user', 'pencil', self::DATABASE)
     ;
   }

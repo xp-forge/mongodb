@@ -74,7 +74,7 @@ class CursorTest {
     $fixture= new Cursor($this->commands, null, $this->firstBatch($documents));
 
     Assert::equals(
-      array_map(function($d) { return new Document($d); }, $documents),
+      array_map(fn($d) => new Document($d), $documents),
       iterator_to_array($fixture)
     );
   }
@@ -114,7 +114,7 @@ class CursorTest {
     $fixture= new Cursor($this->commands, null, $this->firstBatch($documents));
 
     Assert::equals(
-      array_map(function($d) { return new Document($d); }, $documents),
+      array_map(fn($d) => new Document($d), $documents),
       $fixture->all()
     );
   }
@@ -195,7 +195,7 @@ class CursorTest {
     ];
 
     Assert::equals(
-      array_map(function($d) { return new Document($d); }, $documents),
+      array_map(fn($d) => new Document($d), $documents),
       iterator_to_array(new Cursor($this->commands->returning($nextBatches), null, $firstBatch))
     );
   }

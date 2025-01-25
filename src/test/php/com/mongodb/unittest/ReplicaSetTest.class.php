@@ -17,7 +17,7 @@ class ReplicaSetTest {
    */
   private function connected($proto) {
     return array_map(
-      function($conn) { return $conn->connected() ? $conn->server['$kind'] : null; },
+      fn($conn) => $conn->connected() ? $conn->server['$kind'] : null,
       $proto->connections()
     );
   }
@@ -259,9 +259,7 @@ class ReplicaSetTest {
     ];
     $fixture= $this->protocol($replicaSet, 'primary')->connect();
 
-    Assert::throws(Error::class, function() use($fixture) {
-      $fixture->read([], [/* anything */]);
-    });
+    Assert::throws(Error::class, fn() => $fixture->read([], [/* anything */]));
     Assert::equals(
       [self::$PRIMARY => TestingConnection::RSPrimary, self::$SECONDARY1 => null, self::$SECONDARY2 => null],
       $this->connected($fixture)

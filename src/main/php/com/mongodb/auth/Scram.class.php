@@ -14,7 +14,7 @@ abstract class Scram implements Mechanism {
 
   /** Creates a new instance, initializing nonce */
   public function __construct() {
-    $this->nonce= function() { return base64_encode(random_bytes(24)); };
+    $this->nonce= fn() => base64_encode(random_bytes(24));
   }
 
   /** @return string */
