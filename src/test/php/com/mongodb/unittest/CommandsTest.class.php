@@ -1,5 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
+use com\mongodb\Collection;
 use com\mongodb\io\Commands;
 use test\{Assert, Before, Test};
 
@@ -9,7 +10,7 @@ class CommandsTest {
   private $cluster;
 
   #[Before]
-  public function sessionId() {
+  public function cluster() {
     $this->cluster= [
       self::$PRIMARY    => [$this->hello(self::$PRIMARY)],
       self::$SECONDARY1 => [$this->hello(self::$SECONDARY1)],
@@ -36,5 +37,31 @@ class CommandsTest {
       Commands::reading($protocol)->connection(),
       [$protocol->connections()[self::$SECONDARY1], $protocol->connections()[self::$SECONDARY2]]
     ));
+  }
+
+  #[Test]
+  public function send_write() {
+    $responses= [
+      $this->hello(self::$PRIMARY),
+      $this->ok(['n' => 1, 'nModified' => 2]),
+    ];
+    $protocol= $this->protocol([self::$PRIMARY => $responses] + $this->cluster)->connect();
+    $coll= new Collection($protocol, 'testing', 'tests');
+
+    Assert::equals(2, $coll->update([], ['$inc' => ['qty' => 1]])->modified());
+  }
+
+  #[Test]
+  public function not_writable_primary_retried() {
+    $responses= [
+      $this->hello(self::$PRIMARY),
+      $this->error(10107, 'NotWritablePrimary'),
+      $this->hello(self::$PRIMARY),
+      $this->ok(['n' => 1, 'nModified' => 2]),
+    ];
+    $protocol= $this->protocol([self::$PRIMARY => $responses] + $this->cluster)->connect();
+    $coll= new Collection($protocol, 'testing', 'tests');
+
+    Assert::equals(2, $coll->update([], ['$inc' => ['qty' => 1]])->modified());
   }
 }
