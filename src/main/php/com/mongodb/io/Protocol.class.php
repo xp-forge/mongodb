@@ -43,8 +43,8 @@ class Protocol {
       $this->options= ['scheme' => 'mongodb', 'nodes' => substr($nodes, 1)] + $options;
     } else if (preg_match('/([^:]+):\/\/(([^:]+):([^@]+)@)?([^\/?]+)(\/[^?]*)?(\?(.+))?/', $arg, $m)) {
       $this->options= ['scheme' => $m[1], 'nodes' => $m[5]] + $options + ['params' => []];
-      '' === $m[3] || $this->options['user']= $m[3];
-      '' === $m[4] || $this->options['pass']= $m[4];
+      '' === $m[3] || $this->options['user']= urldecode($m[3]);
+      '' === $m[4] || $this->options['pass']= urldecode($m[4]);
       '' === ($m[6] ?? '') || $this->options['path']= $m[6];
 
       // Handle MongoDB Seed Lists
