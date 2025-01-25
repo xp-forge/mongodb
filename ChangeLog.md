@@ -5,7 +5,8 @@ MongoDB for XP Framework ChangeLog
 
 ## 3.0.0 / ????-??-??
 
-* **Heads up:** Dropped support for PHP < 7.4, see xp-framework/rfc#343
+* **Heads up:** Dropped support for PHP < 7.4 as well as XP Core <= 9.
+  See xp-framework/rfc#343
   (@thekid)
 * Merged PR #51: Defer connecting the MongoDB cluster until actual I/O is
   performed. Implements the *lazy by default* option suggested in #50.
