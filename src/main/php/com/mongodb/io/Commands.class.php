@@ -29,6 +29,7 @@ class Commands {
 
   /** Creates an instance for reading */
   public static function reading(Protocol $proto): self {
+    $proto->nodes || $proto->connect();
     return new self($proto, $proto->establish(
       $proto->candidates($proto->readPreference),
       'reading with '.$proto->readPreference['mode']
@@ -37,6 +38,7 @@ class Commands {
 
   /** Creates an instance for writing */
   public static function writing(Protocol $proto): self {
+    $proto->nodes || $proto->connect();
     return new self($proto, $proto->establish(
       [$proto->nodes['primary']],
       'writing'

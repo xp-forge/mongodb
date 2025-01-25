@@ -59,8 +59,6 @@ class MongoConnection implements Value {
    * @throws com.mongodb.Error
    */
   public function run($name, array $arguments= [], $semantics= 'write', Options... $options) {
-    $this->proto->connect();
-
     $commands= Commands::using($this->proto, $semantics);
     return new Run(
       $commands,
@@ -76,7 +74,6 @@ class MongoConnection implements Value {
    * @return com.mongodb.Session
    */
   public function session($uuid= null) {
-    $this->proto->connect();
 
     // From the spec: "Drivers SHOULD generate session IDs locally if possible
     // instead of running the startSession command, since running the command
@@ -85,19 +82,18 @@ class MongoConnection implements Value {
   }
 
   /**
-   * Selects a given database, connecting if necessary
+   * Selects a given database.
    *
    * @param  string $name The database name
    * @return com.mongodb.Database
    * @throws com.mongodb.Error
    */
   public function database(string $name): Database {
-    $this->proto->connect();
     return new Database($this->proto, $name);
   }
 
   /**
-   * Selects a given collection in a given database, connecting if necessary
+   * Selects a given collection in a given database.
    *
    * @param  string... $args A string "database.collection" or two arguments
    * @return com.mongodb.Collection
@@ -107,7 +103,6 @@ class MongoConnection implements Value {
   public function collection(... $args): Collection {
     $namespace= implode('.', $args);
     if (2 === sscanf($namespace, "%[^.].%[^\r]", $database, $collection)) {
-      $this->proto->connect();
       return new Collection($this->proto, $database, $collection);
     }
 
@@ -124,8 +119,6 @@ class MongoConnection implements Value {
    * @throws com.mongodb.Error
    */
   public function databases($filter= null, Options... $options) {
-    $this->proto->connect();
-
     $request= ['listDatabases' => 1, '$db' => 'admin'];
     if (null === $filter) {
       // NOOP
@@ -155,8 +148,6 @@ class MongoConnection implements Value {
    * @throws com.mongodb.Error
    */
   public function watch(array $pipeline= [], array $params= [], Options... $options): ChangeStream {
-    $this->proto->connect();
-
     array_unshift($pipeline, ['$changeStream' => ['allChangesForCluster' => true] + $params]);
 
     $commands= Commands::reading($this->proto);

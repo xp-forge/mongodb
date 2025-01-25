@@ -237,6 +237,7 @@ class Protocol {
    * @throws com.mongodb.Error
    */
   public function read(array $options, $sections) {
+    $this->nodes || $this->connect();
     foreach ($options as $option) {
       $sections+= $option->send($this);
     }
@@ -259,6 +260,7 @@ class Protocol {
    * @see    https://github.com/mongodb/mongo/blob/master/src/mongo/base/error_codes.yml
    */
   public function write(array $options, $sections) {
+    $this->nodes || $this->connect();
     foreach ($options as $option) {
       $sections+= $option->send($this);
     }
