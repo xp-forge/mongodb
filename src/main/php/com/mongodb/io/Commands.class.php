@@ -6,7 +6,8 @@ use com\mongodb\Error;
  * Ensures all message sent using this instance are executed against
  * the same socket connection, e.g. for cursors.
  *
- * @see https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#cursors
+ * @test com.mongodb.unittest.CommandsTest
+ * @see  https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#cursors
  */
 class Commands {
   private $proto, $conn;
@@ -22,6 +23,9 @@ class Commands {
     $this->proto= $proto;
     $this->conn= $conn;
   }
+
+  /** @return com.mongodb.io.Connection */
+  public function connection() { return $this->conn; }
 
   /** Creates an instance for reading */
   public static function reading(Protocol $proto): self {
@@ -67,7 +71,7 @@ class Commands {
       $sections+= $option->send($this->proto);
     }
 
-    $rp= $section['$readPreference'] ?? $this->proto->readPreference;
+    $rp= $sections['$readPreference'] ?? $this->proto->readPreference;
 
     // Only retry the very first command once in this sequence!
     try {
