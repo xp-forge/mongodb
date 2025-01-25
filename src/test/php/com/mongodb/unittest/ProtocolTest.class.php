@@ -27,6 +27,16 @@ class ProtocolTest {
     );
   }
 
+  #[Test]
+  public function urlencoded_user() {
+    Assert::equals('u:test', (new Protocol('mongodb://u%3atest:pass@localhost'))->options()['user']);
+  }
+
+  #[Test]
+  public function urlencoded_pass() {
+    Assert::equals('p:test', (new Protocol('mongodb://user:p%3atest@localhost'))->options()['pass']);
+  }
+
   #[Test, Values(['mongodb://localhost', 'mongodb://localhost?tls=true', 'mongodb://u:p@localhost', 'mongodb://one.local,two.local:27018,[::1]:27019'])]
   public function dsn_via_connection_string($uri) {
     Assert::equals($uri, (new Protocol($uri))->dsn(true));
