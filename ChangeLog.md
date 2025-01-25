@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 2.5.1 / 2025-01-25
+
+* Merged PR #52: Percent-decode credentials in connection strings - @thekid
+
 ## 2.5.0 / 2024-12-02
 
 * Merged PR #49: Set a timeout of 1 second when issuing a ping - @thekid
