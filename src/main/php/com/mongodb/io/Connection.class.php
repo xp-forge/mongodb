@@ -232,10 +232,9 @@ class Connection {
     $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
 
-    // TODO: Use unpack(..., offset: X) instead of substr() when we drop PHP 7.0 support
     switch ($meta['opCode']) {
       case self::OP_MSG:
-        $flags= unpack('V', substr($response, 0, 4))[1];
+        $flags= unpack('V', $response, 4)[1];
         if ("\x00" === $response[4]) {
           $offset= 5;
           return ['flags' => $flags, 'body' => $this->bson->document($response, $offset)];
@@ -244,7 +243,7 @@ class Connection {
         throw new ProtocolException('Unknown sequence kind '.ord($response[4]));
 
       case self::OP_REPLY:
-        $reply= unpack('VresponseFlags/PcursorID/VstartingFrom/VnumberReturned', substr($response, 0, 20));
+        $reply= unpack('VresponseFlags/PcursorID/VstartingFrom/VnumberReturned', $response);
 
         $offset= 20;
         $reply['documents']= [];
