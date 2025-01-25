@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.0.0 / ????-??-??
+
+* Merged PR #51: Defer connecting the MongoDB cluster until actual I/O is
+  performed. Implements the *lazy by default* option suggested in #50.
+  (@thekid)
+
 ## 2.5.1 / 2025-01-25
 
 * Merged PR #52: Percent-decode credentials in connection strings - @thekid
