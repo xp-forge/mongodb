@@ -84,30 +84,30 @@ class MongoConnectionTest {
   }
 
   #[Test]
-  public function connects_when_selecting_database() {
+  public function selecting_database() {
     $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
     $database= (new MongoConnection($protocol))->database('test');
 
     Assert::instance(Database::class, $database);
-    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
-  public function connects_when_selecting_collection_via_namespace() {
+  public function selecting_collection_via_namespace() {
     $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
     $collection= (new MongoConnection($protocol))->collection('test.products');
 
     Assert::instance(Collection::class, $collection);
-    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test]
-  public function connects_when_selecting_collection_via_args() {
+  public function selecting_collection_via_args() {
     $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
     $collection= (new MongoConnection($protocol))->collection('test', 'products');
 
     Assert::instance(Collection::class, $collection);
-    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test, Expect(IllegalArgumentException::class)]
@@ -116,12 +116,12 @@ class MongoConnectionTest {
   }
 
   #[Test]
-  public function connects_when_creating_session() {
+  public function creating_session() {
     $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);
     $session= (new MongoConnection($protocol))->session();
 
     Assert::instance(Session::class, $session);
-    Assert::true($protocol->connections()[self::$PRIMARY]->connected());
+    Assert::false($protocol->connections()[self::$PRIMARY]->connected());
   }
 
   #[Test, Values([[null, []], ['test', ['filter' => ['name' => 'test']]], [['name' => 'test'], ['filter' => ['name' => 'test']]]])]
