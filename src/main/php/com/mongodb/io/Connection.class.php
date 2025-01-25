@@ -124,7 +124,7 @@ class Connection {
     if (null === $authSource) return $this->server;
 
     try {
-      $auth ?? $auth= Authentication::negotiate($document['saslSupportedMechs'] ?? []);
+      $auth??= Authentication::negotiate($document['saslSupportedMechs'] ?? []);
       $conversation= $auth->conversation($user, $pass, $authSource);
       do {
         $result= $this->send(self::OP_MSG, "\x00\x00\x00\x00\x00", $conversation->current());

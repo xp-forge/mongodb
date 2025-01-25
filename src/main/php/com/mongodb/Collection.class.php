@@ -61,7 +61,7 @@ class Collection implements Value {
     // Most drivers create an ObjectId and insert the _id field
     $ids= [];
     foreach ($documents as $document) {
-      $ids[]= $document['_id'] ?? $document['_id']= ObjectId::create();
+      $ids[]= $document['_id']??= ObjectId::create();
     }
 
     $result= $this->proto->write($options, [

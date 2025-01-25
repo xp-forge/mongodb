@@ -50,7 +50,7 @@ class Protocol {
       // Handle MongoDB Seed Lists
       $p= $m[8] ?? '';
       if ('mongodb+srv' === $m[1]) {
-        $dns ?? $dns= new DNS();
+        $dns??= new DNS();
 
         try {
           foreach ($dns->members($m[5]) as $host => $port) {
