@@ -41,8 +41,7 @@ class MongoConnection implements Value {
    * Connects and returns this connection
    *
    * @return self
-   * @throws peer.AuthenticationException
-   * @throws io.IOException
+   * @throws com.mongodb.Error
    */
   public function connect(): self {
     $this->proto->connect();
