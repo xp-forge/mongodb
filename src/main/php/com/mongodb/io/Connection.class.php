@@ -98,7 +98,7 @@ class Connection {
     $params= [
       'client'   => [
         'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
-        'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '1.0.0'],
+        'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '3.0.0'],
         'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
       ]
     ];
