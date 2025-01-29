@@ -163,7 +163,7 @@ class Connection {
       $document= &$reply['documents'][0];
 
       // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
-      if ($document['ok']) {
+      if ($document['ok'] ?? false) {
         if (isset($document['isreplicaset'])) {
           $kind= self::RSGhost;
         } else if ('' !== ($document['setName'] ?? '')) {
