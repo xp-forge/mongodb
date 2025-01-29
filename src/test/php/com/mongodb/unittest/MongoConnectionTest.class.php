@@ -64,6 +64,53 @@ class MongoConnectionTest {
     Assert::true($protocol->connections()[self::$PRIMARY]->connected());
   }
 
+  #[Test, Values(['example.mongo.cosmos.azure.com:10255', 'example-germanywestcentral.mongo.cosmos.azure.com:10255'])]
+  public function connect_to_azure_cosmos_db($resolved) {
+    $protocol= $this->protocol(['example.mongo.cosmos.azure.com:10255' => [
+      [
+        'responseFlags'  => 0,
+        'cursorID'       => 0,
+        'startingFrom'   => 0,
+        'numberReturned' => 1,
+        'documents'      => [[
+          'ok'       => 0,
+          'code'     => 115,
+          'codeName' => 'CommandNotSupported',
+          'errmsg'   => 'Command Hello not supported prior to authentication',
+        ]],
+      ],
+      [
+        'responseFlags'  => 0,
+        'cursorID'       => 0,
+        'startingFrom'   => 0,
+        'numberReturned' => 1,
+        'documents'      => [[
+          'ismaster'                     => true,
+          'maxBsonObjectSize'            => 16777216,
+          'maxMessageSizeBytes'          => 48000000,
+          'maxWriteBatchSize'            => 1000,
+          'localTime'                    => new Int64(1738183466672),
+          'logicalSessionTimeoutMinutes' => 30,
+          'minWireVersion'               => 0,
+          'maxWireVersion'               => 18,
+          'readOnly'                     => false,
+          'tags'                         => ['region' => 'Germany West Central'],
+          'hosts'                        => [$resolved],
+          'setName'                      => 'globaldb',
+          'setVersion'                   => 1,
+          'primary'                      => $resolved,
+          'me'                           => $resolved,
+          'connectionId'                 => 382867193,
+          'ok'                           => 1.0
+        ]]
+      ],
+    ]]);
+    $fixture= new MongoConnection($protocol);
+    $fixture->connect();
+
+    Assert::true($protocol->connections()[$resolved]->connected());
+  }
+
   #[Test]
   public function close() {
     $protocol= $this->protocol([$this->hello(self::$PRIMARY)]);

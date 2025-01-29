@@ -3,7 +3,7 @@
 use com\mongodb\{Authentication, AuthenticationFailed, Error};
 use lang\Throwable;
 use peer\{Socket, ProtocolException, ConnectException};
-use util\Secret;
+use util\{Secret, Objects};
 
 /**
  * A single connection to MongoDB server, of which more than one may exist
@@ -151,34 +151,42 @@ class Connection {
    * @throws peer.ProtocolException
    */
   public function hello($command= []) {
-    $reply= $this->send(
-      self::OP_QUERY,
-      "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
-      ['hello' => 1] + $command
-    );
 
-    // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
-    $document= &$reply['documents'][0];
-    $kind= self::Standalone;
-    if (isset($document['isreplicaset'])) {
-      $kind= self::RSGhost;
-    } else if ('' !== ($document['setName'] ?? '')) {
-      if ($document['isWritablePrimary'] ?? null) {
-        $kind= self::RSPrimary;
-      } else if ($document['hidden'] ?? null) {
-        $kind= self::RSMember;
-      } else if ($document['secondary'] ?? null) {
-        $kind= self::RSSecondary;
-      } else if ($document['arbiterOnly'] ?? null) {
-        $kind= self::RSArbiter;
-      } else {
-        $kind= self::RSMember;
+    // Try both `hello` and `isMaster` - the latter is for Azure CosmosDB compatibility, see
+    // https://feedback.azure.com/d365community/idea/c7b19748-9276-ef11-a4e6-000d3a059eeb
+    foreach (['hello', 'isMaster'] as $variant) {
+      $reply= $this->send(
+        self::OP_QUERY,
+        "\x00\x00\x00\x00admin.\$cmd\x00\x00\x00\x00\x00\x01\x00\x00\x00",
+        [$variant => 1] + $command
+      );
+      $document= &$reply['documents'][0];
+
+      // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
+      if ($document['ok']) {
+        if (isset($document['isreplicaset'])) {
+          $kind= self::RSGhost;
+        } else if ('' !== ($document['setName'] ?? '')) {
+          if ($document['isWritablePrimary'] ?? null) {
+            $kind= self::RSPrimary;
+          } else if ($document['hidden'] ?? null) {
+            $kind= self::RSMember;
+          } else if ($document['secondary'] ?? null) {
+            $kind= self::RSSecondary;
+          } else if ($document['arbiterOnly'] ?? null) {
+            $kind= self::RSArbiter;
+          } else {
+            $kind= self::RSMember;
+          }
+        } else if ('isdbgrid' === ($document['msg'] ?? '')) {
+          $kind= self::Mongos;
+        }
+
+        return ['$kind' => $kind] + $document;
       }
-    } else if ('isdbgrid' === ($document['msg'] ?? '')) {
-      $kind= self::Mongos;
     }
 
-    return ['$kind' => $kind] + $document;
+    throw new ProtocolException($variant.' command failed: '.Objects::stringOf($document));
   }
 
   /**
