@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Added support for connecting to Azure Cosmos DB:
+  - Fixed *Expected type binData but found string.* during authentication
+  See https://www.mongodb.com/docs/drivers/cosmosdb-support/
+  (@thekid)
+
 ## 3.0.0 / 2025-01-25
 
 * **Heads up:** Dropped support for PHP < 7.4 as well as XP Core <= 9.

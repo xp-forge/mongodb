@@ -69,7 +69,7 @@ class ScramSHA1Test {
     Assert::equals(
       [
         'saslContinue'   => 1,
-        'payload'        => '',
+        'payload'        => new Bytes([]),
         'conversationId' => 1,
         '$db'            => self::DATABASE
       ],
