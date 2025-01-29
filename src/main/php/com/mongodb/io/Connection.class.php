@@ -164,6 +164,7 @@ class Connection {
 
       // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
       if ($document['ok'] ?? false) {
+        $kind= self::Standalone;
         if (isset($document['isreplicaset'])) {
           $kind= self::RSGhost;
         } else if ('' !== ($document['setName'] ?? '')) {
