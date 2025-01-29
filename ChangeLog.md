@@ -5,6 +5,8 @@ MongoDB for XP Framework ChangeLog
 
 * Added support for connecting to Azure Cosmos DB:
   - Fixed *Expected type binData but found string.* during authentication
+  - Try both `hello` and `isMaster` commands to retrieve server information
+  - Handle hostname aliases returned inside server information
   See https://www.mongodb.com/docs/drivers/cosmosdb-support/
   (@thekid)
 
