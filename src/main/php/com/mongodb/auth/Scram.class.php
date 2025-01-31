@@ -99,7 +99,7 @@ abstract class Scram implements Mechanism {
     // Step 3: After having verified server signature, finalize
     yield [
       'saslContinue'   => 1,
-      'payload'        => '',
+      'payload'        => new Bytes([]),
       'conversationId' => $next['conversationId'],
       '$db'            => $authsource,
     ];

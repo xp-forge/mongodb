@@ -204,7 +204,12 @@ class Protocol {
         // Refresh view into cluster every time we succesfully connect to a node. For sockets that
         // have not been used for socketCheckInterval, issue the ping command to check liveness.
         if (null === $conn->server) {
-          connect: $this->useCluster($conn->establish($this->options, $this->auth));
+          connect: $me= $conn->establish($this->options, $this->auth)['me'] ?? $candidate;
+          if ($candidate !== $me) {
+            unset($this->conn[$candidate]);
+            $this->conn[$me]= $conn;
+          }
+          $this->useCluster($conn->server);
         } else if ($time - $conn->lastUsed >= $this->socketCheckInterval) {
           try {
             $conn->timeout(1)->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
