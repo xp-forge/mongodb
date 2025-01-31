@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+# 3.1.0 / 2025-01-31
+
 * Merged PR #53: Support connecting to Azure Cosmos DB:
   - Fixed *Expected type binData but found string.* during authentication
   - Try both `hello` and `isMaster` commands to retrieve server information
