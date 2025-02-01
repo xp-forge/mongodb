@@ -10,9 +10,9 @@ MongoDB connectivity
 
 This library implements MongoDB connectivity via its binary protocol. It has no dependencies on the PHP extension.
 
-✅ Local MongoDB installations
-✅ [MongoDB Atlas](https://www.mongodb.com/docs/atlas/)
-✅ [Azure Cosmos DB for MongoDB](https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/introduction)
+* ✅ Local MongoDB installations
+* ✅ [MongoDB Atlas](https://www.mongodb.com/docs/atlas/) and [Atlas Search](https://www.mongodb.com/docs/atlas/atlas-search/)
+* ✅ [Azure Cosmos DB for MongoDB](https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/introduction)
 
 Examples
 --------
