@@ -71,6 +71,56 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
   /** Iterator over all properties */
   public function getIterator(): Traversable { yield from $this->properties; }
 
+  /**
+   * Gets a field. Returns NULL if it did not exist.
+   *
+   * @param  string $field
+   * @return var
+   */
+  public function get($field) {
+    $ptr= &$this->properties;
+    foreach (explode('.', $field) as $path) {
+      $ptr= &$ptr[$path];
+    }
+    return $ptr;
+  }
+
+  /**
+   * Sets a map of fields and values
+   *
+   * @param  [:var] $map
+   * @return self
+   */
+  public function with(array $fields) {
+    foreach ($fields as $field => $value) {
+      $ptr= &$this->properties;
+      foreach (explode('.', $field) as $path) {
+        $ptr= &$ptr[$path];
+      }
+      $ptr= $value;
+    }
+    return $this;
+  }
+
+  /**
+   * Unsets a list of fields
+   *
+   * @param  [:var] $map
+   * @return self
+   */
+  public function unset(array $fields) {
+    foreach ($fields as $field) {
+      $paths= explode('.', $field);
+      $last= array_pop($paths);
+      $ptr= &$this->properties;
+      foreach ($paths as $path) {
+        $ptr= &$ptr[$path];
+      }
+      unset($ptr[$last]);
+    }
+    return $this;
+  }
+
   /** @return string */
   public function hashCode() {
     return 'D'.Objects::hashOf($this->properties);

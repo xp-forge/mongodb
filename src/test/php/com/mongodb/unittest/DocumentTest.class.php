@@ -114,4 +114,28 @@ class DocumentTest {
     $fixture['properties']['price']= 12.99;
     Assert::equals(['color' => 'green', 'price' => 12.99], $fixture['properties']);
   }
+
+  #[Test]
+  public function get() {
+    $fixture= new Document(['topic' => 'Test', 'context' => ['readonly' => true]]);
+
+    Assert::equals('Test', $fixture->get('topic'));
+    Assert::equals(null, $fixture->get('state'));
+    Assert::equals(true, $fixture->get('context.readonly'));
+  }
+
+  #[Test]
+  public function fluent() {
+    $fixture= (new Document(['_id' => 'one', 'connections' => [6100]]))
+      ->with(['topic' => 'Test', 'state' => 'ARCHIVED'])
+      ->with(['state' => 'ACTIVE'])
+      ->with(['context.readonly' => true])
+      ->unset(['_id', 'connections'])
+    ;
+
+    Assert::equals(
+      ['topic' => 'Test', 'state' => 'ACTIVE', 'context' => ['readonly' => true]],
+      $fixture->properties()
+    );
+  }
 }
