@@ -281,15 +281,13 @@ class Collection implements Value {
   /**
    * Runs a query and returns a cursor.
    *
-   * @param  ?string|com.mongodb.ObjectId|[:var]|[:var][] $query
+   * @param  string|com.mongodb.ObjectId|[:var]|[:var][] $query
    * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Cursor
    * @throws com.mongodb.Error
    */
-  public function query($query= null, Options... $options) {
-    if (null === $query) {
-      return $this->find([], ...$options);
-    } else if (is_array($query) && 0 === key($query)) {
+  public function query($query= [], Options... $options) {
+    if (is_array($query) && 0 === key($query)) {
       return $this->aggregate($query, ...$options);
     } else {
       return $this->find($query, ...$options);
@@ -305,7 +303,7 @@ class Collection implements Value {
    * @return ?com.mongodb.Document
    * @throws com.mongodb.Error
    */
-  public function first($query= null, Options... $options) {
+  public function first($query= [], Options... $options) {
     return $this->query($query, ...$options)->first();
   }
 

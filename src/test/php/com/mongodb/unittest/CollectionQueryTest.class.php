@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\{Collection, Document};
-use test\{Assert, Test, Values};
+use test\{Assert, Test};
 
 class CollectionQueryTest {
   use WireTesting;
@@ -47,12 +47,12 @@ class CollectionQueryTest {
     );
   }
 
-  #[Test, Values([[null], [[]]])]
-  public function first_with_empty($query) {
+  #[Test]
+  public function first_with_empty() {
     $protocol= $this->newFixture($this->cursor(self::DOCUMENTS));
     Assert::equals(
       new Document(self::FIRST),
-      (new Collection($protocol, 'testing', 'tests'))->first($query)
+      (new Collection($protocol, 'testing', 'tests'))->first([])
     );
     Assert::equals(
       ['find' => 'tests', 'filter' => (object)[]] + self::QUERY,
