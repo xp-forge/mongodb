@@ -23,16 +23,28 @@ use com\mongodb\{MongoConnection, ObjectId};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
-$id= new ObjectId(...);
+$id= new ObjectId('...');
 
 // Find all documents
-$cursor= $c->collection('test.products')->find();
+$cursor= $c->collection('test.products')->query();
 
 // Find document with the specified ID
-$cursor= $c->collection('test.products')->find($id);
+$cursor= $c->collection('test.products')->query($id);
 
 // Find all documents with a name of "Test"
-$cursor= $c->collection('test.products')->find(['name' => 'Test']);
+$cursor= $c->collection('test.products')->query(['name' => 'Test']);
+
+// Use aggregation pipelines
+$cursor= $c->collection('test.products')->query([
+  ['$match' => ['color' => 'green', 'state' => 'ACTIVE']],
+  ['$lookup' => [
+    'from'         => 'users',
+    'localField'   => 'owner.id',
+    'foreignField' => '_id',
+    'as'           => 'owner',
+  ]],
+  ['$addFields' => ['owner' => ['$first' => '$owner']]],
+]);
 
 foreach ($cursor as $document) {
   Console::writeLine('>> ', $document);
@@ -62,7 +74,7 @@ use com\mongodb\{MongoConnection, ObjectId};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
-$id= new ObjectId(...);
+$id= new ObjectId('...');
 
 // Select a single document for updating by its ID
 $result= $c->collection('test.products')->update($id, ['$inc' => ['qty' => 1]]);
@@ -102,7 +114,7 @@ use com\mongodb\{MongoConnection, ObjectId};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
-$id= new ObjectId(...);
+$id= new ObjectId('...');
 
 // Select a single document to be removed
 $result= $c->collection('test.products')->delete($id);
