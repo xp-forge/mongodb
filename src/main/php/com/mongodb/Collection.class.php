@@ -293,7 +293,8 @@ class Collection implements Value {
    * @throws com.mongodb.Error
    */
   public function query($query= [], Options... $options) {
-    if (is_array($query) && 0 === key($query)) {
+    $array= is_array($query);
+    if ($array && 0 === key($query)) {
       $sections= [
         'aggregate' => $this->name,
         'pipeline'  => $query,
@@ -303,7 +304,7 @@ class Collection implements Value {
     } else {
       $sections= [
         'find'   => $this->name,
-        'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
+        'filter' => $array ? ($query ?: (object)[]) : ['_id' => $query],
         '$db'    => $this->database,
       ];
     }
