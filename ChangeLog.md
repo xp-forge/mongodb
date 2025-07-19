@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.3.0 / 2025-07-19
+
 * Merged PR #58: Add query API to collections. This adds two new methods
   to the `com.mongodb.Collection` class, *query()* and *first()*.
   (@thekid)
