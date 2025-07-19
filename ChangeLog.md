@@ -3,6 +3,9 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #58: Add query API to collections. This adds two new methods
+  to the `com.mongodb.Collection` class, *query()* and *first()*.
+  (@thekid)
 * Merged PR #59: Add fields API to Document. This allows addressing fields
   via dot-notation and provides a fluent API to modifications
   (@thekid)
