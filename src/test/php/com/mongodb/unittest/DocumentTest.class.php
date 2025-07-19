@@ -18,6 +18,13 @@ class DocumentTest {
     yield [['_id' => 6100, 'key' => 'value'], "com.mongodb.Document(6100)@{\n  key: \"value\"\n}"];
   }
 
+  /** @return iterable */
+  private function iterables() {
+    yield [['topic' => 'Test']];
+    yield [new Document(['topic' => 'Test'])];
+    yield [(function() { yield 'topic' => 'Test'; })()];
+  }
+
   #[Test]
   public function can_create() {
     new Document();
@@ -121,8 +128,6 @@ class DocumentTest {
 
     Assert::equals('Test', $fixture->get('topic'));
     Assert::equals(true, $fixture->get('context.readonly'));
-    Assert::equals(null, $fixture->get('state'));
-    Assert::equals(null, $fixture->get('context.owner'));
   }
 
   #[Test]
@@ -133,18 +138,113 @@ class DocumentTest {
     Assert::equals(null, $fixture->get('context.owner'));
   }
 
-  #[Test]
-  public function fluent() {
-    $fixture= (new Document(['_id' => 'one', 'connections' => [6100], 'state' => 'ARCHIVED']))
-      ->with('topic', 'Test')
-      ->with('state', 'ACTIVE')
-      ->with('context.readonly', true)
-      ->unset('_id', 'connections')
-    ;
+  #[Test, Values(from: 'iterables')]
+  public function update_from($iterable) {
+    $fixture= new Document(['id' => 'one']);
 
     Assert::equals(
-      ['topic' => 'Test', 'state' => 'ACTIVE', 'context' => ['readonly' => true]],
-      $fixture->properties()
+      ['id' => 'one', 'topic' => 'Test'],
+      $fixture->update($iterable)->properties()
+    );
+  }
+
+  #[Test]
+  public function add_field_via_update() {
+    $fixture= new Document(['id' => 'one']);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => 'Test'],
+      $fixture->update(['topic' => 'Test'])->properties()
+    );
+  }
+
+  #[Test]
+  public function change_field_via_update() {
+    $fixture= new Document(['id' => 'one', 'topic' => 'Test']);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => 'Changed'],
+      $fixture->update(['topic' => 'Changed'])->properties()
+    );
+  }
+
+  #[Test]
+  public function change_nested_field_via_update() {
+    $fixture= new Document(['id' => 'one', 'topic' => ['en' => 'Test', 'de' => 'Test']]);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => ['en' => 'Changed', 'de' => 'Test']],
+      $fixture->update(['topic.en' => 'Changed'])->properties()
+    );
+  }
+
+  #[Test]
+  public function add_field_via_with() {
+    $fixture= new Document(['id' => 'one']);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => 'Test'],
+      $fixture->with('topic', 'Test')->properties()
+    );
+  }
+
+  #[Test]
+  public function change_field_via_with() {
+    $fixture= new Document(['id' => 'one', 'topic' => 'Test']);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => 'Changed'],
+      $fixture->with('topic', 'Changed')->properties()
+    );
+  }
+
+  #[Test]
+  public function change_nested_field_via_with() {
+    $fixture= new Document(['id' => 'one', 'topic' => ['en' => 'Test', 'de' => 'Test']]);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => ['en' => 'Changed', 'de' => 'Test']],
+      $fixture->with('topic.en', 'Changed')->properties()
+    );
+  }
+
+  #[Test]
+  public function remove_field() {
+    $fixture= new Document(['id' => 'one', 'topic' => 'Test']);
+
+    Assert::equals(
+      ['topic' => 'Test'],
+      $fixture->unset('id')->properties()
+    );
+  }
+
+  #[Test]
+  public function remove_fields() {
+    $fixture= new Document(['id' => 'one', 'connections' => [], 'topic' => 'Test']);
+
+    Assert::equals(
+      ['topic' => 'Test'],
+      $fixture->unset('id', 'connections')->properties()
+    );
+  }
+
+  #[Test]
+  public function remove_non_existant_field() {
+    $fixture= new Document(['topic' => 'Test']);
+
+    Assert::equals(
+      ['topic' => 'Test'],
+      $fixture->unset('id')->properties()
+    );
+  }
+
+  #[Test]
+  public function remove_nested_field() {
+    $fixture= new Document(['id' => 'one', 'topic' => ['en' => 'Test', 'de' => 'Test']]);
+
+    Assert::equals(
+      ['id' => 'one', 'topic' => ['de' => 'Test']],
+      $fixture->unset('topic.en')->properties()
     );
   }
 }

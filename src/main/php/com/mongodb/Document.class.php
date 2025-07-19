@@ -102,6 +102,23 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
   }
 
   /**
+   * Updates this document from a given iterable producing field => value pairs.
+   *
+   * @param  iterable $from
+   * @return self
+   */
+  public function update(iterable $from) {
+    foreach ($from as $field => $value) {
+      $ptr= &$this->properties;
+      foreach (explode('.', $field) as $path) {
+        $ptr= &$ptr[$path];
+      }
+      $ptr= $value;
+    }
+    return $this;
+  }
+
+  /**
    * Unsets a list of fields
    *
    * @param  string... $fields
