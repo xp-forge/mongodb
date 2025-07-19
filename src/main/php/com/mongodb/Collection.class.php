@@ -288,10 +288,23 @@ class Collection implements Value {
    */
   public function query($query= [], Options... $options) {
     if (is_array($query) && 0 === key($query)) {
-      return $this->aggregate($query, ...$options);
+      $sections= [
+       'aggregate' => $this->name,
+       'pipeline'  => $query,
+       'cursor'    => (object)[],
+       '$db'       => $this->database,
+      ];
     } else {
-      return $this->find($query, ...$options);
+      $sections= [
+       'find'   => $this->name,
+       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
+       '$db'    => $this->database,
+      ];
     }
+
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($options, $sections);
+    return new Cursor($commands, $options, $result['body']['cursor']);
   }
 
   /**
