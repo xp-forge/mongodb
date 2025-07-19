@@ -79,6 +79,72 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
   /** Iterator over all properties */
   public function getIterator(): Traversable { yield from $this->properties; }
 
+  /**
+   * Gets a field. Returns NULL if it did not exist.
+   *
+   * @param  string $field
+   * @return var
+   */
+  public function get($field) {
+    $ptr= &$this->properties;
+    foreach (explode('.', $field) as $path) {
+      $ptr= &$ptr[$path];
+    }
+    return $ptr;
+  }
+
+  /**
+   * Sets a field to a given value
+   *
+   * @param  string $field
+   * @param  var $value
+   * @return self
+   */
+  public function with($field, $value) {
+    $ptr= &$this->properties;
+    foreach (explode('.', $field) as $path) {
+      $ptr= &$ptr[$path];
+    }
+    $ptr= $value;
+    return $this;
+  }
+
+  /**
+   * Updates this document from a given iterable producing field => value pairs.
+   *
+   * @param  iterable $from
+   * @return self
+   */
+  public function update(iterable $from) {
+    foreach ($from as $field => $value) {
+      $ptr= &$this->properties;
+      foreach (explode('.', $field) as $path) {
+        $ptr= &$ptr[$path];
+      }
+      $ptr= $value;
+    }
+    return $this;
+  }
+
+  /**
+   * Unsets a list of fields
+   *
+   * @param  string... $fields
+   * @return self
+   */
+  public function unset(... $fields) {
+    foreach ($fields as $field) {
+      $paths= explode('.', $field);
+      $last= array_pop($paths);
+      $ptr= &$this->properties;
+      foreach ($paths as $path) {
+        $ptr= &$ptr[$path];
+      }
+      unset($ptr[$last]);
+    }
+    return $this;
+  }
+
   /** @return string */
   public function hashCode() {
     return 'D'.Objects::hashOf($this->properties);
