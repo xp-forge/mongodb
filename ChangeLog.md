@@ -3,7 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
-# 3.1.0 / 2025-01-31
+## 3.2.0 / 2025-07-19
+
+* Merged PR #55: Raise exceptions when write errors occur during updates,
+  implementing feature suggested in #54
+  (@thekid)
+
+## 3.1.0 / 2025-01-31
 
 * Merged PR #53: Support connecting to Azure Cosmos DB:
   - Fixed *Expected type binData but found string.* during authentication
