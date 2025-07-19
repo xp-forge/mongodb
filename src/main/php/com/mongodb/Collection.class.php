@@ -8,7 +8,7 @@ use util\Objects;
 /**
  * A collection inside a database.
  *
- * @test  xp://com.mongodb.unittest.CollectionTest
+ * @test  com.mongodb.unittest.CollectionTest
  */
 class Collection implements Value {
   private $proto, $database, $name;
