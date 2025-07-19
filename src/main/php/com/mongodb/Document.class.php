@@ -10,6 +10,14 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
   /** @param [:var] */
   public function __construct($properties= []) { $this->properties= $properties; }
 
+  /** @param [:var]|self $from */
+  public static function create($from= []): self {
+    return new self(['_id' => ObjectId::create()] + ($from instanceof self
+      ? $from->properties
+      : (array)$from
+    ));
+  }
+
   /** @return string|com.mongodb.ObjectId */
   public function id() { return $this->properties['_id'] ?: null; }
 
