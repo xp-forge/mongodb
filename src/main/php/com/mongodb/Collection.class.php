@@ -279,7 +279,13 @@ class Collection implements Value {
   }
 
   /**
-   * Runs a query and returns a cursor.
+   * Runs a query and returns a cursor. The query may either be a string
+   * or an object ID, in which case the `_id` member is matched, a map of
+   * fields and match values which is passed to `find`, or an aggregation
+   * pipeline.
+   *
+   * Note: The pipeline may not contain `$merge` or `$out` stages, this
+   * method always uses read context for sending the query!
    *
    * @param  string|com.mongodb.ObjectId|[:var]|[:var][] $query
    * @param  com.mongodb.Options... $options
@@ -289,16 +295,16 @@ class Collection implements Value {
   public function query($query= [], Options... $options) {
     if (is_array($query) && 0 === key($query)) {
       $sections= [
-       'aggregate' => $this->name,
-       'pipeline'  => $query,
-       'cursor'    => (object)[],
-       '$db'       => $this->database,
+        'aggregate' => $this->name,
+        'pipeline'  => $query,
+        'cursor'    => (object)[],
+        '$db'       => $this->database,
       ];
     } else {
       $sections= [
-       'find'   => $this->name,
-       'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
-       '$db'    => $this->database,
+        'find'   => $this->name,
+        'filter' => is_array($query) ? ($query ?: (object)[]) : ['_id' => $query],
+        '$db'    => $this->database,
       ];
     }
 
