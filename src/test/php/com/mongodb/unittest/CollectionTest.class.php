@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\result\Modification;
-use com\mongodb\{Collection, Document, Int64, ObjectId, Options, Session, Error};
+use com\mongodb\{Collection, Document, Int64, ObjectId, Options, Session, Error, WriteErrors};
 use test\{Assert, Before, Expect, Test, Values};
 use util\UUID;
 
@@ -417,5 +417,25 @@ class CollectionTest {
       $this->error(6100, 'FailedOnce', 'Test message'),
       $this->error(6101, 'FailedAgain', 'The previous error should have thrown')
     ));
+  }
+
+  #[Test, Values(['update', 'upsert'])]
+  public function write_errors_during($operation) {
+    $errors= [[
+      'index'  => 0,
+      'code'   => 40,
+      'errmsg' => "Updating the path 'version' would create a conflict at 'version'",
+    ]];
+    $coll= $this->newFixture($this->ok(['n' => 0, 'nModified' => 0, 'writeErrors' => $errors]));
+
+    try {
+      $coll->{$operation}(['test' => true], [
+        '$inc' => ['version' => 1],
+        '$setOnInsert' => ['version' => 1]
+      ]);
+      Assert::null('No exception raised');
+    } catch (WriteErrors $expected) {
+      Assert::equals($errors, $expected->list());
+    }
   }
 }
