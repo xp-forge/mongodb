@@ -9,6 +9,7 @@ use util\Objects;
  * A collection inside a database.
  *
  * @test  com.mongodb.unittest.CollectionTest
+ * @test  com.mongodb.unittest.CollectionQueryTest
  */
 class Collection implements Value {
   private $proto, $database, $name;
@@ -275,6 +276,37 @@ class Collection implements Value {
 
     $result= $commands->send($options, $sections);
     return new Cursor($commands, $options, $result['body']['cursor']);
+  }
+
+  /**
+   * Runs a query and returns a cursor.
+   *
+   * @param  ?string|com.mongodb.ObjectId|[:var]|[:var][] $query
+   * @param  com.mongodb.Options... $options
+   * @return com.mongodb.result.Cursor
+   * @throws com.mongodb.Error
+   */
+  public function query($query= null, Options... $options) {
+    if (null === $query) {
+      return $this->find([], ...$options);
+    } else if (is_array($query) && 0 === key($query)) {
+      return $this->aggregate($query, ...$options);
+    } else {
+      return $this->find($query, ...$options);
+    }
+  }
+
+  /**
+   * Returns the first document for a given query, or NULL. Shorthand
+   * for running `$collection->query($query)->first()`.
+   *
+   * @param  ?string|com.mongodb.ObjectId|[:var]|[:var][] $query
+   * @param  com.mongodb.Options... $options
+   * @return ?com.mongodb.Document
+   * @throws com.mongodb.Error
+   */
+  public function first($query= null, Options... $options) {
+    return $this->query($query, ...$options)->first();
   }
 
   /**
