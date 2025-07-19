@@ -120,8 +120,17 @@ class DocumentTest {
     $fixture= new Document(['topic' => 'Test', 'context' => ['readonly' => true]]);
 
     Assert::equals('Test', $fixture->get('topic'));
-    Assert::equals(null, $fixture->get('state'));
     Assert::equals(true, $fixture->get('context.readonly'));
+    Assert::equals(null, $fixture->get('state'));
+    Assert::equals(null, $fixture->get('context.owner'));
+  }
+
+  #[Test]
+  public function get_non_existant() {
+    $fixture= new Document(['topic' => 'Test', 'context' => ['readonly' => true]]);
+
+    Assert::equals(null, $fixture->get('state'));
+    Assert::equals(null, $fixture->get('context.owner'));
   }
 
   #[Test]
