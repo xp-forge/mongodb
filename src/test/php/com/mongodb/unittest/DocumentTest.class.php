@@ -247,4 +247,35 @@ class DocumentTest {
       $fixture->unset('topic.en')->properties()
     );
   }
+
+  #[Test]
+  public function create() {
+    Assert::instance(ObjectId::class, Document::create()->id());
+  }
+
+  #[Test]
+  public function create_with_properties() {
+    $fixture= Document::create(['test' => true]);
+
+    Assert::instance(ObjectId::class, $fixture->id());
+    Assert::true($fixture['test']);
+  }
+
+  #[Test]
+  public function create_passed_id_is_overwritten() {
+    $id= new ObjectId(self::OID);
+    $fixture= Document::create(['_id' => $id]);
+
+    Assert::notEquals($id, $fixture->id());
+  }
+
+  #[Test]
+  public function create_copies_document() {
+    $original= new Document(['_id' => new ObjectId(self::OID), 'test' => true]);
+    $fixture= Document::create($original);
+    $original['test']= false;
+
+    Assert::notEquals($original->id(), $fixture->id());
+    Assert::true($fixture['test']);
+  }
 }
