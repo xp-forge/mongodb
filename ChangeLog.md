@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #59: Add fields API to Document. This allows addressing fields
+  via dot-notation and provides a fluent API to modifications
+  (@thekid)
+* Merged PR #57: Add `Document::create()` which creates a document with
+  an object ID
+  (@thekid)
+
 ## 3.2.0 / 2025-07-19
 
 * Merged PR #55: Raise exceptions when write errors occur during updates,
