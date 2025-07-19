@@ -9,6 +9,7 @@ use util\Objects;
  * A collection inside a database.
  *
  * @test  com.mongodb.unittest.CollectionTest
+ * @test  com.mongodb.unittest.CollectionQueryTest
  */
 class Collection implements Value {
   private $proto, $database, $name;
@@ -275,6 +276,55 @@ class Collection implements Value {
 
     $result= $commands->send($options, $sections);
     return new Cursor($commands, $options, $result['body']['cursor']);
+  }
+
+  /**
+   * Runs a query and returns a cursor. The query may either be a string
+   * or an object ID, in which case the `_id` member is matched, a map of
+   * fields and match values which is passed to `find`, or an aggregation
+   * pipeline.
+   *
+   * Note: The pipeline may not contain `$merge` or `$out` stages, this
+   * method always uses read context for sending the query!
+   *
+   * @param  string|com.mongodb.ObjectId|[:var]|[:var][] $query
+   * @param  com.mongodb.Options... $options
+   * @return com.mongodb.result.Cursor
+   * @throws com.mongodb.Error
+   */
+  public function query($query= [], Options... $options) {
+    $array= is_array($query);
+    if ($array && 0 === key($query)) {
+      $sections= [
+        'aggregate' => $this->name,
+        'pipeline'  => $query,
+        'cursor'    => (object)[],
+        '$db'       => $this->database,
+      ];
+    } else {
+      $sections= [
+        'find'   => $this->name,
+        'filter' => $array ? ($query ?: (object)[]) : ['_id' => $query],
+        '$db'    => $this->database,
+      ];
+    }
+
+    $commands= Commands::reading($this->proto);
+    $result= $commands->send($options, $sections);
+    return new Cursor($commands, $options, $result['body']['cursor']);
+  }
+
+  /**
+   * Returns the first document for a given query, or NULL. Shorthand
+   * for running `$collection->query($query)->first()`.
+   *
+   * @param  ?string|com.mongodb.ObjectId|[:var]|[:var][] $query
+   * @param  com.mongodb.Options... $options
+   * @return ?com.mongodb.Document
+   * @throws com.mongodb.Error
+   */
+  public function first($query= [], Options... $options) {
+    return $this->query($query, ...$options)->first();
   }
 
   /**
