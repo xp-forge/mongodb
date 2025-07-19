@@ -86,29 +86,28 @@ class Document implements Value, ArrayAccess, IteratorAggregate {
   }
 
   /**
-   * Sets a map of fields and values
+   * Sets a field to a given value
    *
-   * @param  [:var] $map
+   * @param  string $field
+   * @param  var $value
    * @return self
    */
-  public function with(array $fields) {
-    foreach ($fields as $field => $value) {
-      $ptr= &$this->properties;
-      foreach (explode('.', $field) as $path) {
-        $ptr= &$ptr[$path];
-      }
-      $ptr= $value;
+  public function with($field, $value) {
+    $ptr= &$this->properties;
+    foreach (explode('.', $field) as $path) {
+      $ptr= &$ptr[$path];
     }
+    $ptr= $value;
     return $this;
   }
 
   /**
    * Unsets a list of fields
    *
-   * @param  [:var] $map
+   * @param  string... $fields
    * @return self
    */
-  public function unset(array $fields) {
+  public function unset(... $fields) {
     foreach ($fields as $field) {
       $paths= explode('.', $field);
       $last= array_pop($paths);

@@ -135,11 +135,11 @@ class DocumentTest {
 
   #[Test]
   public function fluent() {
-    $fixture= (new Document(['_id' => 'one', 'connections' => [6100]]))
-      ->with(['topic' => 'Test', 'state' => 'ARCHIVED'])
-      ->with(['state' => 'ACTIVE'])
-      ->with(['context.readonly' => true])
-      ->unset(['_id', 'connections'])
+    $fixture= (new Document(['_id' => 'one', 'connections' => [6100], 'state' => 'ARCHIVED']))
+      ->with('topic', 'Test')
+      ->with('state', 'ACTIVE')
+      ->with('context.readonly', true)
+      ->unset('_id', 'connections')
     ;
 
     Assert::equals(
