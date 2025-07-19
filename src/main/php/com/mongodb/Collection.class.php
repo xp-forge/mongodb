@@ -8,7 +8,7 @@ use util\Objects;
 /**
  * A collection inside a database.
  *
- * @test  xp://com.mongodb.unittest.CollectionTest
+ * @test  com.mongodb.unittest.CollectionTest
  */
 class Collection implements Value {
   private $proto, $database, $name;
@@ -93,6 +93,8 @@ class Collection implements Value {
       ]],
       '$db'       => $this->database,
     ]);
+    if (isset($result['body']['writeErrors'])) throw new WriteErrors($result['body']);
+
     return new Update($result['body']);
   }
 
@@ -115,6 +117,8 @@ class Collection implements Value {
       'ordered'   => true,
       '$db'       => $this->database,
     ]);
+    if (isset($result['body']['writeErrors'])) throw new WriteErrors($result['body']);
+
     return new Update($result['body']);
   }
 
