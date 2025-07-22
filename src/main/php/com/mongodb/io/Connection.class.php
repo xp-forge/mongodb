@@ -97,7 +97,7 @@ class Connection {
         'application' => ['name' => $options['params']['appName'] ?? $_SERVER['argv'][0] ?? 'php'],
         'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '3.0.0'],
         'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
-      ]
+      ],
     ];
 
     // If the optional field saslSupportedMechs is specified, the command also returns
@@ -159,7 +159,7 @@ class Connection {
       );
       $document= &$reply['documents'][0];
 
-      // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#type
+      // See https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.md#type
       if ($document['ok'] ?? false) {
         if (isset($document['isreplicaset'])) {
           $kind= self::RSGhost;
