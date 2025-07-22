@@ -9,18 +9,15 @@ use util\{Secret, Objects};
  * A single connection to MongoDB server, of which more than one may exist
  * in the Protocol class based on read preference.
  *
+ * @see   https://www.mongodb.com/docs/manual/reference/mongodb-wire-protocol/
  * @see   https://docs.mongodb.com/manual/core/read-preference-mechanics/
  * @test  com.mongodb.unittest.ConnectionTest
  */
 class Connection {
   const OP_REPLY        = 1;
-  const OP_UPDATE       = 2001;
-  const OP_INSERT       = 2002;
   const OP_QUERY        = 2004;
-  const OP_GET_MORE     = 2005;
-  const OP_DELETE       = 2006;
-  const OP_KILL_CURSORS = 2007;
   const OP_MSG          = 2013;
+  const OP_COMPRESSED   = 2012;
 
   const RSGhost         = 'RSGhost';
   const RSPrimary       = 'RSPrimary';
