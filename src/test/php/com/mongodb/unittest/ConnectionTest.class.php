@@ -1,11 +1,13 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\Connection;
+use com\mongodb\io\{Connection, Compression};
 use peer\ConnectException;
-use test\{Assert, Expect, Test};
+use test\verify\Runtime;
+use test\{Assert, Expect, Test, Values};
 use util\Date;
 
 class ConnectionTest {
+  use WireTesting;
 
   #[Test]
   public function can_create() {
@@ -61,5 +63,21 @@ class ConnectionTest {
       ],
       $c->server
     );
+  }
+
+  #[Test, Values([[[], false], [['compression' => []], false], [['compression' => ['unsupported']], false]])]
+  public function no_compression_negotiated($server, $expected) {
+    $c= new TestingConnection(self::$PRIMARY, [$this->hello(self::$PRIMARY, $server)]);
+    $c->establish();
+
+    Assert::null($c->compression);
+  }
+
+  #[Test, Runtime(extensions: ['zlib'])]
+  public function zlib_compression_negotiated() {
+    $c= new TestingConnection(self::$PRIMARY, [$this->hello(self::$PRIMARY, ['compression' => ['zlib']])]);
+    $c->establish();
+
+    Assert::instance(Compression::class, $c->compression);
   }
 }
