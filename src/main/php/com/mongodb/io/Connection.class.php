@@ -32,6 +32,7 @@ class Connection {
 
   private $socket, $bson;
   private $packet= 1;
+  public $compression= null;
   public $server= null;
   public $lastUsed= null;
 
@@ -111,8 +112,13 @@ class Connection {
       $authSource= null;
     }
 
+    if ($compressors= ($options['params']['compressors'] ?? null)) {
+      $params['compression']= explode(',', $compressors);
+    }
+
     try {
       $this->server= $this->hello($params);
+      $this->compression= Compression::negotiate($this->server['compression'] ?? [], $options['params'] ?? []);
     } catch (ProtocolException $e) {
       throw new ConnectException('Server handshake failed @ '.$this->address(), $e);
     }
@@ -230,14 +236,30 @@ class Connection {
 
     $this->packet > 2147483647 ? $this->packet= 1 : $this->packet++;
     $body= $header.$this->bson->sections($sections);
-    $payload= pack('VVVV', strlen($body) + 16, $this->packet, 0, $operation).$body;
+    $length= strlen($body);
 
-    $this->socket->write($payload);
+    if ($this->compression && $compressor= $this->compression->for($sections, $length)) {
+      $compressed= $compressor->compress($body);
+      $this->socket->write(pack(
+        'VVVVVVCa*',
+        strlen($compressed) + 25,
+        $this->packet,
+        0,
+        self::OP_COMPRESSED,
+        $operation,
+        $length,
+        $compressor->id,
+        $compressed
+      ));
+    } else {
+      $this->socket->write(pack('VVVV', $length + 16, $this->packet, 0, $operation).$body);
+    }
+
     $meta= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->read0(16));
     $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
 
-    switch ($meta['opCode']) {
+    opcode: switch ($meta['opCode']) {
       case self::OP_MSG:
         $flags= unpack('V', $response, 4)[1];
         if ("\x00" === $response[4]) {
@@ -257,6 +279,17 @@ class Connection {
         }
 
         return $reply;
+
+      case self::OP_COMPRESSED:
+        $compressed= unpack('VoriginalOpcode/VuncompressedSize/CcompressorId', $response);
+
+        if ($this->compression && $compressor= $this->compression->select($compressed['compressorId'] ?? null)) {
+          $response= $compressor->decompress(substr($response, 9));
+          $meta['opCode']= $compressed['originalOpcode'];
+          goto opcode;
+        }
+
+        throw new ProtocolException('Unsupported compressorId '.$compressed['compressorId']);
 
       default:
         return ['opCode' => $meta['opCode']];
