@@ -9,7 +9,10 @@ abstract class Compressor implements Value {
 
   public abstract function decompress($compressed);
 
+  public function toString() { return nameof($this).'#'.$this->id; }
+
   public function hashCode() { return 'C'.$this->id; }
 
   public function compareTo($value) { return $value instanceof self ? $this->id <=> $value->id : 1; }
+
 }

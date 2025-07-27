@@ -2,15 +2,9 @@
 
 class Zstd extends Compressor {
   public $id= 3;
-  public $level;
-
-  /** @param int $level */
-  public function __construct($level= -1) {
-    $this->level= $level;
-  }
 
   public function compress($data) {
-    return zstd_compress($data, $this->level);
+    return zstd_compress($data);
   }
 
   public function decompress($compressed) {
