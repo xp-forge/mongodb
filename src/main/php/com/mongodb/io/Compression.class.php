@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\io;
 
 use lang\Value;
-use util\{Comparison, Objects};
+use util\Comparison;
 
 /** 
  * Compression negotiation and selection.
@@ -89,6 +89,10 @@ class Compression implements Value {
 
   /** @return string */
   public function toString() {
-    return nameof($this).'@'.Objects::stringOf($this->compressors);
+    $s= nameof($this)."@[\n";
+    foreach ($this->compressors as $compressor) {
+      $s.= '  '.$compressor->toString()."\n";
+    }
+    return $s.']';
   }
 }
