@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\{Compression, Compressor, Zlib};
+use com\mongodb\io\{Compression, Compressor, Zlib, Zstd};
 use test\verify\Runtime;
 use test\{Assert, Before, Test, Values};
 
@@ -68,5 +68,10 @@ class CompressionTest {
 
     Assert::instance(Zlib::class, $compressor);
     Assert::equals($level, $compressor->level);
+  }
+
+  #[Test, Runtime(extensions: ['zstd'])]
+  public function negotiate_zstd() {
+    Assert::instance(Zstd::class, Compression::negotiate(['unsupported', 'zstd'])->select(2));
   }
 }

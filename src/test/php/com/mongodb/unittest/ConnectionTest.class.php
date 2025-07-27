@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\Int64;
-use com\mongodb\io\{BSON, Connection, Compression, Compressor, Zlib};
+use com\mongodb\io\{BSON, Connection, Compression, Compressor, Zlib, Zstd};
 use peer\ConnectException;
 use test\verify\Runtime;
 use test\{Assert, Before, Expect, Test, Values};
@@ -133,6 +133,22 @@ class ConnectionTest {
     $c= new Connection(new TestingSocket([
       ...$this->reply(['ok' => 1.0, 'compression' => ['zlib']]),
       ...$this->compressed(new Zlib(), [
+        'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
+        'ok'     => 1,
+      ]),
+    ]));
+    $c->establish();
+    $reply= $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['find' => 'entries', '$db' => 'test']);
+
+    Assert::equals($documents, $reply['body']['cursor']['firstBatch']);
+  }
+
+  #[Test, Runtime(extensions: ['zstd'])]
+  public function send_and_receive_zstd() {
+    $documents= [['_id' => 'one']];
+    $c= new Connection(new TestingSocket([
+      ...$this->reply(['ok' => 1.0, 'compression' => ['zstd']]),
+      ...$this->compressed(new Zstd(), [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),
