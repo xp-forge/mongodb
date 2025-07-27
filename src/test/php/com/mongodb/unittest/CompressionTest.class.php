@@ -72,6 +72,6 @@ class CompressionTest {
 
   #[Test, Runtime(extensions: ['zstd'])]
   public function negotiate_zstd() {
-    Assert::instance(Zstd::class, Compression::negotiate(['unsupported', 'zstd'])->select(2));
+    Assert::instance(Zstd::class, Compression::negotiate(['unsupported', 'zstd'])->select(3));
   }
 }

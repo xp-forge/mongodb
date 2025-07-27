@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\io;
 
 class Zstd extends Compressor {
-  public $id= 2;
+  public $id= 3;
   public $level;
 
   /** @param int $level */
