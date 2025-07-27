@@ -4,7 +4,8 @@ class Zlib extends Compressor {
   public $id= 2;
   public $level;
 
-  public function __construct($level) {
+  /** @param int $level */
+  public function __construct($level= -1) {
     $this->level= $level;
   }
 
