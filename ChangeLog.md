@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.4.0 / 2025-07-27
+
+* Merged PR #62: Implement compression via zlib and zstd. See issue #61
+  (@thekid)
 * Merged PR #60: Remove legacy opcodes except OP_QUERY and OP_REPLY, used
   by "hello"
   (@thekid)
