@@ -9,7 +9,7 @@ abstract class Compressor implements Value {
 
   public abstract function decompress($compressed);
 
-  public function toString() { return nameof($this).'#'.$this->id; }
+  public function toString() { return nameof($this).'(id: '.$this->id.')'; }
 
   public function hashCode() { return 'C'.$this->id; }
 
