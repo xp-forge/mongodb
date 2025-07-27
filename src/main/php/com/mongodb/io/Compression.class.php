@@ -17,7 +17,7 @@ class Compression implements Value {
 
   static function __static() {
     extension_loaded('zlib') && self::$negotiable['zlib']= fn($options) => new Zlib($options['zlibCompressionLevel'] ?? -1);
-    extension_loaded('zstd') && self::$negotiable['zstd']= fn($options) => new Zstd();
+    extension_loaded('zstd') && self::$negotiable['zstd']= fn($options) => new Zstd($options['zstdCompressionLevel'] ?? -1);
   }
 
   /** @param [:com.mongodb.io.Compressor] $compressors */
