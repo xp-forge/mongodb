@@ -1,13 +1,27 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\{Connection, Compression};
+use com\mongodb\io\{BSON, Connection, Compression};
 use peer\ConnectException;
 use test\verify\Runtime;
-use test\{Assert, Expect, Test, Values};
+use test\{Assert, Before, Expect, Test, Values};
 use util\Date;
 
 class ConnectionTest {
-  use WireTesting;
+  private $bson;
+
+  /** Creates an OP_REPLY message */
+  private function reply(array $sections): array {
+    $payload= $this->bson->sections($sections);
+    return [
+      pack('VVVV', strlen($payload) + 36, 0, 0, Connection::OP_REPLY),
+      pack('VPVV', 0, 0, 0, 1).$payload
+    ];
+  }
+
+  #[Before]
+  public function bson() {
+    $this->bson= new BSON();
+  }
 
   #[Test]
   public function can_create() {
@@ -34,48 +48,44 @@ class ConnectionTest {
 
   #[Test]
   public function connect_handshake_populates_server_options() {
-    $c= new Connection(new TestingSocket([
-      "\xef\x00\x00\x00\x92\x09\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00",
-      "\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
-      "\x01\x00\x00\x00\xcb\x00\x00\x00\x08ismaster\x00\x01\x10maxBsonO".
-      "bjectSize\x00\x00\x00\x00\x01\x10maxMessageSizeBytes\x00\x00l\xdc".
-      "\x02\x10maxWriteBatchSize\x00\xa0\x86\x01\x00\x09localTime\x00\xef".
-      "\x00\xa0\xb9s\x01\x00\x00\x10logicalSessionTimeoutMinutes\x00\x1e".
-      "\x00\x00\x00\x10minWireVersion\x00\x00\x00\x00\x00\x10maxWireVers".
-      "ion\x00\x06\x00\x00\x00\x08readOnly\x00\x00\x01ok\x00\x00\x00\x00".
-      "\x00\x00\x00\xf0?\x00"
-    ]));
+    $server= [
+      'ismaster'                     => true,
+      'maxBsonObjectSize'            => 16777216,
+      'maxMessageSizeBytes'          => 48000000,
+      'maxWriteBatchSize'            => 100000,
+      'localTime'                    => new Date('2020-08-04 13:18:57+0000'),
+      'logicalSessionTimeoutMinutes' => 30,
+      'minWireVersion'               => 0,
+      'maxWireVersion'               => 6,
+      'readOnly'                     => false,
+      'ok'                           => 1.0,
+    ];
+    $c= new Connection(new TestingSocket($this->reply($server)));
     $c->establish();
 
-    Assert::equals(
-      [
-        '$kind' => 'Standalone',
-        'ismaster' => true,
-        'maxBsonObjectSize' => 16777216,
-        'maxMessageSizeBytes' => 48000000,
-        'maxWriteBatchSize' => 100000,
-        'localTime' => new Date('2020-08-04 13:18:57+0000'),
-        'logicalSessionTimeoutMinutes' => 30,
-        'minWireVersion' => 0,
-        'maxWireVersion' => 6,
-        'readOnly' => false,
-        'ok' => 1.0,
-      ],
-      $c->server
-    );
+    Assert::equals(['$kind' => 'Standalone'] + $server, $c->server);
   }
 
-  #[Test, Values([[[], false], [['compression' => []], false], [['compression' => ['unsupported']], false]])]
-  public function no_compression_negotiated($server, $expected) {
-    $c= new TestingConnection(self::$PRIMARY, [$this->hello(self::$PRIMARY, $server)]);
+  #[Test, Values([[[]], [['compression' => []]], [['compression' => ['unsupported']]]])]
+  public function no_compression_negotiated($preference) {
+    $c= new Connection(new TestingSocket($this->reply($preference + [
+      'ok'             => 1.0,
+      'minWireVersion' => 0,
+      'maxWireVersion' => 6,
+    ])));
     $c->establish();
 
     Assert::null($c->compression);
   }
 
-  #[Test, Runtime(extensions: ['zlib'])]
-  public function zlib_compression_negotiated() {
-    $c= new TestingConnection(self::$PRIMARY, [$this->hello(self::$PRIMARY, ['compression' => ['zlib']])]);
+  #[Test, Runtime(extensions: ['zlib']), Values([[['zlib']], [['unsupported', 'zlib']]])]
+  public function zlib_compression_negotiated($compression) {
+    $c= new Connection(new TestingSocket($this->reply([
+      'ok'             => 1.0,
+      'minWireVersion' => 0,
+      'maxWireVersion' => 6,
+      'compression'    => $compression,
+    ])));
     $c->establish();
 
     Assert::instance(Compression::class, $c->compression);
