@@ -83,7 +83,8 @@ class Compression implements Value {
       isset($sections['copydb'])
     )) return null;
 
-    // Currently always select the first compressor negotiated
+    // When compressing, clients MUST use the first compressor in the client's
+    // configured compressors list that is also in the servers list.
     return current($this->compressors);
   }
 
