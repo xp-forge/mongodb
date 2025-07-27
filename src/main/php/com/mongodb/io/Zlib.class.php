@@ -16,4 +16,9 @@ class Zlib extends Compressor {
   public function decompress($compressed) {
     return gzuncompress($compressed);
   }
+
+  /** @return string */
+  public function toString() {
+    return nameof($this).'(id: '.$this->id.', level: '.$this->level.')';
+  }
 }

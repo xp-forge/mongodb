@@ -1,12 +1,17 @@
 <?php namespace com\mongodb\io;
 
+use lang\Value;
+use util\{Comparison, Objects};
+
 /** 
  * Compression negotiation and selection.
  * 
  * @see   https://github.com/mongodb/specifications/blob/master/source/compression/OP_COMPRESSED.md
  * @test  com.mongodb.unittest.CompressionTest
  */
-class Compression {
+class Compression implements Value {
+  use Comparison;
+
   private static $negotiable= [];
   private $compressors;
 
@@ -80,5 +85,10 @@ class Compression {
 
     // Currently always select the first compressor negotiated
     return current($this->compressors);
+  }
+
+  /** @return string */
+  public function toString() {
+    return nameof($this).'@'.Objects::stringOf($this->compressors);
   }
 }

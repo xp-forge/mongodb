@@ -16,4 +16,9 @@ class Zstd extends Compressor {
   public function decompress($compressed) {
     return zstd_uncompress($compressed);
   }
+
+  /** @return string */
+  public function toString() {
+    return nameof($this).'(id: '.$this->id.', level: '.$this->level.')';
+  }
 }
