@@ -1,11 +1,47 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\Connection;
+use com\mongodb\Int64;
+use com\mongodb\io\{BSON, Connection, Compression, Compressor, Zlib, Zstd};
 use peer\ConnectException;
-use test\{Assert, Expect, Test};
+use test\verify\Runtime;
+use test\{Assert, Before, Expect, Test, Values};
 use util\Date;
 
 class ConnectionTest {
+  private $bson;
+
+  /** Creates an OP_REPLY message */
+  private function reply(array $sections): array {
+    $payload= $this->bson->sections($sections);
+    return [
+      pack('VVVV', strlen($payload) + 36, 0, 0, Connection::OP_REPLY),
+      pack('VPVV', 0, 0, 0, 1).$payload
+    ];
+  }
+
+  /** Creates an OP_MSG message */
+  private function msg(array $document): array {
+    $payload= $this->bson->sections($document);
+    return [
+      pack('VVVV', strlen($payload) + 21, 0, 0, Connection::OP_MSG),
+      pack('VC', 0, 0).$payload
+    ];
+  }
+
+  /** Creates an OP_COMPRESSED message with an embedded OP_MSG opcode */
+  private function compressed(Compressor $compressor, array $document): array {
+    $payload= pack('VC', 0, 0).$this->bson->sections($document);
+    $compressed= $compressor->compress($payload);
+    return [
+      pack('VVVV', strlen($compressed) + 25, 0, 0, Connection::OP_COMPRESSED),
+      pack('VVC', Connection::OP_MSG, strlen($payload), $compressor->id).$compressed
+    ];
+  }
+
+  #[Before]
+  public function bson() {
+    $this->bson= new BSON();
+  }
 
   #[Test]
   public function can_create() {
@@ -32,34 +68,109 @@ class ConnectionTest {
 
   #[Test]
   public function connect_handshake_populates_server_options() {
-    $c= new Connection(new TestingSocket([
-      "\xef\x00\x00\x00\x92\x09\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00",
-      "\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
-      "\x01\x00\x00\x00\xcb\x00\x00\x00\x08ismaster\x00\x01\x10maxBsonO".
-      "bjectSize\x00\x00\x00\x00\x01\x10maxMessageSizeBytes\x00\x00l\xdc".
-      "\x02\x10maxWriteBatchSize\x00\xa0\x86\x01\x00\x09localTime\x00\xef".
-      "\x00\xa0\xb9s\x01\x00\x00\x10logicalSessionTimeoutMinutes\x00\x1e".
-      "\x00\x00\x00\x10minWireVersion\x00\x00\x00\x00\x00\x10maxWireVers".
-      "ion\x00\x06\x00\x00\x00\x08readOnly\x00\x00\x01ok\x00\x00\x00\x00".
-      "\x00\x00\x00\xf0?\x00"
-    ]));
+    $server= [
+      'ismaster'                     => true,
+      'maxBsonObjectSize'            => 16777216,
+      'maxMessageSizeBytes'          => 48000000,
+      'maxWriteBatchSize'            => 100000,
+      'localTime'                    => new Date('2020-08-04 13:18:57+0000'),
+      'logicalSessionTimeoutMinutes' => 30,
+      'minWireVersion'               => 0,
+      'maxWireVersion'               => 6,
+      'readOnly'                     => false,
+      'ok'                           => 1.0,
+    ];
+    $c= new Connection(new TestingSocket($this->reply($server)));
     $c->establish();
 
-    Assert::equals(
-      [
-        '$kind' => 'Standalone',
-        'ismaster' => true,
-        'maxBsonObjectSize' => 16777216,
-        'maxMessageSizeBytes' => 48000000,
-        'maxWriteBatchSize' => 100000,
-        'localTime' => new Date('2020-08-04 13:18:57+0000'),
-        'logicalSessionTimeoutMinutes' => 30,
-        'minWireVersion' => 0,
-        'maxWireVersion' => 6,
-        'readOnly' => false,
-        'ok' => 1.0,
-      ],
-      $c->server
-    );
+    Assert::equals(['$kind' => 'Standalone'] + $server, $c->server);
+  }
+
+  #[Test, Values([[null, []], ['zlib', ['zlib']], ['zlib,zstd', ['zlib', 'zstd']]])]
+  public function compressor_param_sent($compressors, $expected) {
+    $socket= new TestingSocket($this->reply([
+      'ok'             => 1.0,
+      'minWireVersion' => 0,
+      'maxWireVersion' => 6,
+    ]));
+    $c= new Connection($socket);
+    $c->establish(['params' => ['compressors' => $compressors]]);
+
+    // Standard header (16 bytes) + admin.$cmd prologue (23 bytes)
+    $offset= 39;
+    Assert::equals($expected, $this->bson->document($socket->requests[0], $offset)['compression']);
+  }
+
+  #[Test, Values([[[]], [['compression' => []]], [['compression' => ['unsupported']]]])]
+  public function no_compression_negotiated($preference) {
+    $c= new Connection(new TestingSocket($this->reply($preference + [
+      'ok'             => 1.0,
+      'minWireVersion' => 0,
+      'maxWireVersion' => 6,
+    ])));
+    $c->establish();
+
+    Assert::null($c->compression);
+  }
+
+  #[Test, Runtime(extensions: ['zlib']), Values([[['zlib']], [['unsupported', 'zlib']]])]
+  public function zlib_compression_negotiated($compression) {
+    $c= new Connection(new TestingSocket($this->reply([
+      'ok'             => 1.0,
+      'minWireVersion' => 0,
+      'maxWireVersion' => 6,
+      'compression'    => $compression,
+    ])));
+    $c->establish();
+
+    Assert::instance(Compression::class, $c->compression);
+  }
+
+  #[Test]
+  public function send_and_receive() {
+    $documents= [['_id' => 'one']];
+    $c= new Connection(new TestingSocket([
+      ...$this->reply(['ok' => 1.0]),
+      ...$this->msg([
+        'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
+        'ok'     => 1,
+      ]),
+    ]));
+    $c->establish();
+    $reply= $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['find' => 'entries', '$db' => 'test']);
+
+    Assert::equals($documents, $reply['body']['cursor']['firstBatch']);
+  }
+
+  #[Test, Runtime(extensions: ['zlib'])]
+  public function send_and_receive_zlib() {
+    $documents= [['_id' => 'one']];
+    $c= new Connection(new TestingSocket([
+      ...$this->reply(['ok' => 1.0, 'compression' => ['zlib']]),
+      ...$this->compressed(new Zlib(), [
+        'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
+        'ok'     => 1,
+      ]),
+    ]));
+    $c->establish();
+    $reply= $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['find' => 'entries', '$db' => 'test']);
+
+    Assert::equals($documents, $reply['body']['cursor']['firstBatch']);
+  }
+
+  #[Test, Runtime(extensions: ['zstd'])]
+  public function send_and_receive_zstd() {
+    $documents= [['_id' => 'one']];
+    $c= new Connection(new TestingSocket([
+      ...$this->reply(['ok' => 1.0, 'compression' => ['zstd']]),
+      ...$this->compressed(new Zstd(), [
+        'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
+        'ok'     => 1,
+      ]),
+    ]));
+    $c->establish();
+    $reply= $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['find' => 'entries', '$db' => 'test']);
+
+    Assert::equals($documents, $reply['body']['cursor']['firstBatch']);
   }
 }

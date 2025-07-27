@@ -32,15 +32,16 @@ trait WireTesting {
    * Creates a hello reply
    *
    * @param  string $node
+   * @param  [:var] $fields
    * @return [:var]
    */
-  private function hello($node) {
+  private function hello($node, $fields= []) {
     return [
       'responseFlags'   => 8,
       'cursorID'        => 0,
       'startingFrom'    => 0,
       'numberReturned'  => 1,
-      'documents'       => [[
+      'documents'       => [$fields + [
         'topologyVersion'              => ['processId' => new ObjectId('6235b5ddda38998abb76bed3'), new Int64(6)],
         'hosts'                        => [self::$PRIMARY, self::$SECONDARY1, self::$SECONDARY2],
         'setName'                      => 'atlas-test-shard-0',
