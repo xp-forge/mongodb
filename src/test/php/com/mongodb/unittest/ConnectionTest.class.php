@@ -86,6 +86,21 @@ class ConnectionTest {
     Assert::equals(['$kind' => 'Standalone'] + $server, $c->server);
   }
 
+  #[Test, Values([[null, []], ['zlib', ['zlib']], ['zlib,zstd', ['zlib', 'zstd']]])]
+  public function compressor_param_sent($compressors, $expected) {
+    $socket= new TestingSocket($this->reply([
+      'ok'             => 1.0,
+      'minWireVersion' => 0,
+      'maxWireVersion' => 6,
+    ]));
+    $c= new Connection($socket);
+    $c->establish(['params' => ['compressors' => $compressors]]);
+
+    // Standard header (16 bytes) + admin.$cmd prologue (23 bytes)
+    $offset= 39;
+    Assert::equals($expected, $this->bson->document($socket->requests[0], $offset)['compression']);
+  }
+
   #[Test, Values([[[]], [['compression' => []]], [['compression' => ['unsupported']]]])]
   public function no_compression_negotiated($preference) {
     $c= new Connection(new TestingSocket($this->reply($preference + [

@@ -99,6 +99,10 @@ class Connection {
         'driver'      => ['name' => 'XP MongoDB Connectivity', 'version' => '3.0.0'],
         'os'          => ['name' => php_uname('s'), 'type' => PHP_OS, 'architecture' => php_uname('m'), 'version' => php_uname('r')]
       ],
+      'compression' => ($param= ($options['params']['compressors'] ?? null))
+        ? explode(',', $param)
+        : []
+      ,
     ];
 
     // If the optional field saslSupportedMechs is specified, the command also returns
@@ -110,10 +114,6 @@ class Connection {
       $params['saslSupportedMechs']= "{$authSource}.{$user}";
     } else {
       $authSource= null;
-    }
-
-    if ($compressors= ($options['params']['compressors'] ?? null)) {
-      $params['compression']= explode(',', $compressors);
     }
 
     try {
