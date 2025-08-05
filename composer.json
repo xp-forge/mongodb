@@ -9,6 +9,7 @@
     "xp-framework/core": "^12.0 | ^11.0 | ^10.0",
     "xp-framework/networking": "^10.0",
     "xp-framework/math": "^9.1",
+    "xp-forge/compression": "^2.0",
     "php" : ">=7.4.0"
   },
   "require-dev" : {

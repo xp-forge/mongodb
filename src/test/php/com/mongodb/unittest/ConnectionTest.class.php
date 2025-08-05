@@ -1,7 +1,8 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\Int64;
-use com\mongodb\io\{BSON, Connection, Compression, Compressor, Zlib, Zstd};
+use com\mongodb\io\{BSON, Connection, Compression, Compressor};
+use io\streams\compress\Gzip;
 use peer\ConnectException;
 use test\verify\Runtime;
 use test\{Assert, Before, Expect, Test, Values};
@@ -147,7 +148,7 @@ class ConnectionTest {
     $documents= [['_id' => 'one']];
     $c= new Connection(new TestingSocket([
       ...$this->reply(['ok' => 1.0, 'compression' => ['zlib']]),
-      ...$this->compressed(new Zlib(), [
+      ...$this->compressed(new Compressor(2, new Gzip()), [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),
