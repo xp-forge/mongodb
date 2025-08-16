@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.5.0 / 2025-08-16
+
+* Added compatibility with `xp-framework/math` version 10.0+ - @thekid
+
 ## 3.4.0 / 2025-07-27
 
 * Merged PR #62: Implement compression via zlib and zstd. See issue #61
