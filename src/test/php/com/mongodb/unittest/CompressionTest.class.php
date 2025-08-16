@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\{Compression, Compressor};
-use io\streams\compress\{None, Gzip, ZStandard};
+use io\streams\compress\{None, Gzip, Snappy, ZStandard};
 use test\verify\Runtime;
 use test\{Assert, Before, Test, Values};
 
@@ -52,6 +52,11 @@ class CompressionTest {
   #[Test]
   public function negotiate_unsupported() {
     Assert::null(Compression::negotiate(['unsupported']));
+  }
+
+  #[Test]
+  public function negotiate_snappy() {
+    Assert::instance(Snappy::class, Compression::negotiate(['unsupported', 'snappy'])->select(1)->algorithm);
   }
 
   #[Test, Runtime(extensions: ['zlib'])]
