@@ -32,7 +32,7 @@ class ConnectionTest {
   /** Creates an OP_COMPRESSED message with an embedded OP_MSG opcode */
   private function compressed(Compressor $compressor, array $document): array {
     $payload= pack('VC', 0, 0).$this->bson->sections($document);
-    $compressed= $compressor->compress($payload);
+    $compressed= $compressor->algorithm->compress($payload, $compressor->options);
     return [
       pack('VVVV', strlen($compressed) + 25, 0, 0, Connection::OP_COMPRESSED),
       pack('VVC', Connection::OP_MSG, strlen($payload), $compressor->id).$compressed

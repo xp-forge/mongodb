@@ -12,14 +12,6 @@ class Compressor implements Value {
     $this->options= $options;
   }
 
-  public function compress($data) {
-    return $this->algorithm->compress($data, $this->options);
-  }
-
-  public function decompress($compressed) {
-    return $this->algorithm->decompress($compressed);
-  }
-
   public function toString() { return nameof($this).'(id: '.$this->id.', options: '.$this->options.')'; }
 
   public function hashCode() { return 'C'.$this->id; }
