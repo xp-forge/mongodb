@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\io\{Compression, Compressor};
-use io\streams\compress\{None, Gzip};
+use io\streams\compress\{None, Gzip, ZStandard};
 use test\verify\Runtime;
 use test\{Assert, Before, Test, Values};
 
@@ -77,6 +77,6 @@ class CompressionTest {
     $compressor= Compression::negotiate(['zstd'], $options)->select(3);
 
     Assert::instance(ZStandard::class, $compressor->algorithm);
-    Assert::equals($level, $compressor->level);
+    Assert::equals($level, $compressor->options);
   }
 }

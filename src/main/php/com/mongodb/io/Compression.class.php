@@ -27,7 +27,7 @@ class Compression implements Value {
       new Gzip(),
       $options['zlibCompressionLevel'] ?? -1
     );
-    extension_loaded('zstd') && self::$negotiable['zlib']= fn($options) => new Compressor(
+    extension_loaded('zstd') && self::$negotiable['zstd']= fn($options) => new Compressor(
       3,
       new ZStandard(),
       $options['zstdCompressionLevel'] ?? -1
