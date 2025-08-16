@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.6.0 / 2025-08-16
+
+* Merged PR #63: Use compression library, adding snappy support and thus
+  full compatibility with MongoDB compression.
+  (@thekid)
+
 ## 3.5.0 / 2025-08-16
 
 * Added compatibility with `xp-framework/math` version 10.0+ - @thekid
