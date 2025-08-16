@@ -1,15 +1,18 @@
 <?php namespace com\mongodb\io;
 
+use io\streams\compress\Algorithm;
 use lang\Value;
 
-abstract class Compressor implements Value {
-  public $id;
+class Compressor implements Value {
+  public $id, $algorithm, $options;
 
-  public abstract function compress($data);
+  public function __construct(int $id, Algorithm $algorithm, $options= null) {
+    $this->id= $id;
+    $this->algorithm= $algorithm;
+    $this->options= $options;
+  }
 
-  public abstract function decompress($compressed);
-
-  public function toString() { return nameof($this).'(id: '.$this->id.')'; }
+  public function toString() { return nameof($this).'(id: '.$this->id.', options: '.$this->options.')'; }
 
   public function hashCode() { return 'C'.$this->id; }
 

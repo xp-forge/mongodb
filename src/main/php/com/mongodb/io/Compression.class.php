@@ -1,5 +1,6 @@
 <?php namespace com\mongodb\io;
 
+use io\streams\compress\{Gzip, ZStandard, Snappy};
 use lang\Value;
 use util\Comparison;
 
@@ -16,8 +17,21 @@ class Compression implements Value {
   private $compressors;
 
   static function __static() {
-    extension_loaded('zlib') && self::$negotiable['zlib']= fn($options) => new Zlib($options['zlibCompressionLevel'] ?? -1);
-    extension_loaded('zstd') && self::$negotiable['zstd']= fn($options) => new Zstd($options['zstdCompressionLevel'] ?? -1);
+    self::$negotiable['snappy']= fn($options) => new Compressor(
+      1,
+      new Snappy(),
+      null
+    );
+    extension_loaded('zlib') && self::$negotiable['zlib']= fn($options) => new Compressor(
+      2,
+      new Gzip(),
+      $options['zlibCompressionLevel'] ?? -1
+    );
+    extension_loaded('zstd') && self::$negotiable['zstd']= fn($options) => new Compressor(
+      3,
+      new ZStandard(),
+      $options['zstdCompressionLevel'] ?? -1
+    );
   }
 
   /** @param [:com.mongodb.io.Compressor] $compressors */

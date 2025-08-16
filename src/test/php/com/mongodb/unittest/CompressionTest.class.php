@@ -1,6 +1,7 @@
 <?php namespace com\mongodb\unittest;
 
-use com\mongodb\io\{Compression, Compressor, Zlib, Zstd};
+use com\mongodb\io\{Compression, Compressor};
+use io\streams\compress\{None, Gzip, Snappy, ZStandard};
 use test\verify\Runtime;
 use test\{Assert, Before, Test, Values};
 
@@ -9,11 +10,7 @@ class CompressionTest {
 
   #[Before]
   public function compressor() {
-    $this->compressor= new class() extends Compressor {
-      public $id= 9;
-      public function compress($data) { /** Not implemented */ }
-      public function decompress($compressed) { /** Not implemented */ }
-    };
+    $this->compressor= new Compressor(0, new None());
   }
 
 
@@ -57,29 +54,34 @@ class CompressionTest {
     Assert::null(Compression::negotiate(['unsupported']));
   }
 
+  #[Test]
+  public function negotiate_snappy() {
+    Assert::instance(Snappy::class, Compression::negotiate(['unsupported', 'snappy'])->select(1)->algorithm);
+  }
+
   #[Test, Runtime(extensions: ['zlib'])]
   public function negotiate_zlib() {
-    Assert::instance(Zlib::class, Compression::negotiate(['unsupported', 'zlib'])->select(2));
+    Assert::instance(Gzip::class, Compression::negotiate(['unsupported', 'zlib'])->select(2)->algorithm);
   }
 
   #[Test, Runtime(extensions: ['zlib']), Values([[[], -1], [['zlibCompressionLevel' => 6], 6]])]
   public function negotiate_zlib_with($options, $level) {
     $compressor= Compression::negotiate(['zlib'], $options)->select(2);
 
-    Assert::instance(Zlib::class, $compressor);
-    Assert::equals($level, $compressor->level);
+    Assert::instance(Gzip::class, $compressor->algorithm);
+    Assert::equals($level, $compressor->options);
   }
 
   #[Test, Runtime(extensions: ['zstd'])]
   public function negotiate_zstd() {
-    Assert::instance(Zstd::class, Compression::negotiate(['unsupported', 'zstd'])->select(3));
+    Assert::instance(ZStandard::class, Compression::negotiate(['unsupported', 'zstd'])->select(3)->algorithm);
   }
 
   #[Test, Runtime(extensions: ['zstd']), Values([[[], -1], [['zstdCompressionLevel' => 6], 6]])]
   public function negotiate_zstd_with($options, $level) {
     $compressor= Compression::negotiate(['zstd'], $options)->select(3);
 
-    Assert::instance(Zstd::class, $compressor);
-    Assert::equals($level, $compressor->level);
+    Assert::instance(ZStandard::class, $compressor->algorithm);
+    Assert::equals($level, $compressor->options);
   }
 }

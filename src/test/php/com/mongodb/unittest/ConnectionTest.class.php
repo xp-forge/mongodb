@@ -1,7 +1,8 @@
 <?php namespace com\mongodb\unittest;
 
 use com\mongodb\Int64;
-use com\mongodb\io\{BSON, Connection, Compression, Compressor, Zlib, Zstd};
+use com\mongodb\io\{BSON, Connection, Compression, Compressor};
+use io\streams\compress\{Gzip, ZStandard};
 use peer\ConnectException;
 use test\verify\Runtime;
 use test\{Assert, Before, Expect, Test, Values};
@@ -31,7 +32,7 @@ class ConnectionTest {
   /** Creates an OP_COMPRESSED message with an embedded OP_MSG opcode */
   private function compressed(Compressor $compressor, array $document): array {
     $payload= pack('VC', 0, 0).$this->bson->sections($document);
-    $compressed= $compressor->compress($payload);
+    $compressed= $compressor->algorithm->compress($payload, $compressor->options);
     return [
       pack('VVVV', strlen($compressed) + 25, 0, 0, Connection::OP_COMPRESSED),
       pack('VVC', Connection::OP_MSG, strlen($payload), $compressor->id).$compressed
@@ -147,7 +148,7 @@ class ConnectionTest {
     $documents= [['_id' => 'one']];
     $c= new Connection(new TestingSocket([
       ...$this->reply(['ok' => 1.0, 'compression' => ['zlib']]),
-      ...$this->compressed(new Zlib(), [
+      ...$this->compressed(new Compressor(2, new Gzip()), [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),
@@ -163,7 +164,7 @@ class ConnectionTest {
     $documents= [['_id' => 'one']];
     $c= new Connection(new TestingSocket([
       ...$this->reply(['ok' => 1.0, 'compression' => ['zstd']]),
-      ...$this->compressed(new Zstd(), [
+      ...$this->compressed(new Compressor(3, new ZStandard()), [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),

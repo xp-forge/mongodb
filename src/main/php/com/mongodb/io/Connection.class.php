@@ -239,7 +239,7 @@ class Connection {
     $length= strlen($body);
 
     if ($this->compression && $compressor= $this->compression->for($sections, $length)) {
-      $compressed= $compressor->compress($body);
+      $compressed= $compressor->algorithm->compress($body, $compressor->options);
       $this->socket->write(pack(
         'VVVVVVCa*',
         strlen($compressed) + 25,
@@ -284,7 +284,7 @@ class Connection {
         $compressed= unpack('VoriginalOpcode/VuncompressedSize/CcompressorId', $response);
 
         if ($this->compression && $compressor= $this->compression->select($compressed['compressorId'] ?? null)) {
-          $response= $compressor->decompress(substr($response, 9));
+          $response= $compressor->algorithm->decompress(substr($response, 9));
           $meta['opCode']= $compressed['originalOpcode'];
           goto opcode;
         }
