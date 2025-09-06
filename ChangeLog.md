@@ -3,6 +3,13 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.6.1 / 2025-09-06
+
+* Fixed *E_DEPRECATED: chr(): Providing a value not in-between 0 and 255
+  is deprecated, this is because a byte value must be in the `[0, 255]`
+  interval* in PHP 8.5+
+  (@thekid)
+
 ## 3.6.0 / 2025-08-16
 
 * Merged PR #63: Use compression library, adding snappy support and thus

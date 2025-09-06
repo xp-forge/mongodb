@@ -44,9 +44,9 @@ class ObjectId implements Value {
       'Na5aaa',
       null === $timestamp ? time() : $timestamp,
       self::$rand[$pid] ?? self::$rand[$pid]= random_bytes(5),
-      chr($uint32 >> 16),
-      chr($uint32 >> 8),
-      chr($uint32)
+      chr(($uint32 >> 16) & 0xff),
+      chr(($uint32 >> 8) & 0xff),
+      chr($uint32 & 0xff)
     )));
   }
 
