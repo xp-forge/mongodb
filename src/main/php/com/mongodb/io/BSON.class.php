@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\io;
 
 use Traversable, StdClass;
-use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128, MinKey, MaxKey};
+use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128, MinKey, MaxKey, Encrypted};
 use lang\{FormatException, IllegalArgumentException};
 use util\{Bytes, Date, TimeZone, UUID};
 
@@ -58,6 +58,8 @@ class BSON {
       return "\xff".$name."\x00";
     } else if ($value instanceof MaxKey) {
       return "\x7f".$name."\x00";
+    } else if ($value instanceof Encrypted) {
+      return "\x05".$name."\x00".pack('Vc', $value->length(), 6).$value->ciphertext();
     } else if ($value instanceof Traversable || $value instanceof StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
     } else if (is_string($value)) {
@@ -132,6 +134,7 @@ class BSON {
       switch ($binary['subtype']) {
         case 0: case 2: return $value;
         case 3: case 4: return new UUID($value);
+        case 6: return new Encrypted($value);
         default: throw new FormatException('Cannot handle binary subtype '.$binary['subtype']);
       }
     } else if ("\x07" === $kind) {    // ObjectId
