@@ -256,5 +256,6 @@ All builtin types are mapped to their BSON equivalents. In addition, the followi
 * `com.mongodb.ObjectId` => Object ID
 * `com.mongodb.Timestamp` => Timestamp
 * `com.mongodb.Regex` => Regular expression
+* `com.mongodb.Encrypted` => Encrypted values
 
 The deprecated types of the BSON spec are not supported, see http://bsonspec.org/spec.html
