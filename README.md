@@ -92,7 +92,7 @@ Console::writeLine('>> ', $result->kind(), ' ', $result->document());
 [Upserting](https://www.mongodb.com/docs/manual/reference/command/update/#std-label-update-command-upsert) documents:
 
 ```php
-use com\mongodb\MongoConnection;
+use com\mongodb\{MongoConnection, Document};
 use util\cmd\Console;
 
 $c= new MongoConnection('mongodb://localhost');
