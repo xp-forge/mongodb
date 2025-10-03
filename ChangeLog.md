@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.7.0 / 2025-10-03
+
+* Merged PR #64: Add support for encrypted values. However, this is only
+  a step 1 prerequisite for full queryable encryption support!
+  (@thekid)
+
 ## 3.6.1 / 2025-09-06
 
 * Fixed *E_DEPRECATED: chr(): Providing a value not in-between 0 and 255
