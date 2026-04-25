@@ -3,6 +3,11 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.8.0 / 2026-04-25
+
+* Made compatible with `xp-framework/networking` version 11.0 - @thekid
+* Added PHP 8.6 to the test matrix - @thekid
+
 ## 3.7.0 / 2025-10-03
 
 * Merged PR #64: Add support for encrypted values. However, this is only
