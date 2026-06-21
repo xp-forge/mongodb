@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use io\IOException;
+use io\OperationFailed;
 
 /** 
  * DNS-constructed seed list
@@ -19,7 +19,7 @@ class DNS {
   /** @return iterable */
   public function members(string $srv) {
     if (false === ($lookup= dns_get_record('_mongodb._tcp.'.$srv, DNS_SRV))) {
-      $e= new IOException('Cannot lookup SRV record for '.$srv);
+      $e= new OperationFailed('Cannot lookup SRV record for '.$srv);
       \xp::gc(__FILE__);
       throw $e;
     }
@@ -32,7 +32,7 @@ class DNS {
   /** @return iterable */
   public function params(string $srv) {
     if (false === ($lookup= dns_get_record($srv, DNS_TXT))) {
-      $e= new IOException('Cannot lookup TXT record for '.$srv);
+      $e= new OperationFailed('Cannot lookup TXT record for '.$srv);
       \xp::gc(__FILE__);
       throw $e;
     }

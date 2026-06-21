@@ -2,7 +2,7 @@
 
 use com\mongodb\io\{DNS, Protocol};
 use com\mongodb\{Error, ObjectId};
-use io\IOException;
+use io\OperationFailed;
 use lang\IllegalArgumentException;
 use test\{Assert, Expect, Test, Values};
 use util\{Bytes, Date};
@@ -93,7 +93,7 @@ class ProtocolTest {
   #[Test, Expect(class: Error::class, message: 'DNS lookup failed for example.com')]
   public function fails_when_dns_fails() {
     new Protocol('mongodb+srv://example.com', [], null, new class() extends DNS {
-      public function members(string $srv) { throw new IOException('DNS server down'); }
+      public function members(string $srv) { throw new OperationFailed('DNS server down'); }
       public function params(string $srv) { return []; }
     });
   }
