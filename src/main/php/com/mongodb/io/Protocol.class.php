@@ -1,7 +1,7 @@
 <?php namespace com\mongodb\io;
 
 use com\mongodb\{Authentication, NoSuitableCandidate, CannotConnect, Error};
-use io\IOException;
+use io\OperationFailed;
 use lang\{IllegalStateException, IllegalArgumentException, Throwable};
 use peer\{ConnectException, Socket, SocketException};
 use util\Objects;
@@ -60,7 +60,7 @@ class Protocol {
           foreach ($dns->params($m[5]) as $param) {
             $p.= '&'.$param;
           }
-        } catch (IOException $e) {
+        } catch (OperationFailed $e) {
           throw new CannotConnect(231, 'DNSProtocolError', 'DNS lookup failed for '.$m[5], $e);
         }
 
