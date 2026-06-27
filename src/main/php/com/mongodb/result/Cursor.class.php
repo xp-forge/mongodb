@@ -117,7 +117,7 @@ class Cursor implements Value, IteratorAggregate {
 
   /** @return string */
   public function hashCode() {
-    return 'C'.spl_object_hash($this->commands).Objects::hashOf($this->current);
+    return 'C'.Objects::hashOf($this->commands).Objects::hashOf($this->current);
   }
 
   /**
