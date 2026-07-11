@@ -42,7 +42,7 @@ class Collection implements Value {
     return new Run(
       $commands,
       $options,
-      $commands->send($options, [$name => $this->name] + $params + ['$db' => $this->database])
+      $commands->send($options, $params + [$name => $this->name, '$db' => $this->database])
     );
   }
 

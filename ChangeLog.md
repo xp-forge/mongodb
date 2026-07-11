@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Made it possible to run commands like *replSetReconfig* via `run()` in
+  both `com.mongodb.MongoConnection` and `com.mongodb.Collection` classes
+  (@thekid)
+* Fixed `com.mongodb.Error::newInstance()` when receiving errors without
+  *code* and *codeName* fields
+  (@thekid)
 * Fixed *Undefined variable $params* when running `MongoConnection::run()`
   (@thekid)
 * Merged PR #67: Add packet out-of-order detection, preventing inconsistent

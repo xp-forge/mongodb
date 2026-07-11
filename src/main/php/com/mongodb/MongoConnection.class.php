@@ -52,18 +52,18 @@ class MongoConnection implements Value {
    * Runs a command in the `admin` database.
    *
    * @param  string $name
-   * @param  [:var] $arguments
+   * @param  [:var] $params
    * @param  string $semantics one of `read` or `write`
    * @param  com.mongodb.Options... $options
    * @return com.mongodb.result.Run
    * @throws com.mongodb.Error
    */
-  public function run($name, array $arguments= [], $semantics= 'write', Options... $options) {
+  public function run($name, array $params= [], $semantics= 'write', Options... $options) {
     $commands= Commands::using($this->proto, $semantics);
     return new Run(
       $commands,
       $options,
-      $commands->send($options, [$name => 1] + $arguments + ['$db' => 'admin'])
+      $commands->send($options, $params + [$name => 1, '$db' => 'admin'])
     );
   }
 
