@@ -116,7 +116,7 @@ class Connection {
     }
 
     try {
-      $this->packet= $options['initialPacket'] ?? 0;
+      $this->packet= $options['packetStart'] ?? 0;
       $this->server= $this->hello($params);
       $this->compression= Compression::negotiate($this->server['compression'] ?? [], $options['params'] ?? []);
     } catch (ProtocolException $e) {

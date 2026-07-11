@@ -181,7 +181,7 @@ class ConnectionTest {
       ...$this->reply($sequence[0], ['ok' => 1.0]),
       ...$this->msg($sequence[1], ['ok' => 1.0]),
     ]));
-    $c->establish(['initialPacket' => $initial]);
+    $c->establish(['packetStart' => $initial]);
     $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
   }
 
