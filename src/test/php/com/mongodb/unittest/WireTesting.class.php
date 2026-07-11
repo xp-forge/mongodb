@@ -42,7 +42,7 @@ trait WireTesting {
       'startingFrom'    => 0,
       'numberReturned'  => 1,
       'documents'       => [$fields + [
-        'topologyVersion'              => ['processId' => new ObjectId('6235b5ddda38998abb76bed3'), new Int64(6)],
+        'topologyVersion'              => ['processId' => new ObjectId('6235b5ddda38998abb76bed3'), 'counter' => new Int64(6)],
         'hosts'                        => [self::$PRIMARY, self::$SECONDARY1, self::$SECONDARY2],
         'setName'                      => 'atlas-test-shard-0',
         'setVersion'                   => 8,
