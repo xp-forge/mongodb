@@ -41,8 +41,8 @@ class Error extends XPException {
    */
   public static function newInstance($document, $retried= 0) {
     return new self(
-      $document['code'],
-      $document['codeName'],
+      $document['code'] ?? 1,
+      $document['codeName'] ?? 'InternalError',
       $document['errmsg'],
       null,
       $retried
