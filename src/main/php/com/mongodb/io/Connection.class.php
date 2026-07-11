@@ -116,7 +116,7 @@ class Connection {
     }
 
     try {
-      $this->packet= 0;
+      $this->packet= $options['initialPacket'] ?? 0;
       $this->server= $this->hello($params);
       $this->compression= Compression::negotiate($this->server['compression'] ?? [], $options['params'] ?? []);
     } catch (ProtocolException $e) {
@@ -234,7 +234,7 @@ class Connection {
       $sections+= ['$readPreference' => $readPreference];
     }
 
-    $this->packet > 2147483647 ? $this->packet= 1 : $this->packet++;
+    $this->packet= ($this->packet % 2147483647) + 1;
     $body= $header.$this->bson->sections($sections);
     $length= strlen($body);
 

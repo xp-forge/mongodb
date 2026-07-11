@@ -175,6 +175,16 @@ class ConnectionTest {
     Assert::equals($documents, $reply['body']['cursor']['firstBatch']);
   }
 
+  #[Test, Values([[0, [1, 2]], [1, [2, 3]], [2147483646, [2147483647, 1]], [2147483647, [1, 2]]])]
+  public function packet_order($initial, $sequence) {
+    $c= new Connection(new TestingSocket([
+      ...$this->reply($sequence[0], ['ok' => 1.0]),
+      ...$this->msg($sequence[1], ['ok' => 1.0]),
+    ]));
+    $c->establish(['initialPacket' => $initial]);
+    $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
+  }
+
   #[Test, Expect(class: ProtocolException::class, message: 'Packet #6100 out of order, expected #2')]
   public function packet_out_of_order() {
     $c= new Connection(new TestingSocket([
