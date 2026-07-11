@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Fixed *Undefined variable $params* when running `MongoConnection::run()`
+  (@thekid)
 * Merged PR #67: Add packet out-of-order detection, preventing inconsistent
   protocol state from causing confusing errors on subsequent requests.
   (@thekid)

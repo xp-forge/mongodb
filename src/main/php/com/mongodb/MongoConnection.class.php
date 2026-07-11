@@ -63,7 +63,7 @@ class MongoConnection implements Value {
     return new Run(
       $commands,
       $options,
-      $commands->send($options, [$name => 1] + $params + ['$db' => 'admin'])
+      $commands->send($options, [$name => 1] + $arguments + ['$db' => 'admin'])
     );
   }
 
