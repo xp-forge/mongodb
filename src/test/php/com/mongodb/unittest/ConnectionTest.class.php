@@ -3,7 +3,7 @@
 use com\mongodb\Int64;
 use com\mongodb\io\{BSON, Connection, Compression, Compressor};
 use io\streams\compress\{Gzip, ZStandard};
-use peer\ConnectException;
+use peer\{ConnectException, ProtocolException};
 use test\verify\Runtime;
 use test\{Assert, Before, Expect, Test, Values};
 use util\Date;
@@ -12,29 +12,29 @@ class ConnectionTest {
   private $bson;
 
   /** Creates an OP_REPLY message */
-  private function reply(array $sections): array {
+  private function reply(int $id, array $sections): array {
     $payload= $this->bson->sections($sections);
     return [
-      pack('VVVV', strlen($payload) + 36, 0, 0, Connection::OP_REPLY),
+      pack('VVVV', strlen($payload) + 36, 0, $id, Connection::OP_REPLY),
       pack('VPVV', 0, 0, 0, 1).$payload
     ];
   }
 
   /** Creates an OP_MSG message */
-  private function msg(array $document): array {
+  private function msg(int $id, array $document): array {
     $payload= $this->bson->sections($document);
     return [
-      pack('VVVV', strlen($payload) + 21, 0, 0, Connection::OP_MSG),
+      pack('VVVV', strlen($payload) + 21, 0, $id, Connection::OP_MSG),
       pack('VC', 0, 0).$payload
     ];
   }
 
   /** Creates an OP_COMPRESSED message with an embedded OP_MSG opcode */
-  private function compressed(Compressor $compressor, array $document): array {
+  private function compressed(int $id, Compressor $compressor, array $document): array {
     $payload= pack('VC', 0, 0).$this->bson->sections($document);
     $compressed= $compressor->algorithm->compress($payload, $compressor->options);
     return [
-      pack('VVVV', strlen($compressed) + 25, 0, 0, Connection::OP_COMPRESSED),
+      pack('VVVV', strlen($compressed) + 25, 0, $id, Connection::OP_COMPRESSED),
       pack('VVC', Connection::OP_MSG, strlen($payload), $compressor->id).$compressed
     ];
   }
@@ -81,7 +81,7 @@ class ConnectionTest {
       'readOnly'                     => false,
       'ok'                           => 1.0,
     ];
-    $c= new Connection(new TestingSocket($this->reply($server)));
+    $c= new Connection(new TestingSocket($this->reply(1, $server)));
     $c->establish();
 
     Assert::equals(['$kind' => 'Standalone'] + $server, $c->server);
@@ -89,7 +89,7 @@ class ConnectionTest {
 
   #[Test, Values([[null, []], ['zlib', ['zlib']], ['zlib,zstd', ['zlib', 'zstd']]])]
   public function compressor_param_sent($compressors, $expected) {
-    $socket= new TestingSocket($this->reply([
+    $socket= new TestingSocket($this->reply(1, [
       'ok'             => 1.0,
       'minWireVersion' => 0,
       'maxWireVersion' => 6,
@@ -104,7 +104,7 @@ class ConnectionTest {
 
   #[Test, Values([[[]], [['compression' => []]], [['compression' => ['unsupported']]]])]
   public function no_compression_negotiated($preference) {
-    $c= new Connection(new TestingSocket($this->reply($preference + [
+    $c= new Connection(new TestingSocket($this->reply(1, $preference + [
       'ok'             => 1.0,
       'minWireVersion' => 0,
       'maxWireVersion' => 6,
@@ -116,7 +116,7 @@ class ConnectionTest {
 
   #[Test, Runtime(extensions: ['zlib']), Values([[['zlib']], [['unsupported', 'zlib']]])]
   public function zlib_compression_negotiated($compression) {
-    $c= new Connection(new TestingSocket($this->reply([
+    $c= new Connection(new TestingSocket($this->reply(1, [
       'ok'             => 1.0,
       'minWireVersion' => 0,
       'maxWireVersion' => 6,
@@ -131,8 +131,8 @@ class ConnectionTest {
   public function send_and_receive() {
     $documents= [['_id' => 'one']];
     $c= new Connection(new TestingSocket([
-      ...$this->reply(['ok' => 1.0]),
-      ...$this->msg([
+      ...$this->reply(1, ['ok' => 1.0]),
+      ...$this->msg(2, [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),
@@ -147,8 +147,8 @@ class ConnectionTest {
   public function send_and_receive_zlib() {
     $documents= [['_id' => 'one']];
     $c= new Connection(new TestingSocket([
-      ...$this->reply(['ok' => 1.0, 'compression' => ['zlib']]),
-      ...$this->compressed(new Compressor(2, new Gzip()), [
+      ...$this->reply(1, ['ok' => 1.0, 'compression' => ['zlib']]),
+      ...$this->compressed(2, new Compressor(2, new Gzip()), [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),
@@ -163,8 +163,8 @@ class ConnectionTest {
   public function send_and_receive_zstd() {
     $documents= [['_id' => 'one']];
     $c= new Connection(new TestingSocket([
-      ...$this->reply(['ok' => 1.0, 'compression' => ['zstd']]),
-      ...$this->compressed(new Compressor(3, new ZStandard()), [
+      ...$this->reply(1, ['ok' => 1.0, 'compression' => ['zstd']]),
+      ...$this->compressed(2, new Compressor(3, new ZStandard()), [
         'cursor' => ['firstBatch' => $documents, 'id' => new Int64(0), 'ns' => 'test.entries'],
         'ok'     => 1,
       ]),
@@ -173,5 +173,15 @@ class ConnectionTest {
     $reply= $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['find' => 'entries', '$db' => 'test']);
 
     Assert::equals($documents, $reply['body']['cursor']['firstBatch']);
+  }
+
+  #[Test, Expect(class: ProtocolException::class, message: 'Packet #6100 out of order, expected #2')]
+  public function packet_out_of_order() {
+    $c= new Connection(new TestingSocket([
+      ...$this->reply(1, ['ok' => 1.0]),  // first packet is the reply to the "hello" command
+      ...$this->msg(6100, ['ok' => 1.0]), // packet numbers increment, wrapping around at 2147483647
+    ]));
+    $c->establish();
+    $c->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", ['ping' => 1, '$db' => 'admin']);
   }
 }
