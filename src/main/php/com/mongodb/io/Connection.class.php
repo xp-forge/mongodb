@@ -30,8 +30,7 @@ class Connection {
   const CONNECT_TIMEOUT = 40000;
   const READ_TIMEOUT    = 60000;
 
-  private $socket, $bson;
-  private $packet= 1;
+  private $socket, $packet, $bson;
   public $compression= null;
   public $server= null;
   public $lastUsed= null;
@@ -117,6 +116,7 @@ class Connection {
     }
 
     try {
+      $this->packet= $options['packetStart'] ?? 0;
       $this->server= $this->hello($params);
       $this->compression= Compression::negotiate($this->server['compression'] ?? [], $options['params'] ?? []);
     } catch (ProtocolException $e) {
@@ -234,7 +234,7 @@ class Connection {
       $sections+= ['$readPreference' => $readPreference];
     }
 
-    $this->packet > 2147483647 ? $this->packet= 1 : $this->packet++;
+    $this->packet= ($this->packet % 2147483647) + 1;
     $body= $header.$this->bson->sections($sections);
     $length= strlen($body);
 
@@ -258,6 +258,13 @@ class Connection {
     $meta= unpack('VmessageLength/VrequestID/VresponseTo/VopCode', $this->read0(16));
     $response= $this->read0($meta['messageLength'] - 16);
     $this->lastUsed= time();
+
+    // We should always receive the response to the packet sent. Should this assumption fail,
+    // raise an error here to prevent a "messy" state later on. The protocol implementation
+    // can decide to close and reconnect in this case.
+    if ($meta['responseTo'] !== $this->packet) {
+      throw new ProtocolException('Packet #'.$meta['responseTo'].' out of order, expected #'.$this->packet);
+    }
 
     opcode: switch ($meta['opCode']) {
       case self::OP_MSG:
