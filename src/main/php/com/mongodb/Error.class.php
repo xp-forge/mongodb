@@ -33,6 +33,19 @@ class Error extends XPException {
   public function retried() { return $this->retried; }
 
   /**
+   * Creates a protocol error
+   *
+   * @param  com.mongodb.io.Connection $conn
+   * @param  ?lang.Throwable $cause
+   * @param  int|bool $retried
+   * @return self
+   */
+  public static function protocol($conn, $cause, $retried= 0) {
+    $kind= $conn->server['$kind'] ?? 'Unknown';
+    return new self(17, 'ProtocolError', "{$conn->address()} ({$kind})", $cause, $retried);
+  }
+
+  /**
    * Creates an error from a given error document
    *
    * @param  [:var] $document
