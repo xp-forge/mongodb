@@ -3,6 +3,10 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+* Merged PR #68: Retry reads and writes when protocol errors occur. See
+  https://www.mongodb.com/docs/manual/core/retryable-reads/ and
+  https://www.mongodb.com/docs/manual/core/retryable-writes/
+  (@thekid)
 * Made it possible to run commands like *replSetReconfig* via `run()` in
   both `com.mongodb.MongoConnection` and `com.mongodb.Collection` classes
   (@thekid)
