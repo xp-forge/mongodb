@@ -11,19 +11,20 @@ use peer\ProtocolException;
  * @see  https://github.com/mongodb/specifications/blob/master/source/server-selection/server-selection.rst#cursors
  */
 class Commands {
-  private $conn, $proto, $rp;
-  private $retry= true;
+  private $conn, $proto, $rp, $retry;
 
   /**
    * Creates an instance using a protocol and connection instance.
    *
    * @param  com.mongodb.io.Protocol $proto
    * @param  [:var] $rp
+   * @param  bool $retry
    */
-  private function __construct($proto, $rp) {
+  private function __construct($proto, $rp, $retry= true) {
     $this->conn= $proto->establish($proto->candidates($rp), 'commands with '.$rp['mode']);
     $this->proto= $proto;
     $this->rp= $rp;
+    $this->retry= $retry;
   }
 
   /** @return com.mongodb.io.Connection */
@@ -32,13 +33,21 @@ class Commands {
   /** Creates an instance for reading */
   public static function reading(Protocol $proto): self {
     $proto->nodes || $proto->connect();
-    return new self($proto, $proto->readPreference);
+    return new self(
+      $proto,
+      $proto->readPreference,
+      'true' === $proto->options()['params']['retryReads'] ?? 'true'
+    );
   }
 
   /** Creates an instance for writing */
   public static function writing(Protocol $proto): self {
     $proto->nodes || $proto->connect();
-    return new self($proto, ['mode' => 'primary']);
+    return new self(
+      $proto,
+      ['mode' => 'primary'],
+      'true' === $proto->options()['params']['retryWrites'] ?? 'true'
+    );
   }
 
   /**
