@@ -263,6 +263,8 @@ class Connection {
     // raise an error here to prevent a "messy" state later on. The protocol implementation
     // can decide to close and reconnect in this case.
     if ($meta['responseTo'] !== $this->packet) {
+      $this->server= null;
+      $this->socket->close();
       throw new ProtocolException('Packet #'.$meta['responseTo'].' out of order, expected #'.$this->packet);
     }
 

@@ -13,6 +13,7 @@ MongoDB for XP Framework ChangeLog
   (@thekid)
 * Merged PR #67: Add packet out-of-order detection, preventing inconsistent
   protocol state from causing confusing errors on subsequent requests.
+  Closes the corresponding connection.
   (@thekid)
 
 ## 3.9.0 / 2026-06-21
