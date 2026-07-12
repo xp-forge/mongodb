@@ -248,7 +248,7 @@ class Protocol {
     }
 
     $rp= $sections['$readPreference'] ?? $this->readPreference;
-    $retry= 'true' === $this->options['params']['retryReads'] ?? 'true';
+    $retry= 'true' === ($this->options['params']['retryReads'] ?? 'true');
     try {
       retry: $conn= $this->establish($this->candidates($rp), 'reading with '.$rp['mode']);
       $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
@@ -280,7 +280,7 @@ class Protocol {
     }
 
     $rp= $sections['$readPreference'] ?? $this->readPreference;
-    $retry= 'true' === $this->options['params']['retryWrites'] ?? 'true';
+    $retry= 'true' === ($this->options['params']['retryWrites'] ?? 'true');
     try {
       retry: $conn= $this->establish([$this->nodes['primary']], 'writing');
       $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);

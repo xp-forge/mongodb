@@ -36,7 +36,7 @@ class Commands {
     return new self(
       $proto,
       $proto->readPreference,
-      'true' === $proto->options()['params']['retryReads'] ?? 'true'
+      'true' === ($proto->options()['params']['retryReads'] ?? 'true')
     );
   }
 
@@ -46,7 +46,7 @@ class Commands {
     return new self(
       $proto,
       ['mode' => 'primary'],
-      'true' === $proto->options()['params']['retryWrites'] ?? 'true'
+      'true' === ($proto->options()['params']['retryWrites'] ?? 'true')
     );
   }
 
