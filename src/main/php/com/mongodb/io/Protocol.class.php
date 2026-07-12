@@ -3,7 +3,7 @@
 use com\mongodb\{Authentication, NoSuitableCandidate, CannotConnect, Error};
 use io\OperationFailed;
 use lang\{IllegalStateException, IllegalArgumentException, Throwable};
-use peer\{ConnectException, Socket, SocketException};
+use peer\{ConnectException, Socket, SocketException, ProtocolException};
 use util\Objects;
 
 /**
@@ -248,11 +248,20 @@ class Protocol {
     }
 
     $rp= $sections['$readPreference'] ?? $this->readPreference;
-    $conn= $this->establish($this->candidates($rp), 'reading with '.$rp['mode']);
-    $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
-    if (1 === (int)$r['body']['ok']) return $r;
+    $retry= true;
+    try {
+      retry: $conn= $this->establish($this->candidates($rp), 'reading with '.$rp['mode']);
+      $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
+      if (1 === (int)$r['body']['ok']) return $r;
+    } catch (ProtocolException $e) {
+      if (!$retry) throw Error::protocol($conn, $e, !$retry);
 
-    throw Error::newInstance($r['body']);
+      $conn->close();
+      $retry= false;
+      goto retry;
+    }
+
+    throw Error::newInstance($r['body'], !$retry);
   }
 
   /**
@@ -272,17 +281,23 @@ class Protocol {
 
     $rp= $sections['$readPreference'] ?? $this->readPreference;
     $retry= true;
+    try {
+      retry: $conn= $this->establish([$this->nodes['primary']], 'writing');
+      $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
+      if (1 === (int)$r['body']['ok']) return $r;
 
-    // Use send() API to prevent using exceptions for flow control
-    retry: $conn= $this->establish([$this->nodes['primary']], 'writing');
-    $r= $conn->send(Connection::OP_MSG, "\x00\x00\x00\x00\x00", $sections, $rp);
-    if (1 === (int)$r['body']['ok']) return $r;
+      // Check for "NotWritablePrimary" error, which indicates our view of the cluster
+      // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
+      // view using the "hello" command, then retry the command once.
+      if ($retry && isset(Error::NOT_PRIMARY[$r['body']['code']])) {
+        $this->useCluster($conn->hello());
+        $retry= false;
+        goto retry;
+      }
+    } catch (ProtocolException $e) {
+      if (!$retry) throw Error::protocol($conn, $e, !$retry);
 
-    // Check for "NotWritablePrimary" error, which indicates our view of the cluster
-    // may be outdated, see https://github.com/xp-forge/mongodb/issues/43. Refresh
-    // view using the "hello" command, then retry the command once.
-    if ($retry && isset(Error::NOT_PRIMARY[$r['body']['code']])) {
-      $this->useCluster($conn->hello());
+      $conn->close();
       $retry= false;
       goto retry;
     }
