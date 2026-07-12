@@ -3,6 +3,8 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.10.0 / 2026-07-12
+
 * Merged PR #68: Retry reads and writes when protocol errors occur. See
   https://www.mongodb.com/docs/manual/core/retryable-reads/ and
   https://www.mongodb.com/docs/manual/core/retryable-writes/
