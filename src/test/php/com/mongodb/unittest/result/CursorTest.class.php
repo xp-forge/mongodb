@@ -261,7 +261,7 @@ class CursorTest {
 
     Assert::equals(
       ['one' => 1000, 'two' => 2000],
-      iterator_to_array($fixture->keyBy(fn($r) => yield $r->id() => $r['user']['power']))
+      iterator_to_array($fixture->keyBy(fn($r) => [$r->id() => $r['user']['power']]))
     );
   }
 }
