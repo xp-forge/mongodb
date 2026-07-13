@@ -4,7 +4,7 @@ use com\mongodb\io\Commands;
 use com\mongodb\result\Cursor;
 use com\mongodb\{Document, Int64};
 use lang\IllegalStateException;
-use test\{Assert, Expect, Before, Test};
+use test\{Assert, Expect, Before, Test, Values};
 
 class CursorTest {
   private $commands;
@@ -230,5 +230,38 @@ class CursorTest {
 
     Assert::notEquals($one, $two);
     Assert::notEquals($one->hashCode(), $two->hashCode());
+  }
+
+  #[Test]
+  public function key_by_key() {
+    $one= ['_id' => 'one', 'user' => ['power' => 1000]];
+    $two= ['_id' => 'two', 'user' => ['power' => 2000]];
+    $fixture= new Cursor($this->commands, null, $this->firstBatch([$one, $two]));
+
+    Assert::equals(
+      ['one' => new Document($one), 'two' => new Document($two)],
+      iterator_to_array($fixture->keyBy('_id'))
+    );
+  }
+
+  #[Test, Values([[['_id' => 'user.power'], ['one' => 1000, 'two' => 2000]], [['user.power' => '_id'], [1000 => 'one',  2000 => 'two']]])]
+  public function key_by_map($fields, $expected) {
+    $one= ['_id' => 'one', 'user' => ['power' => 1000]];
+    $two= ['_id' => 'two', 'user' => ['power' => 2000]];
+    $fixture= new Cursor($this->commands, null, $this->firstBatch([$one, $two]));
+
+    Assert::equals($expected, iterator_to_array($fixture->keyBy($fields)));
+  }
+
+  #[Test]
+  public function key_by_callable() {
+    $one= ['_id' => 'one', 'user' => ['power' => 1000]];
+    $two= ['_id' => 'two', 'user' => ['power' => 2000]];
+    $fixture= new Cursor($this->commands, null, $this->firstBatch([$one, $two]));
+
+    Assert::equals(
+      ['one' => 1000, 'two' => 2000],
+      iterator_to_array($fixture->keyBy(fn($r) => yield $r->id() => $r['user']['power']))
+    );
   }
 }

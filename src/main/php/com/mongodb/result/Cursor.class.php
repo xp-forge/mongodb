@@ -85,6 +85,40 @@ class Cursor implements Value, IteratorAggregate {
   }
 
   /**
+   * Keys the results with one of the following:
+   *
+   * - `'_id'`: Uses the documents' ID as keys, and the whole document as values.
+   * - `['_id' => 'name']`: Uses the documents' ID as keys, and the 'name' field as values.
+   * - `fn($d) => yield $d->id() => $d->get('owner.name')`: Most flexible approach.
+   *
+   * @param  string|[:string]|(function(com.mongodb.Document): iterable) $map
+   * @return iterable
+   * @throws lang.IllegalStateException if the cursor has been forwarded
+   */
+  public function keyBy($map) {
+    if (isset($this->current['firstBatch'])) {
+      if (is_string($map)) {
+        foreach ($this as $document) {
+          yield $document->get($map) => $document;
+        }
+      } else if (is_array($map)) {
+        $k= key($map);
+        $v= $map[$k];
+        foreach ($this as $document) {
+          yield $document->get($k) => $document->get($v);
+        }
+      } else {
+        foreach ($this as $document) {
+          yield from $map($document);
+        }
+      }
+      return;
+    }
+
+    throw new IllegalStateException('Cursor has been forwarded - cannot fetch all documents');
+  }
+
+  /**
    * Closes this cursor, killing it if necessary
    *
    * @return void
