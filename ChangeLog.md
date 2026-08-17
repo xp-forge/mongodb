@@ -3,6 +3,12 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.11.0 / 2026-07-17
+
+* Added `com.mongodb.Decimal128::number()` which returns the underlying
+  number as a string, e.g. for working with *bcmath*.
+  (@thekid)
+
 ## 3.10.0 / 2026-07-12
 
 * Merged PR #68: Retry reads and writes when protocol errors occur. See

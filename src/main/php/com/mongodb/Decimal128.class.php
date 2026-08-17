@@ -91,7 +91,7 @@ class Decimal128 implements Value {
   }
 
   /** @return string */
-  public function __toString() {
+  public function number() {
     if (null !== $this->string) return $this->string;
 
     $sign= $this->hi->bitwiseAnd(self::SBM)->equals(self::SBM) ? '-' : '';
@@ -111,6 +111,7 @@ class Decimal128 implements Value {
 
     // Handle exponent
     if ($exponent >= 0) return $this->string= $sign.$significand;
+
     $l= strlen($significand);
     $a= abs($exponent);
     if ($l > $a) {
@@ -121,6 +122,9 @@ class Decimal128 implements Value {
       return $this->string= $sign.'0.'.str_repeat('0', $pad).$significand;
     }
   }
+
+  /** @return string */
+  public function __toString() { return $this->number(); }
 
   /** @return string */
   public function hashCode() { return $this->lo.','.$this->hi.'D'; }

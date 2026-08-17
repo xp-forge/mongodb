@@ -45,6 +45,10 @@ class Decimal128Test {
   }
 
   #[Test, Values(from: 'numbers')]
+  public function number($n) {
+    Assert::equals((string)$n, (new Decimal128($n))->number());
+  }
+  #[Test, Values(from: 'numbers')]
   public function string_representation($n) {
     Assert::equals("com.mongodb.Decimal128({$n})", (new Decimal128($n))->toString());
   }
