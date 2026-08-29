@@ -1,8 +1,8 @@
 <?php namespace com\mongodb\io;
 
-use Traversable, Stringable, StdClass;
+use Traversable, Stringable, StdClass, UnitEnum;
 use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128, MinKey, MaxKey, Encrypted};
-use lang\{FormatException, IllegalArgumentException};
+use lang\{FormatException, IllegalArgumentException, Enum};
 use util\{Bytes, Date, TimeZone, UUID};
 
 /** @see http://bsonspec.org/spec.html */
@@ -71,6 +71,12 @@ class BSON {
     } else if (is_array($value)) {
       $id= 0 === key($value) || empty($value) ? "\x04" : "\x03";
       return $id.$name."\x00".$this->sections($value);
+    } else if ($value instanceof UnitEnum) {
+      $string= $value->name;
+      return "\x02".$name."\x00".pack('V', strlen($value->name) + 1).$value->name."\x00";
+    } else if ($value instanceof Enum) {
+      $string= $value->name();
+      return "\x02".$name."\x00".pack('V', strlen($string) + 1).$string."\x00";
     }
 
     throw new IllegalArgumentException('Cannot encode value '.$name.' of type '.typeof($value));

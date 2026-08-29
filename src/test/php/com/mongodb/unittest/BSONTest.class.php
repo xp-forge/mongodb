@@ -3,8 +3,9 @@
 use com\mongodb\io\BSON;
 use com\mongodb\{Code, Decimal128, Document, Int64, MaxKey, MinKey, ObjectId, Regex, Timestamp, Encrypted};
 use lang\{FormatException, IllegalArgumentException};
+use test\verify\Runtime;
 use test\{Assert, Expect, Test, Values};
-use util\{Bytes, Date, UUID};
+use util\{Bytes, Date, UUID, Currency};
 
 class BSONTest {
 
@@ -119,6 +120,54 @@ class BSONTest {
     Assert::equals(
       "\x02test\x00\x05\x00\x00\x00Test\x00",
       (new BSON())->bytes('test', new class() { public function __toString() { return 'Test'; }})
+    );
+  }
+
+  #[Test]
+  public function encode_xp_enum() {
+    Assert::equals(
+      "\x02currency\x00\x04\x00\x00\x00EUR\x00",
+      (new BSON())->bytes('currency', Currency::$EUR)
+    );
+  }
+
+  #[Test, Runtime(php: '>=8.1')]
+  public function encode_unit_enum() {
+    $suit= eval(<<<'PHP'
+      enum Suit {
+        case Hearts;
+        case Diamonds;
+        case Clubs;
+        case Spades;
+      }
+
+      return Suit::Hearts;
+      PHP
+    );
+
+    Assert::equals(
+      "\x02suit\x00\x07\x00\x00\x00Hearts\x00",
+      (new BSON())->bytes('suit', $suit)
+    );
+  }
+
+  #[Test, Runtime(php: '>=8.1')]
+  public function encode_backed_enum() {
+    $suit= eval(<<<'PHP'
+      enum Coin : int {
+        case Penny = 1;
+        case Nickel = 5;
+        case Dime = 10;
+        case Quarter = 25;
+      }
+
+      return Coin::Dime;
+      PHP
+    );
+
+    Assert::equals(
+      "\x02coin\x00\x05\x00\x00\x00Dime\x00",
+      (new BSON())->bytes('coin', $suit)
     );
   }
 
