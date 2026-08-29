@@ -62,7 +62,7 @@ class BSON {
       return "\x05".$name."\x00".pack('Vc', $value->length(), 6).$value->ciphertext();
     } else if ($value instanceof Traversable || $value instanceof StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
-    } else if (is_string($value) || $value instanceof Stringable) {
+    } else if (is_string($value) || (PHP_VERSION_ID <= 80000 ? method_exists($value, '__toString') : $value instanceof Stringable)) {
       return "\x02".$name."\x00".pack('V', strlen($value) + 1).$value."\x00";
     } else if (is_int($value)) {
       return "\x10".$name."\x00".pack('V', $value);
