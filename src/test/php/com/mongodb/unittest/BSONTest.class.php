@@ -114,6 +114,14 @@ class BSONTest {
     );
   }
 
+  #[Test]
+  public function encode_stringable() {
+    Assert::equals(
+      "\x02test\x00\x05\x00\x00\x00Test\x00",
+      (new BSON())->bytes('test', new class() { public function __toString() { return 'Test'; }})
+    );
+  }
+
   #[Test, Expect(class: IllegalArgumentException::class, message: '/Cannot encode value test of type .+BSONTest/')]
   public function encode_unknown() {
     (new BSON())->bytes('test', $this);
