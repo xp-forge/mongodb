@@ -1,6 +1,6 @@
 <?php namespace com\mongodb\io;
 
-use Traversable, StdClass;
+use Traversable, Stringable, StdClass;
 use com\mongodb\{ObjectId, Timestamp, Regex, Int64, Code, Decimal128, MinKey, MaxKey, Encrypted};
 use lang\{FormatException, IllegalArgumentException};
 use util\{Bytes, Date, TimeZone, UUID};
@@ -62,7 +62,7 @@ class BSON {
       return "\x05".$name."\x00".pack('Vc', $value->length(), 6).$value->ciphertext();
     } else if ($value instanceof Traversable || $value instanceof StdClass) {
       return "\x03".$name."\x00".$this->sections($value);
-    } else if (is_string($value)) {
+    } else if (is_string($value) || $value instanceof Stringable) {
       return "\x02".$name."\x00".pack('V', strlen($value) + 1).$value."\x00";
     } else if (is_int($value)) {
       return "\x10".$name."\x00".pack('V', $value);
