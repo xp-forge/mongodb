@@ -3,6 +3,15 @@ MongoDB for XP Framework ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 3.12.0 / 2026-08-29
+
+* Merged PR #71: Support using Enum and UnitEnum implementations in BSON,
+  stored as strings.
+  (@thekid)
+* Merged PR #71: Support using Stringable implementations in BSON, stored
+  as strings; see https://www.php.net/manual/en/class.stringable.php
+  (@thekid)
+
 ## 3.11.0 / 2026-07-17
 
 * Added `com.mongodb.Decimal128::number()` which returns the underlying
